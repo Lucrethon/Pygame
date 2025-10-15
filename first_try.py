@@ -20,6 +20,9 @@ background = pygame.transform.scale(background, (1600, 960))
 clock = pygame.time.Clock() 
 #Each round loop is a frame 
 #without the control (clock), the loop will run at the fastest speed that the computer can allow 
+player_speed = 300
+
+player_initial_position = pygame.Vector2(0, 510)
 
 
 
@@ -28,8 +31,28 @@ clock = pygame.time.Clock()
 running = True
 x = 0
 
+
+
 #Initial game bucle
 while running:
+    
+    #set the frames per second 
+    fps = clock.tick(60)  # limita el juego a 60 FPS
+    #clock.tick returns the miliseconds since the last frame
+    
+    #delta time 
+    delta_time = fps / 1000
+    #we divide it between 1000 to tranform into seconds 
+        
+    #if speed = 200 and delta_time = 0.016 (1/60 fps), the player is moving at 200 * 0.016 = 3.2 píxels in that frame
+
+    #Set background image
+    screen.blit(background, (0, 0))
+    
+    #set player using gif-pygame library in initial position
+    player.render(screen, (player_initial_position))
+
+
     
     for event in pygame.event.get(): #iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:
@@ -40,26 +63,18 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-        # pygame.K_SCAPE event means the user press Esc button to close your window
-    
-    #set the frames per second 
-    fps = clock.tick(60)  # limita el juego a 60 FPS
-    #clock.tick returns the miliseconds since the last frame
-    
-    #delta time 
-    delta_time = fps / 1000
-    #we divide it between 1000 to tranform into seconds 
-    
-    player_speed += 200 * delta_time
-    
-    #if speed = 200 and delta_time = 0.016 (1/60 fps), the player is moving at 200 * 0.016 = 3.2 píxels in that frame
+        # pygame.K_SCAPE event means the user press Esc button to close your window       
+        
+    get_pressed_keys = pygame.key.get_pressed()
+    #set a key that occurrs while the player get pressed a button on the keyboard
 
-
-    #Set background image
-    screen.blit(background, (0, 0))
+    if get_pressed_keys[pygame.K_RIGHT]:
+        player_initial_position.x += player_speed * delta_time
     
-    #set player using gif-pygame library in initial position
-    player.render(screen, (0, 510))
+    
+    if get_pressed_keys[pygame.K_LEFT]:
+        player_initial_position.x -= player_speed * delta_time
+
 
 
     #update screen            
