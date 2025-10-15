@@ -70,10 +70,10 @@ while running:
     # set a key that occurrs while the player get pressed a button on the keyboard
 
     if get_pressed_keys[pygame.K_RIGHT]:
-        player.rect.x += player.speed * delta_time
+        player.movement(delta_time, screen, right=True)
 
     if get_pressed_keys[pygame.K_LEFT]:
-        player.rect.x -= player.speed * delta_time
+        player.movement(delta_time, screen, left=True)
 
     # update screen
     pygame.display.flip()

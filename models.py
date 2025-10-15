@@ -25,3 +25,24 @@ class GameObject:
 
         else:  # if not, it can draw also png and jpg images as well
             screen.blit(self.image, self.rect)
+
+    def movement(self, delta_time, screen, right=False, left=False):
+        
+        if right:
+            self.rect.x += self.speed * delta_time
+            
+        if left:
+            self.rect.x -= self.speed * delta_time
+            
+        if self.rect.right > screen.get_width() + self.rect.width:
+            self.rect.left = 0
+            
+        elif self.rect.left < -self.rect.width:
+            self.rect.right = screen.get_width()
+            
+
+        
+        
+        
+        
+            
