@@ -1,5 +1,6 @@
 import pygame
 import gif_pygame
+import models 
 
 #Initiate pygame
 pygame.init()
@@ -7,8 +8,13 @@ pygame.init()
 #Set screen size
 screen = pygame.display.set_mode((1600, 960))
 
-#Set player using gif-pygame library
-player = gif_pygame.load("./assets/Personaje_Arnaldo_pequeño_escalado.gif")
+#Set player image using gif-pygame library
+player_image = gif_pygame.load("./assets/Personaje_Arnaldo_pequeño_escalado.gif")
+
+#Set player speed
+player_speed = 300
+
+player = models.GameObject(player_image, player_speed)
 
 #Load background image
 background = pygame.image.load("./assets/Fondo.png").convert()
@@ -20,13 +26,12 @@ background = pygame.transform.scale(background, (1600, 960))
 clock = pygame.time.Clock() 
 #Each round loop is a frame 
 #without the control (clock), the loop will run at the fastest speed that the computer can allow 
-player_speed = 300
 
-player_initial_position = pygame.Vector2(0, 510)
-
+#player_initial_position = pygame.Vector2(0, 510)
 
 
-#convert()=
+
+#convert()= returns us a new Surface of the image, but now converted to the same pixel format as our display. Since the images will be the same format at the screen, they will blit very quickly. If we did not convert, the blit() function is slower, since it has to convert from one type of pixel to another as it goes.
 
 running = True
 x = 0
@@ -50,7 +55,7 @@ while running:
     screen.blit(background, (0, 0))
     
     #set player using gif-pygame library in initial position
-    player.render(screen, (player_initial_position))
+    player.draw_in_screen(screen)
 
 
     
@@ -69,11 +74,13 @@ while running:
     #set a key that occurrs while the player get pressed a button on the keyboard
 
     if get_pressed_keys[pygame.K_RIGHT]:
-        player_initial_position.x += player_speed * delta_time
+        player.rect.x += player.speed * delta_time
     
     
     if get_pressed_keys[pygame.K_LEFT]:
-        player_initial_position.x -= player_speed * delta_time
+        player.rect.x -= player.speed * delta_time
+        
+            
 
 
 
