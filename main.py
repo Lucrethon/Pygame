@@ -9,7 +9,7 @@ pygame.init()
 screen = pygame.display.set_mode((1600, 960))
 
 # Set player image using gif-pygame library
-player_image = gif_pygame.load("./assets/Personaje_Arnaldo_pequeño_escalado.gif")
+player_image = gif_pygame.load("./assets/Personaje_Arnaldo.gif")
 
 # Set player speed
 player_speed = 300

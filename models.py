@@ -7,7 +7,8 @@ pygame.init()
 
 class GameObject:
 
-    def __init__(self, image, speed):
+    def __init__(self, name, image, speed):
+        self.name = name
         self.image = image
         self.speed = speed
         self.rect = self.image.get_rect()  # get the size of the image to create a rect
@@ -41,8 +42,7 @@ class GameObject:
             self.rect.right = screen.get_width()
             
 
-        
-        
-        
-        
-            
+class Platform:
+    def __init__(self, name, image ):
+        self.name = name
+        self.image = image
