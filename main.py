@@ -1,27 +1,52 @@
 import pygame
 import gif_pygame
 import models
+import funtions
+from gif_pygame import transform
 
 # Initiate pygame
 pygame.init()
 
 # Set screen size
-screen = pygame.display.set_mode((1600, 960))
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+screen_width, screen_height = screen.get_size()
+
+base_width = 320
+base_height = 180
+
+# Factores de escala
+scale_x = screen_width / base_width
+scale_y = screen_height / base_height
+
+print(screen_width)
+print(screen_height)
+print(scale_x)
+print(scale_y)
+
 
 # Set player image using gif-pygame library
-player_image = gif_pygame.load("./assets/Personaje_Arnaldo.gif")
+player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx6.gif")
+#player_image = funtions.resize_gif(player_image, scale_x, scale_y)
 
 # Set player speed
 player_speed = 300
 
+#Player name
+player_name = "Arnaldo"
+
 # creating player object
-player = models.GameObject(player_image, player_speed)
+player = models.GameObject(player_name, player_image, player_speed)
 
 # Load background image
-background = pygame.image.load("./assets/Fondo.png").convert()
+background = pygame.image.load("./assets/Backgruound_320x180.png").convert()
 
 # Resize background image to fit window
-background = pygame.transform.scale(background, (1600, 960))
+background = pygame.transform.scale(background, (screen_width, screen_height))
+
+ground_image = pygame.image.load("./assets/Ground.png")
+ground_image = pygame.transform.scale(ground_image, (screen_width, screen_height))
+
+ground = models.Platform("ground", ground_image)
 
 # set game clock to control the time the loop
 clock = pygame.time.Clock()
@@ -52,6 +77,9 @@ while running:
 
     # Set background image
     screen.blit(background, (0, 0))
+    
+    ground.draw(screen)
+    ground.rect.move_ip(0, 960)
 
     # set player using gif-pygame library in initial position
     player.draw_in_screen(screen)
