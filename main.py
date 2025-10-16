@@ -18,11 +18,6 @@ base_height = 180
 scale_x = screen_width / base_width
 scale_y = screen_height / base_height
 
-print(screen_width)
-print(screen_height)
-print(scale_x)
-print(scale_y)
-
 
 # Set player image using gif-pygame library
 player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx6.gif")
@@ -44,7 +39,7 @@ background = pygame.image.load("./assets/Backgruound_320x180.png").convert()
 background = pygame.transform.scale(background, (screen_width, screen_height))
 
 ground_image = pygame.image.load("./assets/Ground.png")
-ground_image = pygame.transform.scale(ground_image, (screen_width, screen_height))
+ground_image = funtions.resize(ground_image, scale_x, scale_y)
 
 ground = models.Platform("ground", ground_image)
 
@@ -75,14 +70,16 @@ while running:
 
     # if speed = 200 and delta_time = 0.016 (1/60 fps), the player is moving at 200 * 0.016 = 3.2 píxels in that frame
 
-    # Set background image
-    screen.blit(background, (0, 0))
+    #x & y position in the lower right corner
+
+    # Set ground rect & image
+    ground.draw(screen, (screen_width - ground.rect.width), (screen_height - ground.rect.height))
     
-    ground.draw(screen)
-    ground.rect.move_ip(0, 960)
+    #set background
+    screen.blit(background, (0, 0))
 
     # set player using gif-pygame library in initial position
-    player.draw_in_screen(screen)
+    player.draw(screen, )
 
     for event in pygame.event.get():  # iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:
