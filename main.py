@@ -30,7 +30,8 @@ player_speed = 300
 player_name = "Arnaldo"
 
 # creating player object
-player = models.GameObject(player_name, player_image, player_speed)
+player = models.Player(player_name, player_image, player_speed)
+player.set_position(0, 520)
 
 # Load background image
 background = pygame.image.load("./assets/Backgruound_320x180.png").convert()
@@ -41,7 +42,8 @@ background = pygame.transform.scale(background, (screen_width, screen_height))
 ground_image = pygame.image.load("./assets/Ground.png")
 ground_image = funtions.resize(ground_image, scale_x, scale_y)
 
-ground = models.Platform("ground", ground_image)
+ground = models.Platform("ground", ground_image, 0)
+ground.set_position((screen_width - ground.rect.width), (screen_height - ground.rect.height))
 
 # set game clock to control the time the loop
 clock = pygame.time.Clock()
@@ -73,13 +75,14 @@ while running:
     #x & y position in the lower right corner
 
     # Set ground rect & image
-    ground.draw(screen, (screen_width - ground.rect.width), (screen_height - ground.rect.height))
+    ground.draw(screen)
+
     
     #set background
     screen.blit(background, (0, 0))
 
     # set player using gif-pygame library in initial position
-    player.draw(screen, )
+    player.draw(screen)
 
     for event in pygame.event.get():  # iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:

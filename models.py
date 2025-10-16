@@ -20,18 +20,19 @@ class GameObject(ABC):
     # sintaxis: gif.render(screen_size, (gif_coordinates_tobe_placed))
     
     @abstractmethod
-    def draw(self, screen, x_pos, y_pos):
+    def draw(self, screen):
         if hasattr(
             self.image, "render"
         ):  # this condition check if an object (self.image in this case) has certain atribute ("render" in this case, proper of gif_pygame library (gif objects))
                 
             self.image.render(screen, (self.rect))
-            self.rect.move_ip(x_pos, y_pos)
 
         else:  # if not, it can draw also png and jpg images as well
-            screen.blit(self.image, (x_pos, y_pos))
-            self.rect.move_ip(x_pos, y_pos)
+            screen.blit(self.image, (self.rect))
             # .move_ip(x, y) moves the rect to those coordenates
+    
+    def set_position(self, x_pos, y_pos):
+        self.rect.topleft = (x_pos, y_pos)
         
     @abstractmethod
     def movement(self): 
@@ -44,8 +45,11 @@ class Player(GameObject):
     def __init__(self, name, image, speed):
         super().__init__(name, image, speed)
         
-    def draw(self, screen, x_pos, y_pos):
-        return super().draw(screen, x_pos, y_pos)
+    def draw(self, screen):
+        return super().draw(screen)
+    
+    def set_position(self, x_pos, y_pos):
+        return super().set_position(x_pos, y_pos)
     
     def movement(self, delta_time, screen, right=False, left=False):
         
@@ -67,8 +71,11 @@ class Platform(GameObject):
     def __init__(self, name, image, speed):
         super().__init__(name, image, speed)
         
-    def draw(self, screen, x_pos, y_pos):
-        return super().draw(screen, x_pos, y_pos)
+    def draw(self, screen):
+        return super().draw(screen)
+    
+    def set_position(self, x_pos, y_pos):
+        return super().set_position(x_pos, y_pos)
 
     def movement(self):
-        return super().movement()
+        pass
