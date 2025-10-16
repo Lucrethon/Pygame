@@ -1,11 +1,13 @@
 import pygame
 import gif_pygame
+from abc import ABC, abstractmethod, abstractclassmethod
+
 
 # Initiate pygame
 pygame.init()
 
 
-class GameObject:
+class GameObject(ABC):
 
     def __init__(self, name, image, speed):
         self.name = name
@@ -17,7 +19,7 @@ class GameObject:
 
     # sintaxis: gif.render(screen_size, (gif_coordinates_tobe_placed))
     
-
+    @abstractmethod
     def draw(self, screen, x_pos, y_pos):
         if hasattr(
             self.image, "render"
@@ -30,7 +32,21 @@ class GameObject:
             screen.blit(self.image, (x_pos, y_pos))
             self.rect.move_ip(x_pos, y_pos)
             # .move_ip(x, y) moves the rect to those coordenates
+        
+    @abstractmethod
+    def movement(self): 
+        pass
 
+    
+            
+
+class Player(GameObject):
+    def __init__(self, name, image, speed):
+        super().__init__(name, image, speed)
+        
+    def draw(self, screen, x_pos, y_pos):
+        return super().draw(screen, x_pos, y_pos)
+    
     def movement(self, delta_time, screen, right=False, left=False):
         
         if right:
@@ -47,13 +63,12 @@ class GameObject:
     
             
 
-class Platform:
-    def __init__(self, name, image ):
-        self.name = name
-        self.image = image
-        self.rect = self.image.get_rect()
+class Platform(GameObject):
+    def __init__(self, name, image, speed):
+        super().__init__(name, image, speed)
         
-    
     def draw(self, screen, x_pos, y_pos):
-        screen.blit(self.image, (x_pos, y_pos))
-        self.rect.move_ip(x_pos, y_pos)
+        return super().draw(screen, x_pos, y_pos)
+
+    def movement(self):
+        return super().movement()
