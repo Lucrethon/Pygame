@@ -31,8 +31,14 @@ class GameObject(ABC):
             screen.blit(self.image, (self.rect))
             # .move_ip(x, y) moves the rect to those coordenates
     
-    def set_position(self, x_pos, y_pos):
-        self.rect.topleft = (x_pos, y_pos)
+    def set_position(self, x_pos, y_pos, aling_bottom=False):
+        
+        if aling_bottom: 
+            self.rect.midbottom = (x_pos, y_pos)
+            #midbottom: Se refiere a la coordenada X y a la coordenada Y del punto central inferior de un rectángulo. 
+        
+        else:
+            self.rect.topleft = (x_pos, y_pos)
         
     @abstractmethod
     def movement(self): 
@@ -48,8 +54,8 @@ class Player(GameObject):
     def draw(self, screen):
         return super().draw(screen)
     
-    def set_position(self, x_pos, y_pos):
-        return super().set_position(x_pos, y_pos)
+    def set_position(self, x_pos, y_pos, aling_bottom=False):
+        return super().set_position(x_pos, y_pos, aling_bottom)
     
     def movement(self, delta_time, screen, right=False, left=False):
         
@@ -74,8 +80,8 @@ class Platform(GameObject):
     def draw(self, screen):
         return super().draw(screen)
     
-    def set_position(self, x_pos, y_pos):
-        return super().set_position(x_pos, y_pos)
+    def set_position(self, x_pos, y_pos, aling_bottom=False):
+        return super().set_position(x_pos, y_pos, aling_bottom)
 
     def movement(self):
         pass
