@@ -3,6 +3,7 @@ import gif_pygame
 import models
 import funtions
 from gif_pygame import transform
+import time
 
 # Initiate pygame
 pygame.init()
@@ -27,7 +28,7 @@ background = pygame.transform.scale(background, (screen_width, screen_height))
 ground_image = pygame.image.load("./assets/Ground.png")
 ground_image = funtions.resize(ground_image, scale_x, scale_y)
 
-ground = models.Platform("ground", ground_image, 0)
+ground = models.Platform("ground", ground_image)
 ground.set_position((screen_width - ground.rect.width), (screen_height - ground.rect.height))
 
 
@@ -36,13 +37,15 @@ player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx6.gif")
 #player_image = funtions.resize_gif(player_image, scale_x, scale_y)
 
 # Set player speed
-player_speed = 300
+player_x_speed = 300
+
+player_y_speed = -300
 
 #Player name
 player_name = "Arnaldo"
 
 # creating player object
-player = models.Player(player_name, player_image, player_speed)
+player = models.Player(player_name, player_image, player_x_speed)
 #set inicial position
 player.set_position((player.rect.width/2), ground.rect.top, True)
 
@@ -99,11 +102,12 @@ while running:
     get_pressed_keys = pygame.key.get_pressed()
     # set a key that occurrs while the player get pressed a button on the keyboard
 
-    if get_pressed_keys[pygame.K_RIGHT]:
-        player.movement(delta_time, screen, right=True)
+    move_right = get_pressed_keys[pygame.K_RIGHT]
+    move_left = get_pressed_keys[pygame.K_LEFT]
+    jumping = get_pressed_keys[pygame.K_SPACE]
+    
+    player.movement(delta_time, screen, ground, move_right, move_left, jumping)
 
-    if get_pressed_keys[pygame.K_LEFT]:
-        player.movement(delta_time, screen, left=True)
 
     # update screen
     pygame.display.flip()
