@@ -52,7 +52,7 @@ class Player(GameObject):
         super().__init__(name, image)
         self.x_speed = x_speed
         self.y_speed = 0
-        self.gravity = 940
+        self.gravity = 2700
         self.jump_speed = -1000
         self.isJumping = False 
         
@@ -73,10 +73,14 @@ class Player(GameObject):
         if left:
             delta_x -= self.x_speed * delta_time
         
+        #if the player maintain press space
         if jump and self.isJumping == False:
             self.y_speed = self.jump_speed
             self.isJumping = True
-            
+        
+        #in the player is jumping (no ground collision yet) but the player still jumping (press space for a short time)
+        if not jump and self.y_speed < 0:    
+            self.y_speed *= 0.5        
         #setting the character go to the oposite side if he goes off the edge of one side of the screen 
             
         if self.rect.right > screen.get_width() + self.rect.width:
