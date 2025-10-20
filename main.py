@@ -39,15 +39,17 @@ player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx6.gif")
 # Set player speed
 player_x_speed = 300
 
-player_y_speed = -300
-
 #Player name
 player_name = "Arnaldo"
 
 # creating player object
 player = models.Player(player_name, player_image, player_x_speed)
 #set inicial position
-player.set_position((player.rect.width/2), ground.rect.top, True)
+player.set_position(screen_width/2, ground.rect.top, True)
+
+enemy = models.Ememy("Luki")
+enemy.set_position((player.rect.width/2), ground.rect.top, True)
+
 
 
 # set game clock to control the time the loop
@@ -88,6 +90,9 @@ while running:
 
     # set player using gif-pygame library in initial position
     player.draw(screen)
+    enemy.draw(screen)
+    #enemy.movement(screen, delta_time)
+
 
     for event in pygame.event.get():  # iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:

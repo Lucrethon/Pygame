@@ -55,6 +55,7 @@ class Player(GameObject):
         self.gravity = 2700
         self.jump_speed = -1000
         self.isJumping = False 
+        self.HP = 5
         
     def draw(self, screen):
         return super().draw(screen)
@@ -73,14 +74,16 @@ class Player(GameObject):
         if left:
             delta_x -= self.x_speed * delta_time
         
-        #if the player maintain press space
+        #if the player is not jumping and maitain Space button pressed (long jump)
         if jump and self.isJumping == False:
             self.y_speed = self.jump_speed
             self.isJumping = True
         
-        #in the player is jumping (no ground collision yet) but the player still jumping (press space for a short time)
+        #if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
         if not jump and self.y_speed < 0:    
-            self.y_speed *= 0.5        
+            self.y_speed *= 0.5       
+            
+            
         #setting the character go to the oposite side if he goes off the edge of one side of the screen 
             
         if self.rect.right > screen.get_width() + self.rect.width:
@@ -104,6 +107,8 @@ class Player(GameObject):
             self.rect.bottom = ground.rect.top
             self.isJumping = False
     
+    def attack(self):
+        pass
 
 class Platform(GameObject):
     def __init__(self, name, image):
@@ -117,3 +122,44 @@ class Platform(GameObject):
 
     def movement(self):
         pass
+
+
+class Ememy():
+    def __init__(self, name):
+        self.name = name
+        self.rect = pygame.Rect(0, 0, 90, 90)
+        self.x_speed = 300
+        self.HP = 6
+    
+    def draw(self, screen):
+        pygame.draw.rect(screen, (255, 0, 0), (self.rect))
+
+    
+    def set_position(self, x_pos, y_pos, aling_bottom=False):
+        if aling_bottom: 
+            self.rect.midbottom = (x_pos, y_pos)
+            #midbottom: Se refiere a la coordenada X y a la coordenada Y del punto central inferior de un rectángulo. 
+        
+        else:
+            self.rect.topleft = (x_pos, y_pos)
+    
+    def movement(self, screen, delta_time):
+        
+        delta_x = 0
+        delta_y = 0
+        
+        delta_x += self.x_speed * delta_time
+        
+        #updates rect position 
+        self.rect.move_ip(delta_x, 0)
+        
+        #setting the enemy to don't go off the edge of the screen 
+            
+        if self.rect.right > screen.get_width():
+            self.x_speed *= -1
+
+                                
+        if self.rect.left <= 0:
+            self.x_speed *= -1
+        
+        
