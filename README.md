@@ -10,11 +10,11 @@ All pixel art assets (characters, enemies, backgrounds) were created 100% by me 
 Key Features:
 
 Implementation of the player's basic moveset (movement, jump, attack).
-
 Enemy spawning system with scalable difficulty.
 
 
 Technologies Used:
+
 Python
 Pygame
 Aseprite (for all artwork)
