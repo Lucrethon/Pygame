@@ -1,4 +1,4 @@
-2D Combat Arena with Pygame (Hollow Knight-Inspired)
+Title: 2D Combat Arena with Pygame (Hollow Knight-Inspired)
 
 Status: Work in Progress
 
