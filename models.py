@@ -1,5 +1,6 @@
 import pygame
 import gif_pygame
+import gif_pygame.transform
 from abc import ABC, abstractmethod, abstractclassmethod
 import time
 
@@ -56,12 +57,18 @@ class Player(GameObject):
         self.jump_speed = -1000
         self.isJumping = False 
         self.HP = 5
+        self.isAttacking = False 
+        self.AttackDuration = 500 #miliseconds
+        self.facing_right = True
         
     def draw(self, screen):
         return super().draw(screen)
     
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
+    
+    def facing(self):
+        pass
     
     def movement(self, delta_time, screen, ground, right=False, left=False, jump=False):
         
@@ -71,8 +78,28 @@ class Player(GameObject):
         if right:
             delta_x += self.x_speed * delta_time
             
+            if self.facing_right: 
+                pass
+            else:
+            
+            #flip sprite to right
+                self.facing_right = True 
+                gif_pygame.transform.flip(self.image, True, False)
+                # self.facing_right = True 
+                # actual_surface = self.image.blit_ready()
+                # flip_surface = pygame.transform.flip(actual_surface, True, False)
+            
         if left:
             delta_x -= self.x_speed * delta_time
+            
+            #flip sprite to left 
+            if not self.facing_right: 
+                pass
+            else:
+            
+            #flip sprite to left
+                self.facing_right = False 
+                gif_pygame.transform.flip(self.image, True, False)
         
         #if the player is not jumping and maitain Space button pressed (long jump)
         if jump and self.isJumping == False:
@@ -107,8 +134,35 @@ class Player(GameObject):
             self.rect.bottom = ground.rect.top
             self.isJumping = False
     
-    def attack(self):
-        pass
+    def attack(self, attack = False):
+        if attack and self.isAttacking == False:
+            
+            #setting self state
+            self.isAttacking == True
+            
+            #set player sprite attack 
+            
+            #get time when the attack start
+            start_attack_time = pygame.time.get_ticks
+            
+            #create temporal rect 
+            
+            #right the player 
+            hitbox = pygame.Rect(self.rect.x + 50, 0, 90, 90)
+            
+            #check collision 
+            
+            #disapear rect 
+            
+            #attack end 
+            now = pygame.time.get_ticks
+            if now - start_attack_time > self.AttackDuration: 
+                self.isAttacking = False
+            
+            
+            
+            
+            
 
 class Platform(GameObject):
     def __init__(self, name, image):
@@ -155,7 +209,7 @@ class Ememy():
         
         #setting the enemy to don't go off the edge of the screen 
             
-        if self.rect.right > screen.get_width():
+        if self.rect.right >= screen.get_width():
             self.x_speed *= -1
 
                                 

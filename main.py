@@ -12,6 +12,7 @@ pygame.init()
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen_width, screen_height = screen.get_size()
 
+#acording background asset
 base_width = 320
 base_height = 180
 
@@ -47,6 +48,7 @@ player = models.Player(player_name, player_image, player_x_speed)
 #set inicial position
 player.set_position(screen_width/2, ground.rect.top, True)
 
+#creating enemy object
 enemy = models.Ememy("Luki")
 enemy.set_position((player.rect.width/2), ground.rect.top, True)
 
@@ -91,7 +93,7 @@ while running:
     # set player using gif-pygame library in initial position
     player.draw(screen)
     enemy.draw(screen)
-    #enemy.movement(screen, delta_time)
+    enemy.movement(screen, delta_time)
 
 
     for event in pygame.event.get():  # iteracion sobre todos los eventos de pygame
