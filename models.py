@@ -57,9 +57,13 @@ class Player(GameObject):
         self.jump_speed = -1000
         self.isJumping = False 
         self.HP = 5
-        self.isAttacking = False 
-        self.AttackDuration = 500 #miliseconds
         self.facing_right = True
+        self.facing_up = False
+        self.facing_down = False
+        self.isAttacking = False 
+        self.start_attack_time = 0 #necesito que el jugador recuerde su tiempo para saber si puede volver a atacar o no
+        self.AttackDuration = 2000 #miliseconds
+
         
     def draw(self, screen):
         return super().draw(screen)
@@ -70,7 +74,7 @@ class Player(GameObject):
     def facing(self):
         pass
     
-    def movement(self, delta_time, screen, ground, right=False, left=False, jump=False):
+    def movement(self, delta_time, screen, ground, right=False, left=False, jump=False, up=False, down=False):
         
         delta_x = 0 #variation in x
         delta_y = 0 #variation in y
@@ -85,10 +89,7 @@ class Player(GameObject):
             #flip sprite to right
                 self.facing_right = True 
                 gif_pygame.transform.flip(self.image, True, False)
-                # self.facing_right = True 
-                # actual_surface = self.image.blit_ready()
-                # flip_surface = pygame.transform.flip(actual_surface, True, False)
-            
+
         if left:
             delta_x -= self.x_speed * delta_time
             
@@ -105,10 +106,24 @@ class Player(GameObject):
         if jump and self.isJumping == False:
             self.y_speed = self.jump_speed
             self.isJumping = True
+            
         
         #if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
         if not jump and self.y_speed < 0:    
-            self.y_speed *= 0.5       
+            self.y_speed *= 0.5     
+        
+        
+        if up and not down: 
+            self.facing_down = False
+            self.facing_up = True
+        
+        elif down and not up:
+            self.facing_up = False
+            self.facing_down = True
+        
+        else: 
+            self.facing_up = False
+            self.facing_down = False
             
             
         #setting the character go to the oposite side if he goes off the edge of one side of the screen 
@@ -134,32 +149,63 @@ class Player(GameObject):
             self.rect.bottom = ground.rect.top
             self.isJumping = False
     
-    def attack(self, attack = False):
+    
+    def attack(self, screen, enemy, attack = False):
         if attack and self.isAttacking == False:
             
             #setting self state
-            self.isAttacking == True
+            self.isAttacking = True
             
             #set player sprite attack 
             
             #get time when the attack start
-            start_attack_time = pygame.time.get_ticks
+            self.start_attack_time = pygame.time.get_ticks()
             
+        if self.isAttacking:
             #create temporal rect 
+            hitbox_width = 90
+            hitbox_height = 90
+            
+            #up the player 
+            if self.facing_up and not self.facing_down: 
+                hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
+                hitbox.midbottom = self.rect.midtop
+                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
+            
+            #down the player
+            elif self.facing_down and not self.facing_up: 
+                hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
+                hitbox.midtop = self.rect.midbottom
+                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
             
             #right the player 
-            hitbox = pygame.Rect(self.rect.x + 50, 0, 90, 90)
+            elif self.facing_right:
+                hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
+                hitbox.midleft = self.rect.midright
+                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
+            
+            #left the player
+            else:
+                if not self.facing_right: 
+                    hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
+                    hitbox.midright = self.rect.midleft
+                    pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
+                
+            
+
             
             #check collision 
+            if hitbox.colliderect(enemy.rect):
+                print("Impacto!")
             
             #disapear rect 
             
             #attack end 
-            now = pygame.time.get_ticks
-            if now - start_attack_time > self.AttackDuration: 
+            now = pygame.time.get_ticks()
+            if now - self.start_attack_time > self.AttackDuration: 
                 self.isAttacking = False
             
-            
+            #return to iddle animation
             
             
             

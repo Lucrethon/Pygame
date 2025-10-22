@@ -105,6 +105,12 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
         # pygame.K_SCAPE event means the user press Esc button to close your window
+        
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            
+            if event.button == 3:
+                player.attack(screen, enemy, attack=True)
+                
 
     get_pressed_keys = pygame.key.get_pressed()
     # set a key that occurrs while the player get pressed a button on the keyboard
@@ -112,10 +118,14 @@ while running:
     move_right = get_pressed_keys[pygame.K_RIGHT]
     move_left = get_pressed_keys[pygame.K_LEFT]
     jumping = get_pressed_keys[pygame.K_SPACE]
+    face_up = get_pressed_keys[pygame.K_UP]
+    face_down = get_pressed_keys[pygame.K_DOWN]
     
-    player.movement(delta_time, screen, ground, move_right, move_left, jumping)
+    player.movement(delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down)
 
-
+    # mouse_keys = pygame.MOUSEBUTTONDOWN
+    # attack = mouse_keys[3]
+    
     # update screen
     pygame.display.flip()
 
