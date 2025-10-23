@@ -165,44 +165,48 @@ class Player(GameObject):
             #create temporal rect 
             hitbox_width = 90
             hitbox_height = 90
+            hitbox = None
             
             #up the player 
             if self.facing_up and not self.facing_down: 
                 hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                 hitbox.midbottom = self.rect.midtop
-                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
             
             #down the player
-            elif self.facing_down and not self.facing_up: 
+            elif self.facing_down and not self.facing_up and self.isJumping: 
                 hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                 hitbox.midtop = self.rect.midbottom
-                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
             
             #right the player 
-            elif self.facing_right:
+            elif self.facing_right and not self.facing_down:
                 hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                 hitbox.midleft = self.rect.midright
-                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
             
             #left the player
             else:
-                if not self.facing_right: 
+                if not self.facing_right and not self.facing_down: 
                     hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                     hitbox.midright = self.rect.midleft
-                    pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
                 
             
-
-            
             #check collision 
-            if hitbox.colliderect(enemy.rect):
-                print("Impacto!")
+            if hitbox: 
+                
+                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
             
-            #disapear rect 
+                if hitbox.colliderect(enemy.rect):
+                    print("Impacto!")
+                
+                else:
+                    pass
             
-            #attack end 
+            else:
+                pass
+                        
+            #disapear rect and attack end 
             now = pygame.time.get_ticks()
             if now - self.start_attack_time > self.AttackDuration: 
+                exist_hitbox = False
                 self.isAttacking = False
             
             #return to iddle animation
