@@ -1,20 +1,23 @@
 import pygame
 import gif_pygame
 import gif_pygame.transform
-from abc import ABC, abstractmethod, abstractclassmethod
-import time
+from abc import ABC, abstractmethod
 
 
 # Initiate pygame
 pygame.init()
 
+# Creas los grupos primero
+all_sprites = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 
-class GameObject(ABC):
+class GameObject(ABC, pygame.sprite.Sprite):
 
     def __init__(self, name, image):
+        super().__init__()
         self.name = name
         self.image = image
-        self.rect = self.image.get_rect()  # get the size of the image to create a rect
+        self.rect = self.image.get_rect()  # get the size of the image to create a rects
 
     # if self.image is .gif, it has to be place on the screen diferently than static images that uses blit(). Gifs have to be placed with .render()
 
@@ -61,6 +64,7 @@ class Player(GameObject):
         self.facing_up = False
         self.facing_down = False
         self.isAttacking = False 
+        self.isFalling = False
         self.start_attack_time = 0 #necesito que el jugador recuerde su tiempo para saber si puede volver a atacar o no
         self.AttackDuration = 2000 #miliseconds
 
@@ -148,6 +152,8 @@ class Player(GameObject):
             self.y_speed = 0
             self.rect.bottom = ground.rect.top
             self.isJumping = False
+            self.isFalling = False
+        
     
     
     def attack(self, screen, enemy, attack = False):
@@ -163,28 +169,42 @@ class Player(GameObject):
             
         if self.isAttacking:
             #create temporal rect 
-            hitbox_width = 90
-            hitbox_height = 90
             hitbox = None
             
             #up the player 
             if self.facing_up and not self.facing_down: 
+                
+                hitbox_width = self.rect.height
+                hitbox_height = 90
+                
                 hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                 hitbox.midbottom = self.rect.midtop
             
             #down the player
             elif self.facing_down and not self.facing_up and self.isJumping: 
+                
+                hitbox_width = self.rect.height
+                hitbox_height = 90
+                
                 hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                 hitbox.midtop = self.rect.midbottom
             
             #right the player 
             elif self.facing_right and not self.facing_down:
+                
+                hitbox_width = 90
+                hitbox_height = self.rect.height
+                
                 hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                 hitbox.midleft = self.rect.midright
             
             #left the player
             else:
-                if not self.facing_right and not self.facing_down: 
+                if not self.facing_right and not self.facing_down:
+                    
+                    hitbox_width = 90
+                    hitbox_height = self.rect.height
+                    
                     hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                     hitbox.midright = self.rect.midleft
                 
@@ -195,7 +215,8 @@ class Player(GameObject):
                 pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
             
                 if hitbox.colliderect(enemy.rect):
-                    print("Impacto!")
+                    enemy.kill()
+                    
                 
                 else:
                     pass
@@ -228,24 +249,20 @@ class Platform(GameObject):
         pass
 
 
-class Ememy():
-    def __init__(self, name):
-        self.name = name
-        self.rect = pygame.Rect(0, 0, 90, 90)
+class Enemy(GameObject):
+    
+    def __init__(self, name, image):
+        super().__init__(name, image)
         self.x_speed = 300
         self.HP = 6
+        self.isDead = False
     
     def draw(self, screen):
-        pygame.draw.rect(screen, (255, 0, 0), (self.rect))
+        return super().draw(screen)
 
     
     def set_position(self, x_pos, y_pos, aling_bottom=False):
-        if aling_bottom: 
-            self.rect.midbottom = (x_pos, y_pos)
-            #midbottom: Se refiere a la coordenada X y a la coordenada Y del punto central inferior de un rectángulo. 
-        
-        else:
-            self.rect.topleft = (x_pos, y_pos)
+        return super().set_position(x_pos, y_pos, aling_bottom)
     
     def movement(self, screen, delta_time):
         
@@ -266,4 +283,7 @@ class Ememy():
         if self.rect.left <= 0:
             self.x_speed *= -1
         
-        
+    
+    def kill(self):
+        self.isDead = True
+        pygame.sprite.Sprite.kill(self)

@@ -9,7 +9,7 @@ import time
 pygame.init()
 
 # Set screen size
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+screen = funtions.setup_screen(False)
 screen_width, screen_height = screen.get_size()
 
 #acording background asset
@@ -34,7 +34,7 @@ ground.set_position((screen_width - ground.rect.width), (screen_height - ground.
 
 
 # Set player image using gif-pygame library
-player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx6.gif")
+player_image = funtions.setup_player_gif(screen)
 #player_image = funtions.resize_gif(player_image, scale_x, scale_y)
 
 # Set player speed
@@ -49,7 +49,9 @@ player = models.Player(player_name, player_image, player_x_speed)
 player.set_position(screen_width/2, ground.rect.top, True)
 
 #creating enemy object
-enemy = models.Ememy("Luki")
+enemy_image = pygame.Surface([90, 90])
+enemy_image.fill((255, 0, 0))
+enemy = models.Enemy("Luki", enemy_image)
 enemy.set_position((player.rect.width/2), ground.rect.top, True)
 
 
