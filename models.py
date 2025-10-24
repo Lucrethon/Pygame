@@ -7,14 +7,15 @@ from abc import ABC, abstractmethod
 # Initiate pygame
 pygame.init()
 
-# Creas los grupos primero
-all_sprites = pygame.sprite.Group()
-enemy_group = pygame.sprite.Group()
+# Grupos de srpites
+all_sprites = pygame.sprite.Group()     # Grupo para DIBUJAR todo
+moving_sprites = pygame.sprite.Group()  # Grupo para ACTUALIZAR solo lo que se mueve
+enemy_group = pygame.sprite.Group()     # Grupo para colisiones de enemigos
 
 class GameObject(ABC, pygame.sprite.Sprite):
 
-    def __init__(self, name, image):
-        super().__init__()
+    def __init__(self, name, image, *groups):
+        super().__init__(*groups)
         self.name = name
         self.image = image
         self.rect = self.image.get_rect()  # get the size of the image to create a rects
@@ -53,7 +54,7 @@ class GameObject(ABC, pygame.sprite.Sprite):
 
 class Player(GameObject):
     def __init__(self, name, image, x_speed):
-        super().__init__(name, image)
+        super().__init__(name, image, all_sprites, moving_sprites)
         self.x_speed = x_speed
         self.y_speed = 0
         self.gravity = 2700
@@ -237,7 +238,7 @@ class Player(GameObject):
 
 class Platform(GameObject):
     def __init__(self, name, image):
-        super().__init__(name, image)
+        super().__init__(name, image, all_sprites)
         
     def draw(self, screen):
         return super().draw(screen)
@@ -252,7 +253,7 @@ class Platform(GameObject):
 class Enemy(GameObject):
     
     def __init__(self, name, image):
-        super().__init__(name, image)
+        super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
         self.x_speed = 300
         self.HP = 6
         self.isDead = False
@@ -286,4 +287,4 @@ class Enemy(GameObject):
     
     def kill(self):
         self.isDead = True
-        pygame.sprite.Sprite.kill(self)
+        super().kill()

@@ -1,7 +1,7 @@
 import pygame
 import gif_pygame
 import models
-import funtions
+import functions
 from gif_pygame import transform
 import time
 
@@ -9,14 +9,14 @@ import time
 pygame.init()
 
 # Set screen size
-screen = funtions.setup_screen(False)
+screen = functions.setup_screen(False)
 screen_width, screen_height = screen.get_size()
 
-#acording background asset
+#creating scale factors acording background asset
 base_width = 320
 base_height = 180
 
-# Factores de escala
+# scales factors 
 scale_x = screen_width / base_width
 scale_y = screen_height / base_height
 
@@ -26,16 +26,20 @@ background = pygame.image.load("./assets/Backgruound_320x180.png").convert()
 # Resize background image to fit window
 background = pygame.transform.scale(background, (screen_width, screen_height))
 
+#load background image
 ground_image = pygame.image.load("./assets/Ground.png")
-ground_image = funtions.resize(ground_image, scale_x, scale_y)
 
+#scaling ground image acording scale factors
+ground_image = functions.resize(ground_image, scale_x, scale_y)
+
+#creating ground object 
 ground = models.Platform("ground", ground_image)
+
+#set ground position
 ground.set_position((screen_width - ground.rect.width), (screen_height - ground.rect.height))
 
-
 # Set player image using gif-pygame library
-player_image = funtions.setup_player_gif(screen)
-#player_image = funtions.resize_gif(player_image, scale_x, scale_y)
+player_image = functions.setup_player_gif(screen)
 
 # Set player speed
 player_x_speed = 300
@@ -45,10 +49,11 @@ player_name = "Arnaldo"
 
 # creating player object
 player = models.Player(player_name, player_image, player_x_speed)
-#set inicial position
+
+#set player inicial position
 player.set_position(screen_width/2, ground.rect.top, True)
 
-#creating enemy object
+#creating enemy object and setting position 
 enemy_image = pygame.Surface([90, 90])
 enemy_image.fill((255, 0, 0))
 enemy = models.Enemy("Luki", enemy_image)
@@ -61,17 +66,22 @@ clock = pygame.time.Clock()
 # Each round loop is a frame
 # without the control (clock), the loop will run at the fastest speed that the computer can allow
 
-# player_initial_position = pygame.Vector2(0, 510)
-
-
 # convert()= returns us a new Surface of the image, but now converted to the same pixel format as our display. Since the images will be the same format at the screen, they will blit very quickly. If we did not convert, the blit() function is slower, since it has to convert from one type of pixel to another as it goes.
 
 running = True
-x = 0
+
+#Creating pygame groups and adding sprites into them
+models.all_sprites.add(player)
+models.all_sprites.add(enemy)
+models.enemy_group.add(enemy)
 
 
 # Initial game bucle
 while running:
+    
+    counter = []
+
+    #1. CLOCK
 
     # set the frames per second
     fps = clock.tick(60)  # limita el juego a 60 FPS
@@ -80,24 +90,12 @@ while running:
     # delta time
     delta_time = fps / 1000
     # we divide it between 1000 to tranform into seconds
-
     # if speed = 200 and delta_time = 0.016 (1/60 fps), the player is moving at 200 * 0.016 = 3.2 píxels in that frame
-
-    #x & y position in the lower right corner
-
-    # Set ground rect & image
-    ground.draw(screen)
     
-    #set background
-    screen.blit(background, (0, 0))
-
-
-    # set player using gif-pygame library in initial position
-    player.draw(screen)
-    enemy.draw(screen)
-    enemy.movement(screen, delta_time)
-
-
+    #2. INPUT (events)
+    
+    TrigerAttack = False
+    
     for event in pygame.event.get():  # iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:
             running = False
@@ -111,7 +109,7 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             
             if event.button == 3:
-                player.attack(screen, enemy, attack=True)
+                TrigerAttack = True
                 
 
     get_pressed_keys = pygame.key.get_pressed()
@@ -123,10 +121,31 @@ while running:
     face_up = get_pressed_keys[pygame.K_UP]
     face_down = get_pressed_keys[pygame.K_DOWN]
     
+    
+    #3. MOVEMENT
+    
     player.movement(delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down)
+    
+    enemy.movement(screen, delta_time)
+    
+    models.moving_sprites.update()
+    
+    #4. DRAW
 
-    # mouse_keys = pygame.MOUSEBUTTONDOWN
-    # attack = mouse_keys[3]
+    # Set ground rect & image
+    ground.draw(screen)
+    
+    #set background
+    screen.blit(background, (0, 0))
+
+    #Set moving objects 
+    for sprite in models.moving_sprites:
+        sprite.draw(screen) # call to .draw() method from GameObjects that can handle gifs
+    
+    #set attack
+    if TrigerAttack: 
+        player.attack(screen, enemy, attack=True)
+    
     
     # update screen
     pygame.display.flip()
