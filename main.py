@@ -130,7 +130,19 @@ while running:
     
     models.moving_sprites.update()
     
-    #4. DRAW
+    #4. CHECK COLLITIONS 
+    
+    enemies_collition = pygame.sprite.spritecollide(player, models.enemy_group, False)
+    
+    if enemies_collition: 
+        player.take_damage(enemies_collition[0])
+        print("is in knockback",player.is_in_Knockback)
+        print("velocidad en x", player.x_speed)
+        
+    
+    print("is in knockback",player.is_in_Knockback)
+    print("velocidad en x", player.x_speed)
+    #5. DRAW
 
     # Set ground rect & image
     ground.draw(screen)

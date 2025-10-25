@@ -68,6 +68,10 @@ class Player(GameObject):
         self.isFalling = False
         self.start_attack_time = 0 #necesito que el jugador recuerde su tiempo para saber si puede volver a atacar o no
         self.AttackDuration = 2000 #miliseconds
+        self.is_in_Knockback = False
+        self.start_knockback = 0
+        self.Knockback_duration = 200
+        
 
         
     def draw(self, screen):
@@ -76,59 +80,69 @@ class Player(GameObject):
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
     
-    def facing(self):
-        pass
-    
     def movement(self, delta_time, screen, ground, right=False, left=False, jump=False, up=False, down=False):
         
         delta_x = 0 #variation in x
         delta_y = 0 #variation in y
         
-        if right:
-            delta_x += self.x_speed * delta_time
-            
-            if self.facing_right: 
-                pass
-            else:
-            
-            #flip sprite to right
-                self.facing_right = True 
-                gif_pygame.transform.flip(self.image, True, False)
-
-        if left:
-            delta_x -= self.x_speed * delta_time
-            
-            #flip sprite to left 
-            if not self.facing_right: 
-                pass
-            else:
-            
-            #flip sprite to left
-                self.facing_right = False 
-                gif_pygame.transform.flip(self.image, True, False)
+        current_x_speed = 0
         
-        #if the player is not jumping and maitain Space button pressed (long jump)
-        if jump and self.isJumping == False:
-            self.y_speed = self.jump_speed
-            self.isJumping = True
+        if self.is_in_Knockback: 
             
-        
-        #if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
-        if not jump and self.y_speed < 0:    
-            self.y_speed *= 0.5     
-        
-        
-        if up and not down: 
-            self.facing_down = False
-            self.facing_up = True
-        
-        elif down and not up:
-            self.facing_up = False
-            self.facing_down = True
+            current_x_speed = self.x_speed
+            
+            now = pygame.time.get_ticks()
+            if now - self.start_knockback > self.Knockback_duration:
+                self.is_in_Knockback = False
         
         else: 
-            self.facing_up = False
-            self.facing_down = False
+            
+        
+            if right:
+                current_x_speed = self.x_speed
+                
+                if self.facing_right: 
+                    pass
+                else:
+                
+                #flip sprite to right
+                    self.facing_right = True 
+                    gif_pygame.transform.flip(self.image, True, False)
+
+            if left:
+                current_x_speed = -self.x_speed
+                
+                #flip sprite to left 
+                if not self.facing_right: 
+                    pass
+                else:
+                
+                #flip sprite to left
+                    self.facing_right = False 
+                    gif_pygame.transform.flip(self.image, True, False)
+            
+            #if the player is not jumping and maitain Space button pressed (long jump)
+            if jump and self.isJumping == False:
+                self.y_speed = self.jump_speed
+                self.isJumping = True
+                
+            
+            #if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
+            if not jump and self.y_speed < 0:    
+                self.y_speed *= 0.5     
+            
+            
+            if up and not down: 
+                self.facing_down = False
+                self.facing_up = True
+            
+            elif down and not up:
+                self.facing_up = False
+                self.facing_down = True
+            
+            else: 
+                self.facing_up = False
+                self.facing_down = False
             
             
         #setting the character go to the oposite side if he goes off the edge of one side of the screen 
@@ -143,6 +157,8 @@ class Player(GameObject):
         self.y_speed += (self.gravity * delta_time)
         delta_y += self.y_speed * delta_time
         
+        delta_x = current_x_speed * delta_time
+        delta_y = self.y_speed * delta_time
         
         #updates rect position 
         self.rect.x += delta_x
@@ -232,9 +248,22 @@ class Player(GameObject):
                 self.isAttacking = False
             
             #return to iddle animation
+        
+    def take_damage(self, enemy):
+        
+        self.is_in_Knockback = True
+        self.start_knockback = pygame.time.get_ticks()
+        self.HP -= 1
+        self.y_speed = -300
+        
+        if self.rect.centerx < enemy.rect.centerx:
+            self.x_speed = -400
             
+        else:
+            self.x_speed = 400
             
-            
+
+    
 
 class Platform(GameObject):
     def __init__(self, name, image):
@@ -257,6 +286,7 @@ class Enemy(GameObject):
         self.x_speed = 300
         self.HP = 6
         self.isDead = False
+        self.facing_left = False
     
     def draw(self, screen):
         return super().draw(screen)
@@ -277,13 +307,14 @@ class Enemy(GameObject):
         
         #setting the enemy to don't go off the edge of the screen 
             
-        if self.rect.right >= screen.get_width():
+        if self.rect.right >= screen.get_width() and not self.facing_left:
+            self.facing_left = True
+            self.x_speed *= -1
+            
+        if self.rect.left <= 0 and self.facing_left:
+            self.facing_left = False
             self.x_speed *= -1
 
-                                
-        if self.rect.left <= 0:
-            self.x_speed *= -1
-        
     
     def kill(self):
         self.isDead = True
