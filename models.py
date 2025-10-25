@@ -89,8 +89,10 @@ class Player(GameObject):
         
         if self.is_in_Knockback: 
             
+            #set up knockback force during self.is_in_Knockback = True
             current_x_speed = self.x_speed
             
+            #stop knockback state
             now = pygame.time.get_ticks()
             if now - self.start_knockback > self.Knockback_duration:
                 self.is_in_Knockback = False
@@ -164,7 +166,7 @@ class Player(GameObject):
         self.rect.x += delta_x
         self.rect.y += delta_y        
         
-        # #check collition with the ground
+        # #check collision with the ground
         if self.rect.colliderect(ground.rect): 
             self.y_speed = 0
             self.rect.bottom = ground.rect.top
@@ -251,11 +253,19 @@ class Player(GameObject):
         
     def take_damage(self, enemy):
         
+        #set knockback state
         self.is_in_Knockback = True
+        
+        #take when the kcnoback starts to stop it in movement method acording self.Knockback_duration
         self.start_knockback = pygame.time.get_ticks()
+        
+        #set up HP
         self.HP -= 1
+        
+        #set up knockback y speed (jump)
         self.y_speed = -300
         
+        #set up knockback x speed acording enemy position 
         if self.rect.centerx < enemy.rect.centerx:
             self.x_speed = -400
             

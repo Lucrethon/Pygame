@@ -130,12 +130,12 @@ while running:
     
     models.moving_sprites.update()
     
-    #4. CHECK COLLITIONS 
+    #4. CHECK COLLISIONS 
     
-    enemies_collition = pygame.sprite.spritecollide(player, models.enemy_group, False)
+    enemies_collision = pygame.sprite.spritecollide(player, models.enemy_group, False)
     
-    if enemies_collition: 
-        player.take_damage(enemies_collition[0])
+    if enemies_collision: 
+        player.take_damage(enemies_collision[0])
         print("is in knockback",player.is_in_Knockback)
         print("velocidad en x", player.x_speed)
         
