@@ -52,7 +52,7 @@ class GameObject(ABC, pygame.sprite.Sprite):
     
             
 
-class Player(GameObject):
+class Player(GameObject, ):
     def __init__(self, name, image, x_speed):
         super().__init__(name, image, all_sprites, moving_sprites)
         self.x_speed = x_speed
@@ -71,6 +71,10 @@ class Player(GameObject):
         self.is_in_Knockback = False
         self.start_knockback = 0
         self.Knockback_duration = 200
+        self.knockback_y_speed = -300
+        self.knockback_x_speed = 400
+        self.state = None
+        self.frame_counter = 0
         
 
         
@@ -90,7 +94,7 @@ class Player(GameObject):
         if self.is_in_Knockback: 
             
             #set up knockback force during self.is_in_Knockback = True
-            current_x_speed = self.x_speed
+            current_x_speed = self.knockback_x_speed
             
             #stop knockback state
             now = pygame.time.get_ticks()
@@ -172,8 +176,8 @@ class Player(GameObject):
             self.rect.bottom = ground.rect.top
             self.isJumping = False
             self.isFalling = False
-        
-    
+            
+        self.frame_counter += 1
     
     def attack(self, screen, enemy, attack = False):
         if attack and self.isAttacking == False:
@@ -263,14 +267,14 @@ class Player(GameObject):
         self.HP -= 1
         
         #set up knockback y speed (jump)
-        self.y_speed = -300
+        self.y_speed = self.knockback_y_speed
         
         #set up knockback x speed acording enemy position 
         if self.rect.centerx < enemy.rect.centerx:
-            self.x_speed = -400
+            self.x_speed = -self.knockback_x_speed
             
         else:
-            self.x_speed = 400
+            self.x_speed = self.knockback_x_speed
             
 
     
