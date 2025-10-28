@@ -6,7 +6,7 @@ class GravityMixin:
     
     def apply_gravity(self, delta_time):
         
-        #Gravity that pull down the character to the ground 
+        #Gravity that pull down the character to the ground - important
         self.y_speed += (self.gravity * delta_time)
         delta_y += self.y_speed * delta_time
     
