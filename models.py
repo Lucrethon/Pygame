@@ -2,6 +2,14 @@ import pygame
 import gif_pygame
 import gif_pygame.transform
 from abc import ABC, abstractmethod
+from enum import Enum
+import mixin
+
+class States(Enum):
+    IDDLE = 1
+    ATTACKING = 2
+    KNOCKBACK = 3
+    
 
 
 # Initiate pygame
@@ -52,31 +60,28 @@ class GameObject(ABC, pygame.sprite.Sprite):
     
             
 
-class Player(GameObject, ):
+class Player(GameObject, mixin.GravityMixin):
     def __init__(self, name, image, x_speed):
         super().__init__(name, image, all_sprites, moving_sprites)
+        self.state = States.IDDLE
+        self.is_on_ground = True #<-- Is not jumping 
+        self.frame_counter = 0
         self.x_speed = x_speed
         self.y_speed = 0
         self.gravity = 2700
         self.jump_speed = -1000
-        self.isJumping = False 
         self.HP = 5
         self.facing_right = True
         self.facing_up = False
         self.facing_down = False
-        self.isAttacking = False 
-        self.isFalling = False
-        self.start_attack_time = 0 #necesito que el jugador recuerde su tiempo para saber si puede volver a atacar o no
-        self.AttackDuration = 2000 #miliseconds
-        self.is_in_Knockback = False
-        self.start_knockback = 0
-        self.Knockback_duration = 200
         self.knockback_y_speed = -300
         self.knockback_x_speed = 400
-        self.state = None
-        self.frame_counter = 0
-        
-
+        self.timer = 0.0
+        self.build_up_attack_duration = 0.1 #seconds
+        self.active_frames_attack_duration = 0.1 #seconds
+        self.recovery_attack_duration = 0.2 #seconds
+        self.knockback_duration = 0.4 #seconds
+        self.active_hitbox = None
         
     def draw(self, screen):
         return super().draw(screen)
@@ -84,114 +89,159 @@ class Player(GameObject, ):
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
     
-    def movement(self, delta_time, screen, ground, right=False, left=False, jump=False, up=False, down=False):
+    def update_player(self, delta_time, screen, ground, right=False, left=False, jump=False, up=False, down=False):
+        
+        #triggrs should NEVER be in update method. Only in the main cycle 
         
         delta_x = 0 #variation in x
         delta_y = 0 #variation in y
         
         current_x_speed = 0
         
-        if self.is_in_Knockback: 
+        if self.state == States.KNOCKBACK: 
+            self.knockback_update(delta_time)
             
-            #set up knockback force during self.is_in_Knockback = True
-            current_x_speed = self.knockback_x_speed
+        if self.state == States.IDDLE or self.is_on_ground or not self.is_on_ground:
             
-            #stop knockback state
-            now = pygame.time.get_ticks()
-            if now - self.start_knockback > self.Knockback_duration:
-                self.is_in_Knockback = False
+            current_x_speed = self.movement(right, left)
+            self.jump(jump)
+            self.facing_input(down, up)
+            
+        if self.state == States.ATTACKING: 
+            self.attack_update(delta_time)
         
-        else: 
-            
-        
-            if right:
-                current_x_speed = self.x_speed
-                
-                if self.facing_right: 
-                    pass
-                else:
-                
-                #flip sprite to right
-                    self.facing_right = True 
-                    gif_pygame.transform.flip(self.image, True, False)
-
-            if left:
-                current_x_speed = -self.x_speed
-                
-                #flip sprite to left 
-                if not self.facing_right: 
-                    pass
-                else:
-                
-                #flip sprite to left
-                    self.facing_right = False 
-                    gif_pygame.transform.flip(self.image, True, False)
-            
-            #if the player is not jumping and maitain Space button pressed (long jump)
-            if jump and self.isJumping == False:
-                self.y_speed = self.jump_speed
-                self.isJumping = True
-                
-            
-            #if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
-            if not jump and self.y_speed < 0:    
-                self.y_speed *= 0.5     
-            
-            
-            if up and not down: 
-                self.facing_down = False
-                self.facing_up = True
-            
-            elif down and not up:
-                self.facing_up = False
-                self.facing_down = True
-            
-            else: 
-                self.facing_up = False
-                self.facing_down = False
-            
-            
-        #setting the character go to the oposite side if he goes off the edge of one side of the screen 
-            
-        if self.rect.right > screen.get_width() + self.rect.width:
-            self.rect.left = 0
-                        
-        elif self.rect.left < -self.rect.width:
-            self.rect.right = screen.get_width()
-            
-        #Gravity that pull down the character to the ground 
-        self.y_speed += (self.gravity * delta_time)
-        delta_y += self.y_speed * delta_time
-        
+        #aply speed and gravity 
         delta_x = current_x_speed * delta_time
-        delta_y = self.y_speed * delta_time
+        delta_y = super().apply_gravity(delta_time, delta_y)
         
+        #Check screen collision
+        delta_x = self.not_cross_edge_screen(screen, delta_x)
+            
         #updates rect position 
         self.rect.x += delta_x
-        self.rect.y += delta_y        
+        self.rect.y += delta_y    
         
-        # #check collision with the ground
-        if self.rect.colliderect(ground.rect): 
-            self.y_speed = 0
-            self.rect.bottom = ground.rect.top
-            self.isJumping = False
-            self.isFalling = False
-            
-        self.frame_counter += 1
+        #Check ground collision        
+        super().check_ground_collision(ground)
     
-    def attack(self, screen, enemy, attack = False):
-        if attack and self.isAttacking == False:
+    def movement(self, right=False, left=False):
+
+        current_x_speed = 0
+        
+        if right:
+            current_x_speed = self.x_speed
+            
+            if self.facing_right: 
+                pass
+            else:
+            
+            #flip sprite to right
+                self.facing_right = True 
+                gif_pygame.transform.flip(self.image, True, False)
+
+        if left:
+            current_x_speed = -self.x_speed
+            
+            if not self.facing_right: 
+                pass
+            else:
+            
+            #flip sprite to left
+                self.facing_right = False 
+                gif_pygame.transform.flip(self.image, True, False)
+        
+        return current_x_speed
+
+    def jump(self, jump=False):
+        
+        #if the player is not jumping and maitain Space button pressed (long jump)
+        if jump and self.is_on_ground:
+            
+            self.y_speed = self.jump_speed
+            self.is_on_ground = False
+            
+        
+        #if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
+        if not jump and self.y_speed < 0:    
+            self.y_speed *= 0.5
+            self.is_on_ground = False     
+
+    def facing_input(self, down=False, up= False):
+        
+        #Facing up
+        if up and not down: 
+            self.facing_down = False
+            self.facing_up = True
+        
+        #Facing down
+        elif down and not up:
+            self.facing_up = False
+            self.facing_down = True
+        
+        else: 
+            self.facing_up = False
+            self.facing_down = False
+        
+    def not_cross_edge_screen(self, screen, delta_x):
+    #setting player to don't go off the edge of the screen 
+    
+        if self.rect.right + delta_x >= screen.get_width(): 
+            delta_x = screen.get_width() - self.rect.right
+            
+        if self.rect.left + delta_x <= 0:
+            delta_x -= self.rect.left
+            
+        
+        return delta_x
+        
+    def trigger_attack(self, attack = False): #call this method in the main cycle
+        
+        if attack and self.state != States.KNOCKBACK and self.state != States.ATTACKING:
             
             #setting self state
-            self.isAttacking = True
+            self.state = States.ATTACKING
             
-            #set player sprite attack 
+            #restart self.timer 
+            self.timer = 0.0
+        
+    def attack_update(self, delta_time):
+        
+        self.timer += delta_time
+        
+        #buildup phase 
+        if self.timer < self.build_up_attack_duration:
             
-            #get time when the attack start
-            self.start_attack_time = pygame.time.get_ticks()
+            self.active_hitbox = None
             
-        if self.isAttacking:
-            #create temporal rect 
+            #buildup animation
+            pass
+        
+        #active phase
+        elif self.timer < (self.build_up_attack_duration + self.active_frames_attack_duration): 
+
+            #attack animation
+            
+            #create hitbox
+            self.active_hitbox = self.hitbox()
+            
+            #hitbox animation
+        
+        #recovery phase
+        elif self.timer < (self.build_up_attack_duration + self.active_frames_attack_duration + self.recovery_attack_duration): 
+            
+            self.active_hitbox = None
+            
+            #recovery animation
+            pass
+        
+        else: 
+            #return to iddle animation
+            self.state = States.IDDLE
+            #reset timer
+            self.timer = 0.0
+        
+    def hitbox(self):
+
             hitbox = None
             
             #up the player 
@@ -204,7 +254,7 @@ class Player(GameObject, ):
                 hitbox.midbottom = self.rect.midtop
             
             #down the player
-            elif self.facing_down and not self.facing_up and self.isJumping: 
+            elif self.facing_down and not self.facing_up and not self.is_on_ground: 
                 
                 hitbox_width = self.rect.height
                 hitbox_height = 90
@@ -230,54 +280,61 @@ class Player(GameObject, ):
                     
                     hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
                     hitbox.midright = self.rect.midleft
-                
             
+            return hitbox
+
+    def draw_hitbox(self, screen, enemy):
+        
+        #draw hitbox
+        if self.active_hitbox:
+            pygame.draw.rect(screen, (255, 0, 0), (self.active_hitbox))
+
             #check collision 
-            if hitbox: 
+        
+            if self.active_hitbox.colliderect(enemy.rect):
+                enemy.kill()
                 
-                pygame.draw.rect(screen, (255, 0, 0, 100), (hitbox))
-            
-                if hitbox.colliderect(enemy.rect):
-                    enemy.kill()
-                    
-                
-                else:
-                    pass
             
             else:
                 pass
-                        
-            #disapear rect and attack end 
-            now = pygame.time.get_ticks()
-            if now - self.start_attack_time > self.AttackDuration: 
-                exist_hitbox = False
-                self.isAttacking = False
-            
-            #return to iddle animation
+
+    def take_damage(self, enemy): #call this method in the main cycle
         
-    def take_damage(self, enemy):
+        if self.state == States.KNOCKBACK:
+            return
         
         #set knockback state
-        self.is_in_Knockback = True
+        self.state = States.KNOCKBACK
         
-        #take when the kcnoback starts to stop it in movement method acording self.Knockback_duration
-        self.start_knockback = pygame.time.get_ticks()
+        #restart timer
+        self.timer = 0.0
         
         #set up HP
         self.HP -= 1
         
         #set up knockback y speed (jump)
         self.y_speed = self.knockback_y_speed
-        
-        #set up knockback x speed acording enemy position 
+            
+            #set up knockback x speed acording enemy position 
         if self.rect.centerx < enemy.rect.centerx:
             self.x_speed = -self.knockback_x_speed
-            
+                
         else:
             self.x_speed = self.knockback_x_speed
-            
 
-    
+    def knockback_update(self, delta_time): 
+        
+        self.timer += delta_time
+        
+        if self.timer < self.knockback_duration: 
+            pass
+            
+        else: 
+            #return to iddle animation
+            self.state = States.IDDLE
+            #reset timer
+            self.timer = 0.0
+
 
 class Platform(GameObject):
     def __init__(self, name, image):
@@ -300,7 +357,7 @@ class Enemy(GameObject):
         self.x_speed = 300
         self.HP = 6
         self.isDead = False
-        self.facing_left = False
+        self.facing_right = True
     
     def draw(self, screen):
         return super().draw(screen)
@@ -321,12 +378,12 @@ class Enemy(GameObject):
         
         #setting the enemy to don't go off the edge of the screen 
             
-        if self.rect.right >= screen.get_width() and not self.facing_left:
-            self.facing_left = True
+        if self.rect.right >= screen.get_width() and self.facing_right:
+            self.facing_right = False
             self.x_speed *= -1
             
-        if self.rect.left <= 0 and self.facing_left:
-            self.facing_left = False
+        if self.rect.left <= 0 and not self.facing_right:
+            self.facing_right = True
             self.x_speed *= -1
 
     
