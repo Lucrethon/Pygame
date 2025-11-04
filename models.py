@@ -11,7 +11,6 @@ class States(Enum):
     KNOCKBACK = 3
     
 
-
 # Initiate pygame
 pygame.init()
 
@@ -57,31 +56,38 @@ class GameObject(ABC, pygame.sprite.Sprite):
     def movement(self): 
         pass
 
-    
-            
 
 class Player(GameObject, mixin.GravityMixin):
-    def __init__(self, name, image, x_speed):
+    def __init__(self, name, image, move_speed):
         super().__init__(name, image, all_sprites, moving_sprites)
-        self.state = States.IDDLE
-        self.is_on_ground = True #<-- Is not jumping 
-        self.frame_counter = 0
-        self.x_speed = x_speed
-        self.y_speed = 0
-        self.gravity = 2700
-        self.jump_speed = -1000
+        self.move_speed = move_speed
         self.HP = 5
+        
+        # --- VELOCIDAD ACTUAL ---
+        self.x_vel = 0
+        self.y_vel = 0
+        
+        # --- CONSTANTES DE FUERZA ---
+        self.gravity = 2700
+        self.jump_force = -1000
+        self.knockback_y_force = -500
+        self.knockback_x_force = 600
+        self.air_friction = 0.90 # fuerza de arrastre que se opone al movimiento de un objeto al atravesar el aire
+        
+        # --- ESTADOS --- 
+        self.state = States.IDDLE
         self.facing_right = True
         self.facing_up = False
         self.facing_down = False
-        self.knockback_y_speed = -300
-        self.knockback_x_speed = 400
+        self.is_on_ground = True #<-- Is not jumping 
+        self.active_hitbox = None
+        
+        # --- DURACION DE ESTADOS ---
         self.timer = 0.0
+        self.knockback_duration = 0.5 #seconds
         self.build_up_attack_duration = 0.1 #seconds
         self.active_frames_attack_duration = 0.1 #seconds
         self.recovery_attack_duration = 0.2 #seconds
-        self.knockback_duration = 0.4 #seconds
-        self.active_hitbox = None
         
     def draw(self, screen):
         return super().draw(screen)
@@ -89,7 +95,7 @@ class Player(GameObject, mixin.GravityMixin):
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
     
-    def update_player(self, delta_time, screen, ground, right=False, left=False, jump=False, up=False, down=False):
+    def update_player(self, delta_time, screen, ground, enemy, right=False, left=False, jump=False, up=False, down=False):
         
         #triggrs should NEVER be in update method. Only in the main cycle 
         
@@ -98,21 +104,28 @@ class Player(GameObject, mixin.GravityMixin):
         
         current_x_speed = 0
         
+        #Knockback State
         if self.state == States.KNOCKBACK: 
+            
             self.knockback_update(delta_time)
-            
-        if self.state == States.IDDLE or self.is_on_ground or not self.is_on_ground:
-            
+            # Usa la velocidad de knockback
+        else: 
+        
+            if self.state == States.ATTACKING: 
+                
+                self.attack_update(delta_time)
+                
             current_x_speed = self.movement(right, left)
+            self.x_vel = current_x_speed
             self.jump(jump)
             self.facing_input(down, up)
-            
-        if self.state == States.ATTACKING: 
-            self.attack_update(delta_time)
         
-        #aply speed and gravity 
-        delta_x = current_x_speed * delta_time
-        delta_y = super().apply_gravity(delta_time, delta_y)
+
+        #aply gravity 
+        super().apply_gravity(delta_time, delta_y)
+        
+        delta_x = self.x_vel * delta_time
+        delta_y = self.y_vel * delta_time
         
         #Check screen collision
         delta_x = self.not_cross_edge_screen(screen, delta_x)
@@ -129,7 +142,7 @@ class Player(GameObject, mixin.GravityMixin):
         current_x_speed = 0
         
         if right:
-            current_x_speed = self.x_speed
+            current_x_speed = self.move_speed
             
             if self.facing_right: 
                 pass
@@ -140,7 +153,7 @@ class Player(GameObject, mixin.GravityMixin):
                 gif_pygame.transform.flip(self.image, True, False)
 
         if left:
-            current_x_speed = -self.x_speed
+            current_x_speed = -self.move_speed
             
             if not self.facing_right: 
                 pass
@@ -157,13 +170,13 @@ class Player(GameObject, mixin.GravityMixin):
         #if the player is not jumping and maitain Space button pressed (long jump)
         if jump and self.is_on_ground:
             
-            self.y_speed = self.jump_speed
+            self.y_vel = self.jump_force
             self.is_on_ground = False
             
         
         #if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
-        if not jump and self.y_speed < 0:    
-            self.y_speed *= 0.5
+        if not jump and self.y_vel < 0:    
+            self.y_vel *= 0.5
             self.is_on_ground = False     
 
     def facing_input(self, down=False, up= False):
@@ -300,6 +313,8 @@ class Player(GameObject, mixin.GravityMixin):
 
     def take_damage(self, enemy): #call this method in the main cycle
         
+        x_direction = 0
+        
         if self.state == States.KNOCKBACK:
             return
         
@@ -311,30 +326,39 @@ class Player(GameObject, mixin.GravityMixin):
         
         #set up HP
         self.HP -= 1
-        
-        #set up knockback y speed (jump)
-        self.y_speed = self.knockback_y_speed
             
-            #set up knockback x speed acording enemy position 
+        #set up knockback direction
         if self.rect.centerx < enemy.rect.centerx:
-            self.x_speed = -self.knockback_x_speed
+            x_direction = -1 #empuje a la izquierda
                 
         else:
-            self.x_speed = self.knockback_x_speed
-
+            x_direction = 1 #empuje a la derecha
+        
+        #set up knockback x speed
+        self.x_vel = self.knockback_x_force * x_direction
+        
+        #set up knockback y speed (jump)
+        self.y_vel = self.knockback_y_force
+        
+        self.is_on_ground = False
+        
     def knockback_update(self, delta_time): 
         
+        #start the timer
         self.timer += delta_time
         
-        if self.timer < self.knockback_duration: 
-            pass
-            
-        else: 
-            #return to iddle animation
+        #apply friction 
+        self.x_vel *= self.air_friction
+        
+        # Detenerlo si es muy lento
+        if abs(self.x_vel) < 10:
+            self.x_vel = 0
+        
+        if self.timer >= self.knockback_duration: 
             self.state = States.IDDLE
-            #reset timer
             self.timer = 0.0
-
+            # Importante: resetear la velocidad X al salir del knockback
+            self.x_vel = 0
 
 class Platform(GameObject):
     def __init__(self, name, image):
@@ -354,7 +378,7 @@ class Enemy(GameObject):
     
     def __init__(self, name, image):
         super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
-        self.x_speed = 300
+        self.move_speed = 300
         self.HP = 6
         self.isDead = False
         self.facing_right = True
@@ -371,7 +395,7 @@ class Enemy(GameObject):
         delta_x = 0
         delta_y = 0
         
-        delta_x += self.x_speed * delta_time
+        delta_x += self.move_speed * delta_time
         
         #updates rect position 
         self.rect.move_ip(delta_x, 0)
@@ -380,11 +404,11 @@ class Enemy(GameObject):
             
         if self.rect.right >= screen.get_width() and self.facing_right:
             self.facing_right = False
-            self.x_speed *= -1
+            self.move_speed *= -1
             
         if self.rect.left <= 0 and not self.facing_right:
             self.facing_right = True
-            self.x_speed *= -1
+            self.move_speed *= -1
 
     
     def kill(self):

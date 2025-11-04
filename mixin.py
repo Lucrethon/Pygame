@@ -7,10 +7,7 @@ class GravityMixin:
     def apply_gravity(self, delta_time, delta_y):
         
         #Gravity that pull down the character to the ground - important
-        self.y_speed += (self.gravity * delta_time)
-        delta_y += self.y_speed * delta_time
-        
-        return delta_y
+        self.y_vel += (self.gravity * delta_time)
     
     
     def check_ground_collision(self, ground):
@@ -18,7 +15,7 @@ class GravityMixin:
         # #check collision with the ground
         if self.rect.colliderect(ground.rect): 
             
-            self.y_speed = 0
+            self.y_vel = 0
             self.rect.bottom = ground.rect.top
             self.is_on_ground = True
 
@@ -38,8 +35,8 @@ class CrossScreenMixin:
             
         if self.rect.right >= screen.get_width() and self.facing_right:
             self.facing_right = False
-            self.x_speed *= -1
+            self.move_speed *= -1
             
         if self.rect.left <= 0 and not self.facing_right:
             self.facing_right = True
-            self.x_speed *= -1
+            self.move_speed *= -1
