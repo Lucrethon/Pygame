@@ -130,7 +130,7 @@ while running:
     if TrigerAttack: 
         player.trigger_attack(attack=True)
     
-    player.update_player(delta_time, screen, ground, enemy, move_right, move_left, jumping, face_up, face_down)
+    player.update_player(delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down)
     print(player.state)
     
     enemy.movement(screen, delta_time)

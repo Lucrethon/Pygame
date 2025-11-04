@@ -95,7 +95,7 @@ class Player(GameObject, mixin.GravityMixin):
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
     
-    def update_player(self, delta_time, screen, ground, enemy, right=False, left=False, jump=False, up=False, down=False):
+    def update_player(self, delta_time, screen, ground, right=False, left=False, jump=False, up=False, down=False):
         
         #triggrs should NEVER be in update method. Only in the main cycle 
         
