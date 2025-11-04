@@ -84,11 +84,13 @@ while running:
     #1. CLOCK
 
     # set the frames per second
-    fps = clock.tick(60)  # limita el juego a 60 FPS
+    pased_miliseconds = clock.tick(60)  
+    # limita el juego a 60 FPS
+    #esto devuelve los milisegundos que pasaron desde el ultimo frame (duracion del frame anterior en milisegundos)
     # clock.tick returns the miliseconds since the last frame
 
     # delta time
-    delta_time = fps / 1000
+    delta_time = pased_miliseconds / 1000.0
     # we divide it between 1000 to tranform into seconds
     # if speed = 200 and delta_time = 0.016 (1/60 fps), the player is moving at 200 * 0.016 = 3.2 píxels in that frame
     
@@ -108,23 +110,28 @@ while running:
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             
-            if event.button == 3:
+            if event.button == 1:
                 TrigerAttack = True
                 
 
     get_pressed_keys = pygame.key.get_pressed()
     # set a key that occurrs while the player get pressed a button on the keyboard
 
-    move_right = get_pressed_keys[pygame.K_RIGHT]
-    move_left = get_pressed_keys[pygame.K_LEFT]
+    move_right = get_pressed_keys[pygame.K_d]
+    move_left = get_pressed_keys[pygame.K_a]
     jumping = get_pressed_keys[pygame.K_SPACE]
-    face_up = get_pressed_keys[pygame.K_UP]
-    face_down = get_pressed_keys[pygame.K_DOWN]
+    face_up = get_pressed_keys[pygame.K_w]
+    face_down = get_pressed_keys[pygame.K_s]
     
     
     #3. MOVEMENT
     
-    player.movement(delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down)
+    #set attack
+    if TrigerAttack: 
+        player.trigger_attack(attack=True)
+    
+    player.update_player(delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down)
+    print(player.state)
     
     enemy.movement(screen, delta_time)
     
@@ -135,13 +142,9 @@ while running:
     enemies_collision = pygame.sprite.spritecollide(player, models.enemy_group, False)
     
     if enemies_collision: 
-        player.take_damage(enemies_collision[0])
-        print("is in knockback",player.is_in_Knockback)
-        print("velocidad en x", player.x_speed)
-        
-    
-    print("is in knockback",player.is_in_Knockback)
-    print("velocidad en x", player.x_speed)
+        player.take_damage(enemy)
+        print(player.state, "colisionando!")
+
     #5. DRAW
 
     # Set ground rect & image
@@ -153,10 +156,8 @@ while running:
     #Set moving objects 
     for sprite in models.moving_sprites:
         sprite.draw(screen) # call to .draw() method from GameObjects that can handle gifs
-    
-    #set attack
-    if TrigerAttack: 
-        player.attack(screen, enemy, attack=True)
+        
+    player.draw_hitbox(screen, enemy)
     
     
     # update screen
