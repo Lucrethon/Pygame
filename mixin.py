@@ -2,7 +2,7 @@ import pygame
 import gif_pygame
 import gif_pygame.transform
 
-class GravityMixin:
+class Gravity:
     
     def apply_gravity(self, delta_time, delta_y):
         
@@ -19,7 +19,7 @@ class GravityMixin:
             self.rect.bottom = ground.rect.top
             self.is_on_ground = True
 
-class CrossScreenMixin: 
+class CrossScreen: 
     
     #setting the character go to the oposite side if he goes off the edge of one side of the screen }
     
