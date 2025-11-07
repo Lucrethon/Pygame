@@ -11,6 +11,11 @@ class States(Enum):
     ATTACKING = 2
     KNOCKBACK = 3
 
+class Orientation(Enum):
+    RIGTH = 1
+    LEFT = 2
+    UP = 3
+    DOWN = 4
 
 # Initiate pygame
 pygame.init()
@@ -60,11 +65,15 @@ class GameObject(ABC, pygame.sprite.Sprite):
 
 
 class Player(GameObject, mixin.Gravity):
-    def __init__(self, name, image, move_speed):
+    def __init__(self, name, image, move_speed, sprite_attack_slash):
         super().__init__(name, image, all_sprites, moving_sprites)
         self.move_speed = move_speed
         self.HP = 5
-
+        
+        # --- SPRITES ---
+        self.sprite_attack_slash = sprite_attack_slash
+        self.active_slash_sprite = None
+        
         # --- VELOCIDAD ACTUAL ---
         self.x_vel = 0
         self.y_vel = 0
@@ -83,16 +92,17 @@ class Player(GameObject, mixin.Gravity):
         self.facing_down = False
         self.is_on_ground = True  # <-- Is not jumping
         self.active_hitbox = None
-        self.is_invulnerable = False
+        self.is_invulnerable = False #invulnerability state after knockback to avoid multiple collisions at the same time 
+        self.attack_orientation = Orientation.RIGTH
 
         # --- DURACION DE ESTADOS ---
         self.timer = 0.0
         self.knockback_duration = 0.5  # seconds
         self.build_up_attack_duration = 0.1  # seconds
-        self.active_frames_attack_duration = 0.1  # seconds
+        self.active_frames_attack_duration = 0.07  # seconds
         self.recovery_attack_duration = 0.3  # seconds
         self.invulnerability_duration = 1 #seconds 
-        self.invulnerability_timer = 0.0
+        self.invulnerability_timer = 0.0 #separate time to count time even if the player is attacking or iddle. 
 
     def draw(self, screen):
         return super().draw(screen)
@@ -135,13 +145,13 @@ class Player(GameObject, mixin.Gravity):
             self.jump(jump)
             self.facing_input(down, up)
         
-        if self.is_invulnerable: 
+        if self.is_invulnerable: #invulnerability state after knockback 
             self.invulnerability_timer += delta_time
             if self.invulnerability_timer >= self.invulnerability_duration:
                 self.is_invulnerable = False 
 
         # aply gravity
-        super().apply_gravity(delta_time, delta_y)
+        super().apply_gravity(delta_time)
 
         delta_x = self.x_vel * delta_time
         delta_y = self.y_vel * delta_time
@@ -250,13 +260,16 @@ class Player(GameObject, mixin.Gravity):
         elif self.timer < (
             self.build_up_attack_duration + self.active_frames_attack_duration
         ):
+            if self.active_hitbox is None:
+                
+                #lock orientation
+                self.lock_attack_ortientation() 
+                
+                # attack animation
 
-            # attack animation
+                # create hitbox & slash attack animation
+                self.active_hitbox, self.active_slash_sprite = self. get_attack_components()
 
-            # create hitbox
-            self.active_hitbox = self.hitbox()
-
-            # hitbox animation
 
         # recovery phase
         elif self.timer < (
@@ -275,60 +288,77 @@ class Player(GameObject, mixin.Gravity):
             self.state = States.IDDLE
             # reset timer
             self.timer = 0.0
-
-    def hitbox(self):
-
-        hitbox = None
-
+    
+    def lock_attack_ortientation(self): 
+        
         # up the player
         if self.facing_up and not self.facing_down:
 
-            hitbox_width = self.rect.height
-            hitbox_height = 90
-
-            hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
-            hitbox.midbottom = self.rect.midtop
+            self.attack_orientation = Orientation.UP
 
         # down the player
-        elif self.facing_down and not self.facing_up and not self.is_on_ground:
+        elif self.facing_down and not self.facing_up:
 
-            hitbox_width = self.rect.height
-            hitbox_height = 90
-
-            hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
-            hitbox.midtop = self.rect.midbottom
+            self.attack_orientation = Orientation.DOWN
 
         # right the player
         elif self.facing_right and not self.facing_down:
 
-            hitbox_width = 90
-            hitbox_height = self.rect.height
-
-            hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
-            hitbox.midleft = self.rect.midright
+            self.attack_orientation = Orientation.RIGTH
 
         # left the player
         else:
             if not self.facing_right and not self.facing_down:
 
-                hitbox_width = 90
-                hitbox_height = self.rect.height
+                self.attack_orientation = Orientation.LEFT
 
-                hitbox = pygame.Rect(0, 0, hitbox_width, hitbox_height)
+    def get_attack_components(self): #--> RECT & SPRITE POSITION ACORDING PLAYER ORIENTATION
+
+        hitbox = None
+        rotate_slash_sprite = None
+
+        # up the player
+        if self.attack_orientation == Orientation.UP:
+
+            rotate_slash_sprite = pygame.transform.rotate(self.sprite_attack_slash, -270)
+            hitbox =  rotate_slash_sprite.get_rect()
+            hitbox.midbottom = self.rect.midtop
+
+        # down the player
+        elif self.attack_orientation == Orientation.DOWN and not self.is_on_ground:
+
+            rotate_slash_sprite = pygame.transform.rotate(self.sprite_attack_slash, -90)
+            hitbox =  rotate_slash_sprite.get_rect()
+            hitbox.midtop = self.rect.midbottom
+
+        # right the player
+        elif self.attack_orientation == Orientation.RIGTH:
+
+            rotate_slash_sprite = pygame.transform.rotate(self.sprite_attack_slash, 0)
+            hitbox =  rotate_slash_sprite.get_rect()
+            hitbox.midleft = self.rect.midright
+
+        # left the player
+        else:
+            if self.attack_orientation == Orientation.LEFT:
+
+                rotate_slash_sprite = pygame.transform.rotate(self.sprite_attack_slash, -180)
+                hitbox =  rotate_slash_sprite.get_rect()
                 hitbox.midright = self.rect.midleft
 
-        return hitbox
+        return hitbox, rotate_slash_sprite
+    
 
-    def draw_hitbox(self, screen, enemy):
+    def draw_attack(self, screen, enemy): #DRAW SLASH SPRITE AND RECT
 
         # draw hitbox
-        if self.active_hitbox:
-            pygame.draw.rect(screen, (255, 0, 0), (self.active_hitbox))
-
+        if self.active_hitbox and self.active_slash_sprite:
+            
+            screen.blit(self.active_slash_sprite, self.active_hitbox)
+            
             # check collision
-
             if self.active_hitbox.colliderect(enemy.rect):
-                enemy.kill()
+                enemy.take_damage()
 
             else:
                 pass
@@ -339,6 +369,7 @@ class Player(GameObject, mixin.Gravity):
 
         if self.state == States.KNOCKBACK or self.is_invulnerable:
             return
+        #The player cannot reaceive damage while elf.is_invulnerable = True
 
         # set knockback state
         self.state = States.KNOCKBACK
@@ -379,7 +410,7 @@ class Player(GameObject, mixin.Gravity):
             self.x_vel = 0
 
         if self.timer >= self.knockback_duration:
-            self.is_invulnerable = True
+            self.is_invulnerable = True #invulnerability state after knockback 
             self.invulnerability_timer = 0.0
             self.state = States.IDDLE
             self.timer = 0.0
@@ -435,7 +466,15 @@ class Enemy(GameObject):
         if self.rect.left <= 0 and not self.facing_right:
             self.facing_right = True
             self.move_speed *= -1
-
-    def kill(self):
-        self.isDead = True
-        super().kill()
+    
+    def take_damage(self): 
+        
+        self.HP -= 1
+        
+        if self.HP >= 0: 
+            self.isDead = True
+            super().kill()
+        
+        #Knockback physic 
+    
+    

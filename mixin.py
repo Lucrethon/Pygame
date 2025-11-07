@@ -4,7 +4,7 @@ import gif_pygame.transform
 
 class Gravity:
     
-    def apply_gravity(self, delta_time, delta_y):
+    def apply_gravity(self, delta_time):
         
         #Gravity that pull down the character to the ground - important
         self.y_vel += (self.gravity * delta_time)

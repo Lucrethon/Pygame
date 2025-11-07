@@ -43,6 +43,10 @@ ground.set_position(
 # Set player image using gif-pygame library
 player_image = functions.setup_player_gif(screen)
 
+#Player attack slash sprite 
+sprite_attack_slash = pygame.image.load("./assets/Attack_Slash.png").convert_alpha()
+sprite_attack_slash = functions.resize(sprite_attack_slash, scale_x, scale_y)
+
 # Set player speed
 player_x_speed = 300
 
@@ -50,7 +54,7 @@ player_x_speed = 300
 player_name = "Arnaldo"
 
 # creating player object
-player = models.Player(player_name, player_image, player_x_speed)
+player = models.Player(player_name, player_image, player_x_speed, sprite_attack_slash)
 
 # set player inicial position
 player.set_position(screen_width / 2, ground.rect.top, True)
@@ -132,7 +136,6 @@ while running:
     player.update_player(
         delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down
     )
-    print(player.state)
 
     enemy.movement(screen, delta_time)
 
@@ -159,7 +162,7 @@ while running:
             screen
         )  # call to .draw() method from GameObjects that can handle gifs
 
-    player.draw_hitbox(screen, enemy)
+    player.draw_attack(screen, enemy)
 
     # update screen
     pygame.display.flip()
