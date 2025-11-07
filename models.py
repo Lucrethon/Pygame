@@ -268,7 +268,7 @@ class Player(GameObject, mixin.Gravity):
                 # attack animation
 
                 # create hitbox & slash attack animation
-                self.active_hitbox, self.active_slash_sprite = self. get_attack_components()
+            self.active_hitbox, self.active_slash_sprite = self. get_attack_components()
 
 
         # recovery phase
