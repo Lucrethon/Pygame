@@ -103,6 +103,9 @@ class Player(GameObject, mixin.Gravity):
         self.recovery_attack_duration = 0.3  # seconds
         self.invulnerability_duration = 1 #seconds 
         self.invulnerability_timer = 0.0 #separate time to count time even if the player is attacking or iddle. 
+        
+        #--- ARRAYS ---
+        self.enemies_attacked = []
 
     def draw(self, screen):
         return super().draw(screen)
@@ -122,7 +125,7 @@ class Player(GameObject, mixin.Gravity):
         down=False,
     ):
 
-        # triggrs should NEVER be in update method. Only in the main cycle
+        # triggrs should NEVER be in update method. Only in the main cycle. This method will only receive methods to update the player position that are triggered by trigger methods that change player states. Acording those states, this method will work in one way or another 
 
         delta_x = 0  # variation in x
         delta_y = 0  # variation in y
@@ -166,7 +169,7 @@ class Player(GameObject, mixin.Gravity):
         # Check ground collision
         super().check_ground_collision(ground)
 
-    def movement(self, right=False, left=False):
+    def movement(self, right=False, left=False): #--> Return x speed (update player position)
 
         current_x_speed = 0
 
@@ -194,7 +197,7 @@ class Player(GameObject, mixin.Gravity):
 
         return current_x_speed
 
-    def jump(self, jump=False):
+    def jump(self, jump=False): #(update player position)
 
         # if the player is not jumping and maitain Space button pressed (long jump)
         if jump and self.is_on_ground:
@@ -207,7 +210,7 @@ class Player(GameObject, mixin.Gravity):
             self.y_vel *= 0.5
             self.is_on_ground = False
 
-    def facing_input(self, down=False, up=False):
+    def facing_input(self, down=False, up=False): #(update player facing)
 
         # Facing up
         if up and not down:
@@ -223,7 +226,7 @@ class Player(GameObject, mixin.Gravity):
             self.facing_up = False
             self.facing_down = False
 
-    def not_cross_edge_screen(self, screen, delta_x):
+    def not_cross_edge_screen(self, screen, delta_x): #return position variation in X
         # setting player to don't go off the edge of the screen
 
         if self.rect.right + delta_x >= screen.get_width():
@@ -234,9 +237,9 @@ class Player(GameObject, mixin.Gravity):
 
         return delta_x
 
-    def trigger_attack(self, attack=False):  # call this method in the main cycle
+    def trigger_attack(self, attack=False):  # call this method in the main cycle (trigger. This method changes player state)
 
-        if attack and self.state != States.KNOCKBACK and self.state != States.ATTACKING:
+        if attack and self.state == States.IDDLE:
 
             # setting self state
             self.state = States.ATTACKING
@@ -244,7 +247,7 @@ class Player(GameObject, mixin.Gravity):
             # restart self.timer
             self.timer = 0.0
 
-    def attack_update(self, delta_time):
+    def attack_update(self, delta_time): #this method updates player movements on the screen 
 
         self.timer += delta_time
 
@@ -262,12 +265,14 @@ class Player(GameObject, mixin.Gravity):
         ):
             if self.active_hitbox is None:
                 
+                self.enemies_attacked.clear() #vaciar lista de enemigos golpeados anteriormente 
+                
                 #lock orientation
                 self.lock_attack_ortientation() 
                 
                 # attack animation
 
-                # create hitbox & slash attack animation
+            # create hitbox & slash attack animation
             self.active_hitbox, self.active_slash_sprite = self. get_attack_components()
 
 
@@ -348,20 +353,13 @@ class Player(GameObject, mixin.Gravity):
 
         return hitbox, rotate_slash_sprite
     
-
-    def draw_attack(self, screen, enemy): #DRAW SLASH SPRITE AND RECT
+    def draw_attack(self, screen): #DRAW SLASH SPRITE AND RECT
 
         # draw hitbox
         if self.active_hitbox and self.active_slash_sprite:
             
             screen.blit(self.active_slash_sprite, self.active_hitbox)
-            
-            # check collision
-            if self.active_hitbox.colliderect(enemy.rect):
-                enemy.take_damage()
 
-            else:
-                pass
 
     def take_damage(self, enemy):  # call this method in the main cycle
 
@@ -397,7 +395,7 @@ class Player(GameObject, mixin.Gravity):
 
         self.is_on_ground = False
 
-    def knockback_update(self, delta_time):
+    def knockback_update(self, delta_time): #update player position in knockbak state 
 
         # start the timer
         self.timer += delta_time
@@ -432,20 +430,30 @@ class Platform(GameObject):
         pass
 
 
+class Enemy_states(Enum):
+    IDDLE = 1
+    HURT = 2
+    ATTACKING = 3
+
 class Enemy(GameObject):
 
     def __init__(self, name, image):
         super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
         self.move_speed = 300
-        self.HP = 6
+        self.HP = 5
         self.isDead = False
         self.facing_right = True
+        self.can_receive_damage = True
 
     def draw(self, screen):
         return super().draw(screen)
 
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
+    
+    def update_enemy(self):
+        
+        pass
 
     def movement(self, screen, delta_time):
 
@@ -471,10 +479,15 @@ class Enemy(GameObject):
         
         self.HP -= 1
         
-        if self.HP >= 0: 
+        if self.HP <= 0: 
             self.isDead = True
             super().kill()
         
         #Knockback physic 
     
-    
+    def receive_damage(self):
+        
+        if not self.can_receive_damage:
+            return
+        self.take_damage()
+        self.can_receive_damage = False

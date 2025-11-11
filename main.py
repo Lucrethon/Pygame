@@ -148,6 +148,27 @@ while running:
     if enemies_collision:
         player.take_damage(enemy)
 
+    #check hitbox collision 
+    if player.active_hitbox: 
+        print(player.enemies_attacked)
+        
+        for enemy in models.enemy_group:
+
+            if player.active_hitbox.colliderect(enemy.rect):
+                
+                hitbox_collision_check = True
+                
+                if enemy not in player.enemies_attacked and enemy.can_receive_damage and hitbox_collision_check:
+                    enemy.receive_damage()
+                    player.enemies_attacked.append(enemy)
+                    print(player.enemies_attacked)
+                else:
+                    enemy.can_receive_damage = True
+            
+            else: 
+                hitbox_collision_check = False
+            
+
     # 5. DRAW
 
     # Set ground rect & image
@@ -162,7 +183,7 @@ while running:
             screen
         )  # call to .draw() method from GameObjects that can handle gifs
 
-    player.draw_attack(screen, enemy)
+    player.draw_attack(screen)
 
     # update screen
     pygame.display.flip()
