@@ -156,17 +156,14 @@ while running:
 
             if player.active_hitbox.colliderect(enemy.rect):
                 
-                hitbox_collision_check = True
-                
-                if enemy not in player.enemies_attacked and enemy.can_receive_damage and hitbox_collision_check:
-                    enemy.receive_damage()
+                if enemy not in player.enemies_attacked:
+                    enemy.take_damage()
                     player.enemies_attacked.append(enemy)
-                    print(player.enemies_attacked)
                 else:
-                    enemy.can_receive_damage = True
+                    pass
             
             else: 
-                hitbox_collision_check = False
+                pass
             
 
     # 5. DRAW

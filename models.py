@@ -443,7 +443,7 @@ class Enemy(GameObject):
         self.HP = 5
         self.isDead = False
         self.facing_right = True
-        self.can_receive_damage = True
+        # self.can_receive_damage = True
 
     def draw(self, screen):
         return super().draw(screen)
@@ -485,9 +485,4 @@ class Enemy(GameObject):
         
         #Knockback physic 
     
-    def receive_damage(self):
-        
-        if not self.can_receive_damage:
-            return
-        self.take_damage()
-        self.can_receive_damage = False
+
