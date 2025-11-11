@@ -30,4 +30,35 @@ def setup_player_gif(screen):
         player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx6.gif")
     
     return player_image
+
+def knockback(player, enemy, player_beaten = False):
+    
+    sprite_beaten = None
+    sprite_beater = None
+    
+    if player_beaten:
+        
+        sprite_beaten = player
+        sprite_beater = enemy
+    
+    else: 
+        sprite_beaten = enemy
+        sprite_beater = player
+    
+    x_direction = 0
+    
+    # set up knockback direction
+    if sprite_beaten.rect.centerx < sprite_beater.rect.centerx:
+        x_direction = -1  # empuje a la izquierda
+
+    else:
+        x_direction = 1  # empuje a la derecha
+    
+    # --- ADD UP AND DOWN DIRECTION --
+
+    # set up knockback x speed
+    sprite_beaten.x_vel = sprite_beater.knockback_x_force * x_direction
+
+    # set up knockback y speed (jump)
+    sprite_beaten.y_vel = sprite_beater.knockback_y_force
     

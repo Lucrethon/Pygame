@@ -137,7 +137,7 @@ while running:
         delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down
     )
 
-    enemy.movement(screen, delta_time)
+    enemy.update_enemy(delta_time, screen, ground)
 
     models.moving_sprites.update()
 
@@ -146,11 +146,18 @@ while running:
     enemies_collision = pygame.sprite.spritecollide(player, models.enemy_group, False)
 
     if enemies_collision:
-        player.take_damage(enemy)
+        
+        for enemy in enemies_collision:
+        
+            if player.state == models.States.KNOCKBACK or player.is_invulnerable:
+                pass
+            else:
+                player.take_damage()
+                functions.knockback(player, enemy, True)
+
 
     #check hitbox collision 
     if player.active_hitbox: 
-        print(player.enemies_attacked)
         
         for enemy in models.enemy_group:
 
@@ -158,6 +165,7 @@ while running:
                 
                 if enemy not in player.enemies_attacked:
                     enemy.take_damage()
+                    functions.knockback(player, enemy, False)
                     player.enemies_attacked.append(enemy)
                 else:
                     pass

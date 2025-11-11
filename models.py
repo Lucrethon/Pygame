@@ -361,9 +361,7 @@ class Player(GameObject, mixin.Gravity):
             screen.blit(self.active_slash_sprite, self.active_hitbox)
 
 
-    def take_damage(self, enemy):  # call this method in the main cycle
-
-        x_direction = 0
+    def take_damage(self):  # call this method in the main cycle
 
         if self.state == States.KNOCKBACK or self.is_invulnerable:
             return
@@ -377,21 +375,6 @@ class Player(GameObject, mixin.Gravity):
 
         # set up HP
         self.HP -= 1
-
-        # set up knockback direction
-        if self.rect.centerx < enemy.rect.centerx:
-            x_direction = -1  # empuje a la izquierda
-
-        else:
-            x_direction = 1  # empuje a la derecha
-        
-        # --- ADD UP AND DOWN DIRECTION --
-
-        # set up knockback x speed
-        self.x_vel = self.knockback_x_force * x_direction
-
-        # set up knockback y speed (jump)
-        self.y_vel = self.knockback_y_force
 
         self.is_on_ground = False
 
@@ -432,10 +415,10 @@ class Platform(GameObject):
 
 class Enemy_states(Enum):
     IDDLE = 1
-    HURT = 2
+    KNOCKBACK = 2
     ATTACKING = 3
 
-class Enemy(GameObject):
+class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
     def __init__(self, name, image):
         super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
@@ -443,7 +426,18 @@ class Enemy(GameObject):
         self.HP = 5
         self.isDead = False
         self.facing_right = True
-        # self.can_receive_damage = True
+        self.knockback_y_force = -500
+        self.knockback_x_force = 600
+        self.timer = 0.0
+        self.knockback_duration = 0.5
+        self.air_friction = 0.90
+        self.is_on_ground = True  # <-- Is not jumping
+        self.state = Enemy_states.IDDLE
+        self.gravity = 2700
+        
+        # --- VELOCIDAD ACTUAL ---
+        self.x_vel = 0
+        self.y_vel = 0
 
     def draw(self, screen):
         return super().draw(screen)
@@ -451,38 +445,77 @@ class Enemy(GameObject):
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
     
-    def update_enemy(self):
-        
-        pass
+    def update_enemy(
+        self,
+        delta_time,
+        screen,
+        ground,
+    ):
 
-    def movement(self, screen, delta_time):
+        delta_x = 0  # variation in x
+        delta_y = 0  # variation in y
 
-        delta_x = 0
-        delta_y = 0
+        # Knockback State
+        if self.state == States.KNOCKBACK:
 
-        delta_x += self.move_speed * delta_time
+            self.knockback_update(delta_time)
+            # Usa la velocidad de knockback
+        else:
+            self.x_vel = self.move_speed
+
+        # aply gravity
+        super().apply_gravity(delta_time)
+
+        # Check screen collision
+        super().not_cross_edge_screen(screen)
 
         # updates rect position
-        self.rect.move_ip(delta_x, 0)
+        
+        delta_x += self.x_vel * delta_time
+        delta_y = self.y_vel * delta_time
+        
+        #Move rect
+        self.rect.move_ip(delta_x, delta_y)
 
-        # setting the enemy to don't go off the edge of the screen
-
-        if self.rect.right >= screen.get_width() and self.facing_right:
-            self.facing_right = False
-            self.move_speed *= -1
-
-        if self.rect.left <= 0 and not self.facing_right:
-            self.facing_right = True
-            self.move_speed *= -1
+        # Check ground collision
+        super().check_ground_collision(ground)
+        
+    def movement(self):
+        return super().movement()
     
     def take_damage(self): 
         
         self.HP -= 1
+        
+        self.state = Enemy_states.KNOCKBACK
+
+        self.is_on_ground = False
+        
+        # restart timer
+        self.timer = 0.0
         
         if self.HP <= 0: 
             self.isDead = True
             super().kill()
         
         #Knockback physic 
+    
+    def knockback_update(self, delta_time): #update player position in knockbak state 
+
+        # start the timer
+        self.timer += delta_time
+
+        # apply friction
+        self.x_vel *= self.air_friction
+
+        # Detenerlo si es muy lento
+        if abs(self.x_vel) < 10:
+            self.x_vel = 0
+
+        if self.timer >= self.knockback_duration:
+            self.state = Enemy_states.IDDLE
+            self.timer = 0.0
+            # Importante: resetear la velocidad X al salir del knockback
+            self.x_vel = 0
     
 
