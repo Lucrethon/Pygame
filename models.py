@@ -67,21 +67,23 @@ class GameObject(ABC, pygame.sprite.Sprite):
 class Player(GameObject, mixin.Gravity):
     def __init__(self, name, image, move_speed, sprite_attack_slash):
         super().__init__(name, image, all_sprites, moving_sprites)
-        self.move_speed = move_speed
+        
+        # --- HEALTH ---
         self.HP = 5
         
         # --- SPRITES ---
         self.sprite_attack_slash = sprite_attack_slash
         self.active_slash_sprite = None
         
-        # --- VELOCIDAD ACTUAL ---
+        # --- CURRENT SPEED ---
         self.x_vel = 0
         self.y_vel = 0
 
         # --- CONSTANTES DE FUERZA ---
+        self.move_speed = move_speed
         self.gravity = 2700
         self.jump_force = -1000
-        self.knockback_y_force = -500
+        self.knockback_y_force = -100
         self.knockback_x_force = 600
         self.air_friction = 0.90  # fuerza de arrastre que se opone al movimiento de un objeto al atravesar el aire
 
@@ -413,32 +415,36 @@ class Platform(GameObject):
         pass
 
 
-class Enemy_states(Enum):
-    IDDLE = 1
-    KNOCKBACK = 2
-    ATTACKING = 3
-
 class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
     def __init__(self, name, image):
         super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
+        
+        # --- CONSTANTES DE FUERZA ---
         self.move_speed = 300
-        self.HP = 5
-        self.isDead = False
-        self.facing_right = True
         self.knockback_y_force = -500
         self.knockback_x_force = 600
-        self.timer = 0.0
-        self.knockback_duration = 0.5
-        self.air_friction = 0.90
-        self.is_on_ground = True  # <-- Is not jumping
-        self.state = Enemy_states.IDDLE
         self.gravity = 2700
+        self.air_friction = 0.90
         
-        # --- VELOCIDAD ACTUAL ---
+        # --- CURRENT SPEED ---
         self.x_vel = 0
         self.y_vel = 0
-
+        
+        # --- HEALTH ---
+        self.HP = 5
+        
+        # --- STATES ---
+        self.state = States.IDDLE
+        self.isDead = False
+        self.facing_right = True
+        self.is_on_ground = True  # <-- Is not jumping
+        
+        
+        # --- TIMERS ---
+        self.timer = 0.0
+        self.knockback_duration = 0.3
+        
     def draw(self, screen):
         return super().draw(screen)
 
@@ -487,7 +493,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         
         self.HP -= 1
         
-        self.state = Enemy_states.KNOCKBACK
+        self.state = States.KNOCKBACK
 
         self.is_on_ground = False
         
@@ -513,7 +519,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
             self.x_vel = 0
 
         if self.timer >= self.knockback_duration:
-            self.state = Enemy_states.IDDLE
+            self.state = States.IDDLE
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
