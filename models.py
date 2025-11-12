@@ -10,6 +10,7 @@ class States(Enum):
     IDDLE = 1
     ATTACKING = 2
     KNOCKBACK = 3
+    RECOIL = 4
 
 class Orientation(Enum):
     RIGTH = 1
@@ -86,6 +87,7 @@ class Player(GameObject, mixin.Gravity):
         self.knockback_y_force = -100
         self.knockback_x_force = 600
         self.air_friction = 0.90  # fuerza de arrastre que se opone al movimiento de un objeto al atravesar el aire
+        self.attack_recoil_force = 300
 
         # --- ESTADOS ---
         self.state = States.IDDLE
@@ -96,6 +98,7 @@ class Player(GameObject, mixin.Gravity):
         self.active_hitbox = None
         self.is_invulnerable = False #invulnerability state after knockback to avoid multiple collisions at the same time 
         self.attack_orientation = Orientation.RIGTH
+        self.is_recoiling = False
 
         # --- DURACION DE ESTADOS ---
         self.timer = 0.0
@@ -105,6 +108,8 @@ class Player(GameObject, mixin.Gravity):
         self.recovery_attack_duration = 0.3  # seconds
         self.invulnerability_duration = 1 #seconds 
         self.invulnerability_timer = 0.0 #separate time to count time even if the player is attacking or iddle. 
+        self.attack_recoil_timer = 0
+        self.attack_recoil_duration = 0.07
         
         #--- ARRAYS ---
         self.enemies_attacked = []
@@ -139,6 +144,12 @@ class Player(GameObject, mixin.Gravity):
 
             self.knockback_update(delta_time)
             # Usa la velocidad de knockback
+        
+        elif self.is_recoiling: 
+            self.attack_recoil_timer += delta_time
+            if self.attack_recoil_timer >= self.attack_recoil_duration: 
+                self.is_recoiling = False
+            
         else:
 
             if self.state == States.ATTACKING:
@@ -154,6 +165,7 @@ class Player(GameObject, mixin.Gravity):
             self.invulnerability_timer += delta_time
             if self.invulnerability_timer >= self.invulnerability_duration:
                 self.is_invulnerable = False 
+            
 
         # aply gravity
         super().apply_gravity(delta_time)
@@ -404,6 +416,35 @@ class Player(GameObject, mixin.Gravity):
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
 
+    def start_attack_recoil(self): #<-- Funcion que llama el arbitro de juego (disparador)
+        
+        # start the timer
+        self.attack_recoil_timer = 0
+        
+        self.is_recoiling = True
+        
+        self.attack_recoil()
+
+    
+    def attack_recoil(self):
+        
+        x_direction = 0
+    
+        # set up knockback direction
+        if self.attack_orientation == Orientation.RIGTH:
+            x_direction = -1  # empuje a la izquierda
+
+        elif self.attack_orientation == Orientation.LEFT:
+            x_direction = 1  # empuje a la derecha
+        
+        else: 
+            pass
+        
+        # --- ADD UP AND DOWN DIRECTION --
+
+        # set up knockback x speed
+        self.x_vel = self.attack_recoil_force * x_direction
+
 
 class Platform(GameObject):
     def __init__(self, name, image):
@@ -447,7 +488,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         
         # --- TIMERS ---
         self.timer = 0.0
-        self.knockback_duration = 0.3
+        self.knockback_duration = 0.2
         
     def draw(self, screen):
         return super().draw(screen)

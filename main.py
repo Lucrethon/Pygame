@@ -166,6 +166,7 @@ while running:
                 if enemy not in player.enemies_attacked:
                     enemy.take_damage()
                     functions.knockback(player, enemy, False)
+                    player.start_attack_recoil()
                     player.enemies_attacked.append(enemy)
                 else:
                     pass
