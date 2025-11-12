@@ -379,6 +379,10 @@ class Player(GameObject, mixin.Gravity):
         self.HP -= 1
 
         self.is_on_ground = False
+        
+        # Cancelar cualquier ataque activo para evitar bugs
+        self.active_hitbox = None
+        self.active_slash_sprite = None
 
     def knockback_update(self, delta_time): #update player position in knockbak state 
 
