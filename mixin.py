@@ -1,6 +1,7 @@
 import pygame
 import gif_pygame
 import gif_pygame.transform
+import models
 
 class Gravity:
     
@@ -33,10 +34,10 @@ class CrossScreen:
     #setting the enemy to don't go off the edge of the screen 
     def not_cross_edge_screen(self, screen):
             
-        if self.rect.right >= screen.get_width() and self.facing_right:
-            self.facing_right = False
+        if self.rect.right >= screen.get_width() and self.orientation == models.Orientation.RIGTH:
+            self.orientation = models.Orientation.LEFT
             self.move_speed *= -1
             
-        if self.rect.left <= 0 and not self.facing_right:
-            self.facing_right = True
+        if self.rect.left <= 0 and self.orientation == models.Orientation.LEFT:
+            self.orientation = models.Orientation.RIGTH
             self.move_speed *= -1

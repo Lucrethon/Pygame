@@ -112,20 +112,17 @@ while running:
             if event.key == pygame.K_ESCAPE:
                 running = False
         # pygame.K_SCAPE event means the user press Esc button to close your window
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-
-            if event.button == 1:
+            if event.key == pygame.K_s:
                 TrigerAttack = True
 
     get_pressed_keys = pygame.key.get_pressed()
     # set a key that occurrs while the player get pressed a button on the keyboard
 
-    move_right = get_pressed_keys[pygame.K_d]
-    move_left = get_pressed_keys[pygame.K_a]
+    move_right = get_pressed_keys[pygame.K_RIGHT]
+    move_left = get_pressed_keys[pygame.K_LEFT]
     jumping = get_pressed_keys[pygame.K_SPACE]
-    face_up = get_pressed_keys[pygame.K_w]
-    face_down = get_pressed_keys[pygame.K_s]
+    face_up = get_pressed_keys[pygame.K_UP]
+    face_down = get_pressed_keys[pygame.K_DOWN]
 
     # 3. MOVEMENT
 
@@ -164,10 +161,18 @@ while running:
             if player.active_hitbox.colliderect(enemy.rect):
                 
                 if enemy not in player.enemies_attacked:
-                    enemy.take_damage()
-                    functions.knockback(player, enemy, False)
-                    player.start_attack_recoil()
-                    player.enemies_attacked.append(enemy)
+                    
+                    if player.orientation == models.Orientation.DOWN:
+                        enemy.take_damage()
+                        #functions.knockback(player, enemy, False)
+                        player.trigger_pogo()
+                        player.enemies_attacked.append(enemy)
+                        
+                    else:
+                        enemy.take_damage()
+                        functions.knockback(player, enemy, False)
+                        player.start_attack_recoil()
+                        player.enemies_attacked.append(enemy)
                 else:
                     pass
             

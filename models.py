@@ -88,29 +88,43 @@ class Player(GameObject, mixin.Gravity):
         self.knockback_x_force = 600
         self.air_friction = 0.90  # fuerza de arrastre que se opone al movimiento de un objeto al atravesar el aire
         self.attack_recoil_force = 300
+        self.pogo_force = -800
 
-        # --- ESTADOS ---
+        # --- STATE OF ACTION ---
         self.state = States.IDDLE
-        self.facing_right = True
-        self.facing_up = False
-        self.facing_down = False
-        self.is_on_ground = True  # <-- Is not jumping
+        
+        # --- EFFECTS OF ACCTION ---
         self.active_hitbox = None
-        self.is_invulnerable = False #invulnerability state after knockback to avoid multiple collisions at the same time 
-        self.attack_orientation = Orientation.RIGTH
         self.is_recoiling = False
+        self.is_invulnerable = False #invulnerability state after knockback to avoid multiple collisions at the same time
+        
+        
+        # --- ORIENTATION AND POSITION ---
+        self.orientation = Orientation.RIGTH
+        self.is_on_ground = True  # <-- Is not jumping
+        self.attack_orientation = Orientation.RIGTH
 
-        # --- DURACION DE ESTADOS ---
-        self.timer = 0.0
-        self.knockback_duration = 0.5  # seconds
-        self.build_up_attack_duration = 0.1  # seconds
-        self.active_frames_attack_duration = 0.07  # seconds
-        self.recovery_attack_duration = 0.3  # seconds
-        self.invulnerability_duration = 1 #seconds 
-        self.invulnerability_timer = 0.0 #separate time to count time even if the player is attacking or iddle. 
-        self.attack_recoil_timer = 0
+        # --- DURATION OF STATES (SECONDS) ---
+        #Knockback state 
+        self.knockback_duration = 0.25
+        #Attacking state
+        self.build_up_attack_duration = 0.1  
+        self.active_frames_attack_duration = 0.08  
+        self.recovery_attack_duration = 0.1
+        #Invulnerability state
+        self.invulnerability_duration = 0.3 
+        #Recoil state
         self.attack_recoil_duration = 0.07
         
+        # --- TIMERS ---
+        self.timer = 0.0
+        self.attack_recoil_timer = 0.0
+        self.invulnerability_timer = 0.0 #separate time to count time even if the player is attacking or iddle. 
+        
+        # --- FLAGS ---
+        self.just_pogoed = False
+        self.just_jumped = False
+
         #--- ARRAYS ---
         self.enemies_attacked = []
 
@@ -165,10 +179,7 @@ class Player(GameObject, mixin.Gravity):
             self.invulnerability_timer += delta_time
             if self.invulnerability_timer >= self.invulnerability_duration:
                 self.is_invulnerable = False 
-            
 
-        # aply gravity
-        super().apply_gravity(delta_time)
 
         delta_x = self.x_vel * delta_time
         delta_y = self.y_vel * delta_time
@@ -182,6 +193,9 @@ class Player(GameObject, mixin.Gravity):
 
         # Check ground collision
         super().check_ground_collision(ground)
+        
+        # aply gravity
+        super().apply_gravity(delta_time)
 
     def movement(self, right=False, left=False): #--> Return x speed (update player position)
 
@@ -190,55 +204,66 @@ class Player(GameObject, mixin.Gravity):
         if right:
             current_x_speed = self.move_speed
 
-            if self.facing_right:
+            if self.orientation == Orientation.RIGTH:
                 pass
             else:
 
                 # flip sprite to right
-                self.facing_right = True
+                self.orientation = Orientation.RIGTH
                 gif_pygame.transform.flip(self.image, True, False)
 
         if left:
             current_x_speed = -self.move_speed
 
-            if not self.facing_right:
+            if self.orientation == Orientation.LEFT:
                 pass
+            
             else:
-
                 # flip sprite to left
-                self.facing_right = False
+                self.orientation = Orientation.LEFT
                 gif_pygame.transform.flip(self.image, True, False)
 
         return current_x_speed
 
-    def jump(self, jump=False): #(update player position)
+    def jump(self, jump=False): #(update player y position)
+        
+        #Pogo
+        if self.just_pogoed:
+            self.y_vel = self.pogo_force 
+            self.is_on_ground = True 
+            self.just_pogoed = False
+            self.just_jumped = False
 
         # if the player is not jumping and maitain Space button pressed (long jump)
-        if jump and self.is_on_ground:
+        elif jump and self.is_on_ground:
 
             self.y_vel = self.jump_force
             self.is_on_ground = False
+            self.just_jumped = True
 
         # if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
-        if not jump and self.y_vel < 0:
+        elif not jump and self.y_vel < 0 and self.just_jumped:
             self.y_vel *= 0.5
             self.is_on_ground = False
+
+        # Resetea el flag de salto corto si empezamos a caer
+        if self.y_vel >= 0:
+            self.just_jumped = False
+            
 
     def facing_input(self, down=False, up=False): #(update player facing)
 
         # Facing up
         if up and not down:
-            self.facing_down = False
-            self.facing_up = True
+            self.orientation = Orientation.UP
 
         # Facing down
         elif down and not up:
-            self.facing_up = False
-            self.facing_down = True
+            self.orientation = Orientation.DOWN
 
-        else:
-            self.facing_up = False
-            self.facing_down = False
+        # else:
+        #     self.facing_up = False
+        #     self.facing_down = False
 
     def not_cross_edge_screen(self, screen, delta_x): #return position variation in X
         # setting player to don't go off the edge of the screen
@@ -307,27 +332,27 @@ class Player(GameObject, mixin.Gravity):
             self.state = States.IDDLE
             # reset timer
             self.timer = 0.0
-    
+
     def lock_attack_ortientation(self): 
         
         # up the player
-        if self.facing_up and not self.facing_down:
+        if self.orientation == Orientation.UP:
 
             self.attack_orientation = Orientation.UP
 
         # down the player
-        elif self.facing_down and not self.facing_up:
+        elif self.orientation == Orientation.DOWN:
 
             self.attack_orientation = Orientation.DOWN
 
         # right the player
-        elif self.facing_right and not self.facing_down:
+        elif self.orientation == Orientation.RIGTH:
 
             self.attack_orientation = Orientation.RIGTH
 
         # left the player
         else:
-            if not self.facing_right and not self.facing_down:
+            if self.orientation == Orientation.LEFT:
 
                 self.attack_orientation = Orientation.LEFT
 
@@ -373,7 +398,6 @@ class Player(GameObject, mixin.Gravity):
         if self.active_hitbox and self.active_slash_sprite:
             
             screen.blit(self.active_slash_sprite, self.active_hitbox)
-
 
     def take_damage(self):  # call this method in the main cycle
 
@@ -425,16 +449,15 @@ class Player(GameObject, mixin.Gravity):
         
         self.attack_recoil()
 
-    
     def attack_recoil(self):
         
         x_direction = 0
     
         # set up knockback direction
-        if self.attack_orientation == Orientation.RIGTH:
+        if self.orientation == Orientation.RIGTH:
             x_direction = -1  # empuje a la izquierda
 
-        elif self.attack_orientation == Orientation.LEFT:
+        elif self.orientation == Orientation.LEFT:
             x_direction = 1  # empuje a la derecha
         
         else: 
@@ -444,6 +467,9 @@ class Player(GameObject, mixin.Gravity):
 
         # set up knockback x speed
         self.x_vel = self.attack_recoil_force * x_direction
+
+    def trigger_pogo(self): 
+        self.just_pogoed = True
 
 
 class Platform(GameObject):
@@ -466,7 +492,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
         
         # --- CONSTANTES DE FUERZA ---
-        self.move_speed = 300
+        self.move_speed = 240
         self.knockback_y_force = -500
         self.knockback_x_force = 600
         self.gravity = 2700
@@ -479,12 +505,13 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         # --- HEALTH ---
         self.HP = 5
         
-        # --- STATES ---
+        # --- STATE OF ACTION ---
         self.state = States.IDDLE
         self.isDead = False
-        self.facing_right = True
-        self.is_on_ground = True  # <-- Is not jumping
         
+        # --- ORIENTATION AND POSITION ---
+        self.orientation = Orientation.RIGTH
+        self.is_on_ground = True  # <-- Is not jumping
         
         # --- TIMERS ---
         self.timer = 0.0
