@@ -9,7 +9,7 @@ import mixin
 class States(Enum):
     IDDLE = 1
     ATTACKING = 2
-    KNOCKBACK = 3
+    HURT = 3
     RECOIL = 4
 
 class Orientation(Enum):
@@ -106,13 +106,13 @@ class Player(GameObject, mixin.Gravity):
 
         # --- DURATION OF STATES (SECONDS) ---
         #Knockback state 
-        self.knockback_duration = 0.25
+        self.knockback_duration = 0.08
         #Attacking state
-        self.build_up_attack_duration = 0.1  
-        self.active_frames_attack_duration = 0.08  
-        self.recovery_attack_duration = 0.1
+        self.build_up_attack_duration = 0.08  
+        self.active_frames_attack_duration = 0.07  
+        self.recovery_attack_duration = 0.08
         #Invulnerability state
-        self.invulnerability_duration = 0.3 
+        self.invulnerability_duration = 0.9
         #Recoil state
         self.attack_recoil_duration = 0.07
         
@@ -120,10 +120,12 @@ class Player(GameObject, mixin.Gravity):
         self.timer = 0.0
         self.attack_recoil_timer = 0.0
         self.invulnerability_timer = 0.0 #separate time to count time even if the player is attacking or iddle. 
+        self.knockback_timer = 0.0
         
         # --- FLAGS ---
         self.just_pogoed = False
         self.just_jumped = False
+        self.just_knockbaked = False
 
         #--- ARRAYS ---
         self.enemies_attacked = []
@@ -147,39 +149,43 @@ class Player(GameObject, mixin.Gravity):
     ):
 
         # triggrs should NEVER be in update method. Only in the main cycle. This method will only receive methods to update the player position that are triggered by trigger methods that change player states. Acording those states, this method will work in one way or another 
+        
+        # --- TIMERS --- 
+        
+        if self.state == States.ATTACKING:
 
+            self.attack_update(delta_time)
+            
+        if self.is_invulnerable:
+
+            self.invulnerability_timer += delta_time
+            
+            if self.invulnerability_timer >= self.invulnerability_duration:
+                self.is_invulnerable = False 
+        
+        
+        # --- X-Vel CONTROL ---
+        
         delta_x = 0  # variation in x
         delta_y = 0  # variation in y
 
         current_x_speed = 0
 
         # Knockback State
-        if self.state == States.KNOCKBACK:
-
+        if self.state == States.HURT:
             self.knockback_update(delta_time)
-            # Usa la velocidad de knockback
         
         elif self.is_recoiling: 
             self.attack_recoil_timer += delta_time
             if self.attack_recoil_timer >= self.attack_recoil_duration: 
                 self.is_recoiling = False
-            
+
         else:
-
-            if self.state == States.ATTACKING:
-
-                self.attack_update(delta_time)
 
             current_x_speed = self.movement(right, left)
             self.x_vel = current_x_speed
             self.jump(jump)
             self.facing_input(down, up)
-        
-        if self.is_invulnerable: #invulnerability state after knockback 
-            self.invulnerability_timer += delta_time
-            if self.invulnerability_timer >= self.invulnerability_duration:
-                self.is_invulnerable = False 
-
 
         delta_x = self.x_vel * delta_time
         delta_y = self.y_vel * delta_time
@@ -230,7 +236,7 @@ class Player(GameObject, mixin.Gravity):
         #Pogo
         if self.just_pogoed:
             self.y_vel = self.pogo_force 
-            self.is_on_ground = True 
+            #self.is_on_ground = True 
             self.just_pogoed = False
             self.just_jumped = False
 
@@ -399,30 +405,42 @@ class Player(GameObject, mixin.Gravity):
             
             screen.blit(self.active_slash_sprite, self.active_hitbox)
 
-    def take_damage(self):  # call this method in the main cycle
-
-        if self.state == States.KNOCKBACK or self.is_invulnerable:
-            return
-        #The player cannot reaceive damage while elf.is_invulnerable = True
-
-        # set knockback state
-        self.state = States.KNOCKBACK
-
-        # restart timer
-        self.timer = 0.0
-
+    def take_damage(self):  # call this method in the main cycle - invulnerability state
         # set up HP
         self.HP -= 1
+        
+        self.trigger_knockback()
+        self.trigger_invulnerability()
 
+    def trigger_knockback(self):
+        
+        if self.state == States.HURT:
+            return
+        
+        self.state = States.HURT
+        
+        self.timer = 0.0
+        
         self.is_on_ground = False
         
         # Cancelar cualquier ataque activo para evitar bugs
         self.active_hitbox = None
         self.active_slash_sprite = None
+        
+    def trigger_invulnerability(self):
+        
+        if self.is_invulnerable:
+            return
+        #The player cannot reaceive damage while self.is_invulnerable = True
 
-    def knockback_update(self, delta_time): #update player position in knockbak state 
-
-        # start the timer
+        # set invulnerability state
+        self.is_invulnerable = True
+        
+        self.invulnerability_timer = 0.0
+    
+    def knockback_update(self, delta_time):
+        
+                # start the timer
         self.timer += delta_time
 
         # apply friction
@@ -433,8 +451,6 @@ class Player(GameObject, mixin.Gravity):
             self.x_vel = 0
 
         if self.timer >= self.knockback_duration:
-            self.is_invulnerable = True #invulnerability state after knockback 
-            self.invulnerability_timer = 0.0
             self.state = States.IDDLE
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
@@ -503,7 +519,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         self.y_vel = 0
         
         # --- HEALTH ---
-        self.HP = 5
+        self.HP = 200
         
         # --- STATE OF ACTION ---
         self.state = States.IDDLE
@@ -534,7 +550,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         delta_y = 0  # variation in y
 
         # Knockback State
-        if self.state == States.KNOCKBACK:
+        if self.state == States.HURT:
 
             self.knockback_update(delta_time)
             # Usa la velocidad de knockback
@@ -565,7 +581,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         
         self.HP -= 1
         
-        self.state = States.KNOCKBACK
+        self.state = States.HURT
 
         self.is_on_ground = False
         

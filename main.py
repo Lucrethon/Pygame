@@ -142,11 +142,11 @@ while running:
 
     enemies_collision = pygame.sprite.spritecollide(player, models.enemy_group, False)
 
-    if enemies_collision:
+    if enemies_collision:    
         
         for enemy in enemies_collision:
-        
-            if player.state == models.States.KNOCKBACK or player.is_invulnerable:
+
+            if player.state == models.States.HURT or player.is_invulnerable:
                 pass
             else:
                 player.take_damage()
