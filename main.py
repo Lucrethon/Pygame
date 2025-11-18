@@ -9,43 +9,33 @@ import time
 pygame.init()
 
 # Set screen size
-screen = functions.setup_screen(False)
+screen = functions.setup_screen(True)
 screen_width, screen_height = screen.get_size()
 
-# creating scale factors acording background asset
-base_width = 320
-base_height = 180
+virtual_width = 960
+virtual_height = 540
 
-# scales factors
-scale_x = screen_width / base_width
-scale_y = screen_height / base_height
+virtual_canvas = pygame.Surface((virtual_width, virtual_height))
 
 # Load background image
-background = pygame.image.load("./assets/Backgruound_320x180.png").convert()
-
-# Resize background image to fit window
-background = pygame.transform.scale(background, (screen_width, screen_height))
+background = pygame.image.load("./assets/Background_960x540.png").convert()
 
 # load background image
-ground_image = pygame.image.load("./assets/Ground.png")
-
-# scaling ground image acording scale factors
-ground_image = functions.resize(ground_image, scale_x, scale_y)
+ground_image = pygame.image.load("./assets/Ground_scaled_960x540.png")
 
 # creating ground object
 ground = models.Platform("ground", ground_image)
 
 # set ground position
 ground.set_position(
-    (screen_width - ground.rect.width), (screen_height - ground.rect.height)
+    (virtual_width - ground.rect.width), (virtual_height - ground.rect.height)
 )
 
 # Set player image using gif-pygame library
-player_image = functions.setup_player_gif(screen)
+player_image = functions.setup_player_gif(virtual_canvas)
 
 #Player attack slash sprite 
-sprite_attack_slash = pygame.image.load("./assets/Attack_Slash.png").convert_alpha()
-sprite_attack_slash = functions.resize(sprite_attack_slash, scale_x, scale_y)
+sprite_attack_slash = pygame.image.load("./assets/Attack_Slashx3.png").convert_alpha()
 
 # Set player speed
 player_x_speed = 300
@@ -57,13 +47,13 @@ player_name = "Arnaldo"
 player = models.Player(player_name, player_image, player_x_speed, sprite_attack_slash)
 
 # set player inicial position
-player.set_position(screen_width / 2, ground.rect.top, True)
+player.set_position(virtual_width / 2, ground.rect.top, True)
 
 # creating enemy object and setting position
 enemy_image = pygame.Surface([90, 90])
 enemy_image.fill((255, 0, 0))
 enemy = models.Enemy("Luki", enemy_image)
-enemy.set_position((player.rect.width / 2), ground.rect.top, True)
+enemy.set_position((virtual_width / 4), ground.rect.top, True)
 
 
 # set game clock to control the time the loop
@@ -131,10 +121,10 @@ while running:
         player.trigger_attack(attack=True)
 
     player.update_player(
-        delta_time, screen, ground, move_right, move_left, jumping, face_up, face_down
+        delta_time, virtual_canvas, ground, move_right, move_left, jumping, face_up, face_down
     )
 
-    enemy.update_enemy(delta_time, screen, ground)
+    enemy.update_enemy(delta_time, virtual_canvas, ground)
 
     models.moving_sprites.update()
 
@@ -183,18 +173,22 @@ while running:
     # 5. DRAW
 
     # Set ground rect & image
-    ground.draw(screen)
-
+    ground.draw(virtual_canvas)
+    
     # set background
-    screen.blit(background, (0, 0))
-
+    virtual_canvas.blit(background, (0, 0))
+    
     # Set moving objects
     for sprite in models.moving_sprites:
         sprite.draw(
-            screen
+            virtual_canvas
         )  # call to .draw() method from GameObjects that can handle gifs
 
-    player.draw_attack(screen)
+    player.draw_attack(virtual_canvas)
+    
+    streched_canvas = pygame.transform.scale(virtual_canvas, (screen_width, screen_height))
+    
+    screen.blit(streched_canvas, (0, 0))
 
     # update screen
     pygame.display.flip()

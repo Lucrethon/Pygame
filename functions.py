@@ -3,7 +3,17 @@ import gif_pygame
 from gif_pygame import transform
 
 #function to resize sprites acording scale factors
-def resize(sprite, scale_x, scale_y):
+def resize(sprite, screen):
+    
+    screen_width, screen_height = screen.get_size()
+    
+    # creating scale factors acording background asset
+    background_base_width = 320
+    background_base_height = 180
+
+    # scales factors
+    scale_x = screen_width / background_base_width
+    scale_y = screen_height / background_base_height
         
     resize_sprite = pygame.transform.scale(sprite, (int(sprite.get_width() * scale_x), int(sprite.get_height() * scale_y)))
     
