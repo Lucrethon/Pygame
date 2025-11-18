@@ -8,19 +8,24 @@ import time
 # Initiate pygame
 pygame.init()
 
-# Set screen size
+# SET UP REAL SCREEN
 screen = functions.setup_screen(True)
 screen_width, screen_height = screen.get_size()
 
+# --------------------------------------------------------------------------
+
+# SET UP VIRTUAL CANVAS (game logic)
 virtual_width = 960
 virtual_height = 540
-
 virtual_canvas = pygame.Surface((virtual_width, virtual_height))
 
-# Load background image
+# --------------------------------------------------------------------------
+# UPLOAD ASSETS
+
+# background image
 background = pygame.image.load("./assets/Background_960x540.png").convert()
 
-# load background image
+# ground image
 ground_image = pygame.image.load("./assets/Ground_scaled_960x540.png")
 
 # creating ground object
@@ -34,7 +39,7 @@ ground.set_position(
 # Set player image using gif-pygame library
 player_image = functions.setup_player_gif(virtual_canvas)
 
-#Player attack slash sprite 
+# Player attack slash sprite
 sprite_attack_slash = pygame.image.load("./assets/Attack_Slashx3.png").convert_alpha()
 
 # Set player speed
@@ -55,13 +60,12 @@ enemy_image.fill((255, 0, 0))
 enemy = models.Enemy("Luki", enemy_image)
 enemy.set_position((virtual_width / 4), ground.rect.top, True)
 
+# --------------------------------------------------------------------------
 
 # set game clock to control the time the loop
 clock = pygame.time.Clock()
 # Each round loop is a frame
 # without the control (clock), the loop will run at the fastest speed that the computer can allow
-
-# convert()= returns us a new Surface of the image, but now converted to the same pixel format as our display. Since the images will be the same format at the screen, they will blit very quickly. If we did not convert, the blit() function is slower, since it has to convert from one type of pixel to another as it goes.
 
 running = True
 
@@ -101,7 +105,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
-        # pygame.K_SCAPE event means the user press Esc button to close your window
+            # pygame.K_SCAPE event means the user press Esc button to close your window
             if event.key == pygame.K_s:
                 TrigerAttack = True
 
@@ -121,7 +125,14 @@ while running:
         player.trigger_attack(attack=True)
 
     player.update_player(
-        delta_time, virtual_canvas, ground, move_right, move_left, jumping, face_up, face_down
+        delta_time,
+        virtual_canvas,
+        ground,
+        move_right,
+        move_left,
+        jumping,
+        face_up,
+        face_down,
     )
 
     enemy.update_enemy(delta_time, virtual_canvas, ground)
@@ -132,8 +143,8 @@ while running:
 
     enemies_collision = pygame.sprite.spritecollide(player, models.enemy_group, False)
 
-    if enemies_collision:    
-        
+    if enemies_collision:
+
         for enemy in enemies_collision:
 
             if player.state == models.States.HURT or player.is_invulnerable:
@@ -142,22 +153,21 @@ while running:
                 player.take_damage()
                 functions.knockback(player, enemy, True)
 
+    # check hitbox collision
+    if player.active_hitbox:
 
-    #check hitbox collision 
-    if player.active_hitbox: 
-        
         for enemy in models.enemy_group:
 
             if player.active_hitbox.colliderect(enemy.rect):
-                
+
                 if enemy not in player.enemies_attacked:
-                    
+
                     if player.orientation == models.Orientation.DOWN:
                         enemy.take_damage()
-                        #functions.knockback(player, enemy, False)
+                        # functions.knockback(player, enemy, False)
                         player.trigger_pogo()
                         player.enemies_attacked.append(enemy)
-                        
+
                     else:
                         enemy.take_damage()
                         functions.knockback(player, enemy, False)
@@ -165,19 +175,18 @@ while running:
                         player.enemies_attacked.append(enemy)
                 else:
                     pass
-            
-            else: 
+
+            else:
                 pass
-            
 
     # 5. DRAW
 
     # Set ground rect & image
     ground.draw(virtual_canvas)
-    
+
     # set background
     virtual_canvas.blit(background, (0, 0))
-    
+
     # Set moving objects
     for sprite in models.moving_sprites:
         sprite.draw(
@@ -185,9 +194,11 @@ while running:
         )  # call to .draw() method from GameObjects that can handle gifs
 
     player.draw_attack(virtual_canvas)
-    
-    streched_canvas = pygame.transform.scale(virtual_canvas, (screen_width, screen_height))
-    
+
+    streched_canvas = pygame.transform.scale(
+        virtual_canvas, (screen_width, screen_height)
+    )
+
     screen.blit(streched_canvas, (0, 0))
 
     # update screen
