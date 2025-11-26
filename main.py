@@ -9,7 +9,7 @@ import time
 pygame.init()
 
 # SET UP REAL SCREEN
-screen = functions.setup_screen(True)
+screen = functions.setup_screen(False)
 screen_width, screen_height = screen.get_size()
 
 # --------------------------------------------------------------------------
@@ -96,27 +96,22 @@ while running:
     # 2. INPUT (events)
 
     TrigerAttack = False
+    
+    events = pygame.event.get()
+    #game_master.handle_events(events)
 
-    for event in pygame.event.get():  # iteracion sobre todos los eventos de pygame
+
+    for event in events:  # iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:
             running = False
         # pygame.QUIT event means the user clicked X to close your window
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                running = False
+        # if event.type == pygame.KEYDOWN:
+        #     if event.key == pygame.K_ESCAPE:
+        #         running = False
             # pygame.K_SCAPE event means the user press Esc button to close your window
-            if event.key == pygame.K_s:
-                TrigerAttack = True
-
-    get_pressed_keys = pygame.key.get_pressed()
-    # set a key that occurrs while the player get pressed a button on the keyboard
-
-    move_right = get_pressed_keys[pygame.K_RIGHT]
-    move_left = get_pressed_keys[pygame.K_LEFT]
-    jumping = get_pressed_keys[pygame.K_SPACE]
-    face_up = get_pressed_keys[pygame.K_UP]
-    face_down = get_pressed_keys[pygame.K_DOWN]
+        if event.key == pygame.K_s:
+            TrigerAttack = True
 
     # 3. MOVEMENT
 
@@ -127,13 +122,10 @@ while running:
     player.update_player(
         delta_time,
         virtual_canvas,
-        ground,
-        move_right,
-        move_left,
-        jumping,
-        face_up,
-        face_down,
+        ground
     )
+    # El jugador ahora gestiona sus propios inputs de movimiento dentro de update_player
+    player.update_player(delta_time, virtual_canvas, ground)
 
     enemy.update_enemy(delta_time, virtual_canvas, ground)
 

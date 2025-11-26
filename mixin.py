@@ -34,10 +34,19 @@ class CrossScreen:
     #setting the enemy to don't go off the edge of the screen 
     def not_cross_edge_screen(self, screen):
             
-        if self.rect.right >= screen.get_width() and self.orientation == models.Orientation.RIGTH:
-            self.orientation = models.Orientation.LEFT
-            self.move_speed *= -1
+        if self.rect.right >= screen.get_width():
+        
+            if self.orientation == models.Orientation.RIGTH:
+                self.orientation = models.Orientation.LEFT
+                self.move_speed *= -1
+                
+            # "Si te pasaste, te traigo de vuelta al borde exacto"
+            self.rect.right = screen.get_width()
             
-        if self.rect.left <= 0 and self.orientation == models.Orientation.LEFT:
-            self.orientation = models.Orientation.RIGTH
-            self.move_speed *= -1
+        if self.rect.left <= 0:
+            
+            if self.orientation == models.Orientation.LEFT:
+                self.orientation = models.Orientation.RIGTH
+                self.move_speed *= -1
+            
+            self.rect.left = 0

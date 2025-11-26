@@ -4,6 +4,10 @@ import gif_pygame.transform
 from abc import ABC, abstractmethod
 from enum import Enum
 import mixin
+import functions
+from functions import coordinates
+pygame.init()
+pygame.font.init()
 
 
 class States(Enum):
@@ -11,6 +15,8 @@ class States(Enum):
     ATTACKING = 2
     HURT = 3
     RECOIL = 4
+    SPAWNING = 5
+    RECOILING = 6
 
 
 class Orientation(Enum):
@@ -18,6 +24,7 @@ class Orientation(Enum):
     LEFT = 2
     UP = 3
     DOWN = 4
+
 
 
 # Initiate pygame
@@ -97,7 +104,6 @@ class Player(GameObject, mixin.Gravity):
 
         # --- EFFECTS OF ACCTION ---
         self.active_hitbox = None
-        self.is_recoiling = False
         self.is_invulnerable = False  # invulnerability state after knockback to avoid multiple collisions at the same time
 
         # --- ORIENTATION AND POSITION ---
@@ -128,7 +134,7 @@ class Player(GameObject, mixin.Gravity):
         # --- FLAGS ---
         self.just_pogoed = False
         self.just_jumped = False
-        self.just_knockbaked = False
+        self.isDead = False
 
         # --- ARRAYS ---
         self.enemies_attacked = []
@@ -144,14 +150,19 @@ class Player(GameObject, mixin.Gravity):
         delta_time,
         screen,
         ground,
-        right=False,
-        left=False,
-        jump=False,
-        up=False,
-        down=False,
     ):
 
         # triggrs should NEVER be in update method. Only in the main cycle. This method will only receive methods to update the player position that are triggered by trigger methods that change player states. Acording those states, this method will work in one way or another
+        
+        get_pressed_keys = pygame.key.get_pressed()
+        # set a key that occurrs while the player get pressed a button on the keyboard
+
+        move_right = get_pressed_keys[pygame.K_RIGHT]
+        move_left = get_pressed_keys[pygame.K_LEFT]
+        jumping = get_pressed_keys[pygame.K_SPACE]
+        face_up = get_pressed_keys[pygame.K_UP]
+        face_down = get_pressed_keys[pygame.K_DOWN]
+
 
         # --- TIMERS ---
 
@@ -177,17 +188,18 @@ class Player(GameObject, mixin.Gravity):
         if self.state == States.HURT:
             self.knockback_update(delta_time)
 
-        elif self.is_recoiling:
+        #recoil state
+        elif self.state == States.RECOILING:
             self.attack_recoil_timer += delta_time
             if self.attack_recoil_timer >= self.attack_recoil_duration:
                 self.is_recoiling = False
 
         else:
 
-            current_x_speed = self.movement(right, left)
+            current_x_speed = self.movement(move_right, move_left)
             self.x_vel = current_x_speed
-            self.jump(jump)
-            self.facing_input(down, up)
+            self.jump(jumping)
+            self.facing_input(face_down, face_up)
 
         delta_x = self.x_vel * delta_time
         delta_y = self.y_vel * delta_time
@@ -417,7 +429,8 @@ class Player(GameObject, mixin.Gravity):
 
             screen.blit(self.active_slash_sprite, self.active_hitbox)
 
-    def take_damage(self):  # call this method in the main cycle - invulnerability state
+    def take_damage(self):  # call this method in the main cycle 
+    
         # set up HP
         self.HP -= 1
 
@@ -475,7 +488,7 @@ class Player(GameObject, mixin.Gravity):
         # start the timer
         self.attack_recoil_timer = 0
 
-        self.is_recoiling = True
+        self.state = States.RECOILING
 
         self.attack_recoil()
 
@@ -520,6 +533,10 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
     def __init__(self, name, image):
         super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
+        
+        # --- ID ---
+        
+        self.name = "Luki"
 
         # --- CONSTANTES DE FUERZA ---
         self.move_speed = 240
@@ -625,3 +642,274 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
+    
+    def spawning(self):
+        #animacion de spawn 
+        pass
+
+
+
+class GameState(Enum):
+    
+    MAIN_MENU = 1
+    PLAYING = 2
+    PAUSE = 3
+    SPAWNING = 4
+    GAME_OVER = 5
+    VICTORY = 6
+
+class GameMaster(pygame.sprite.Sprite): 
+    
+    def __init__(self):
+        super().__init__(all_sprites, moving_sprites, enemy_group)
+        self.timer = 0.0 
+        self.GAME_STATE = GameState.MAIN_MENU
+        self.GAME_PHASE = 0
+        self.transition_state_duration = 2
+        #pygame.font.Font('ruta_del_archivo', tamaño)
+        self.title_font = pygame.font.Font("fonts/HarnoldpixelRegularDemo-Yqw84.otf", 40)
+        self.subtitle_font = pygame.font.Font("fonts/HarnoldpixelRegularDemo-Yqw84.otf", 25)
+        self.start_button_rect = None
+        self.resume_button_rect = None
+        self.return_button_rect = None
+        
+
+
+    def update_game(self, player, delta_time, screen, ground):
+        
+        game_phases = 2
+        
+        if self.GAME_STATE == GameState.MAIN_MENU:
+            self.display_main_menu(screen)
+            
+        elif self.GAME_STATE == GameState.PAUSE:
+            #sprites.draw
+            self.display_pause_menu(screen)
+        
+        elif self.GAME_STATE == GameState.GAME_OVER:
+            self.display_game_over_screen(screen)
+
+        
+        elif self.GAME_STATE == GameState.VICTORY:
+            self.display_victory_screen(screen)
+                    
+        else: 
+            #en los siguientes estados se lee el movimiento del jugador en todo momento
+            
+            #leer input de movimiento jugador 
+            player.update_player(delta_time, screen, ground)
+            
+            #detectar colisiones con el suelo
+
+            if self.GAME_STATE == GameState.SPAWNING:
+                
+                if self.GAME_PHASE == 1:
+                    self.phase_1(screen, ground) #Aqui se spawmean los enemigos de la fase correspondiente y se agregan enemigos a la lista enemies[]
+                    self.GAME_STATE = GameState.PLAYING
+                    
+                #if GAME_PHASE = 2
+                    #game_phase_2()
+                
+                #(...)
+                
+            
+            elif self.GAME_STATE == GameState.TRANSITION: 
+                self.timer += delta_time 
+                
+                if self.timer > self.transition_state_duration: 
+                    self.timer = 0.0 
+                    self.GAME_PHASE += 1
+                    self.GAME_STATE = GameState.SPAWNING
+                            
+            elif self.GAME_STATE == GameState.PLAYING:
+                
+                #enemigos.update()
+                for enemy in enemy_group:
+                    enemy.update_enemy(delta_time, screen, ground)
+                    
+                #detectar colisiones con enemigos
+                self.handle_enemies_collision(player)
+                self.handle_attack_collision(player)
+                
+                if not enemy_group and self.GAME_PHASE < game_phases: 
+                    self.timer = 0.0
+                    self.GAME_STATE = GameState.TRANSITION
+                    
+                elif not enemy_group and self.GAME_PHASE == game_phases: 
+                    self.GAME_STATE = GameState.VICTORY
+                    
+                else: 
+                    if player.isDead:
+                        self.GAME_STATE = GameState.GAME_OVER
+
+
+    def handle_events(self, events):
+        
+        for event in events: 
+            if self.GAME_STATE == GameState.MAIN_MENU:
+                
+                if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    
+                    if self.start_button_rect.collidepoint(mouse_pos):
+                        self.GAME_STATE = GameState.SPAWNING
+                        self.GAME_PHASE = 1
+                
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+            
+            elif self.GAME_STATE == GameState.PAUSE:
+                
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_pos = pygame.mouse.get_pos()
+                    
+                    if self.resume_button_rect.collidepoint(mouse_pos) or event.key == pygame.K_ESCAPE:
+                        self.GAME_STATE = GameState.PLAYING
+                    
+                    elif self.return_button_rect.collidepoint(mouse_pos):
+                        self.GAME_STATE = GameState.MAIN_MENU
+            
+            elif self.GAME_STATE == GameState.GAME_OVER:
+                
+                if event.type == pygame.KEYDOWN:
+                        self.GAME_STATE = GameState.MAIN_MENU
+                
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+            
+            elif self.GAME_STATE == GameState.VICTORY:
+                
+                if event.type == pygame.KEYDOWN:
+                        self.GAME_STATE = GameState.MAIN_MENU
+                
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+            
+            else:
+                
+                if event.key == pygame.K_ESCAPE:
+                    self.GAME_STATE = GameState.PAUSE
+                
+    def display_main_menu(self, screen):
+        start_title = self.title_font.render("Start", False, (15, 15, 27))
+        
+        start_title_rect = start_title.get_rect()
+        start_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
+        
+        self.start_button_rect = start_title_rect
+                
+        screen.blit(start_title, start_title_rect)
+    
+    def display_pause_menu(self, screen):
+        
+        pause_title = self.title_font.render("Pause", False, (15, 15, 27))
+        pause_title_rect = pause_title.get_rect()
+        pause_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
+        
+        resume_title = self.subtitle_font.render("Resume", False, (15, 15, 27))
+        resume_title_rect = resume_title.get_rect()
+        resume_title_rect.top = (screen.get_width() / 2, pause_title_rect.bottom + 10)
+        self.resume_button_rect = resume_title_rect
+        
+        return_title = self.subtitle_font.render("Return to Menu", False, (15, 15, 27))
+        return_title_rect = return_title.get_rect()
+        return_title_rect.top = (screen.get_width() / 2, resume_title_rect.bottom + 10)
+        self.return_button_rect = return_title_rect
+
+        
+        screen.blit(pause_title, pause_title_rect)
+        screen.blit(resume_title, resume_title_rect)
+        screen.blit(return_title, return_title_rect)
+    
+    def display_game_over_screen(self, screen):
+        
+        game_over_title = self.title_font.render("Game Over", False, (15, 15, 27))
+        game_over_title_rect = game_over_title.get_rect()
+        game_over_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
+        
+        press_enter_title = self.subtitle_font.render("Press Enter to Restart", False, (15, 15, 27))
+        press_enter_title_rect = press_enter_title.get_rect()
+        press_enter_title_rect.top = (screen.get_width() / 2, game_over_title_rect.bottom + 10)
+        
+        screen.blit(game_over_title, game_over_title_rect)
+        screen.blit(press_enter_title, press_enter_title_rect)
+        
+    def display_victory_screen(self, screen):
+        
+        victory_title = self.title_font.render("Victory", False, (15, 15, 27))
+        victory_title_rect = victory_title.get_rect()
+        victory_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
+        
+        press_enter_title = self.subtitle_font.render("Press Enter to Restart", False, (15, 15, 27))
+        press_enter_title_rect = press_enter_title.get_rect()
+        press_enter_title_rect.top = (screen.get_width() / 2, victory_title_rect.bottom + 10)
+        
+        screen.blit(victory_title, victory_title_rect)
+        screen.blit(press_enter_title, press_enter_title_rect)
+        
+    def handle_enemies_collision(self, player):
+        
+        enemies_collision = pygame.sprite.spritecollide(player, enemy_group, False)
+
+        if enemies_collision:
+
+            for enemy in enemies_collision:
+
+                if player.state == States.HURT or player.is_invulnerable:
+                    pass
+                else:
+                    player.take_damage()
+                    functions.knockback(player, enemy, True)
+                    
+    def handle_attack_collision(self, player):
+        
+                        # check hitbox collision
+        if player.active_hitbox:
+
+            for enemy in enemy_group:
+
+                if player.active_hitbox.colliderect(enemy.rect):
+
+                    if enemy not in player.enemies_attacked:
+
+                        if player.orientation == Orientation.DOWN:
+                            enemy.take_damage()
+                            # functions.knockback(player, enemy, False)
+                            player.trigger_pogo()
+                            player.enemies_attacked.append(enemy)
+
+                        else:
+                            enemy.take_damage()
+                            functions.knockback(player, enemy, False)
+                            player.start_attack_recoil()
+                            player.enemies_attacked.append(enemy)
+                    else:
+                        pass
+
+                else:
+                    pass
+        
+    def phase_1(self, screen, ground): 
+        
+        enemies_phase_1 = []
+        
+        for _ in range(2):
+        
+            enemy_image = pygame.Surface([90, 90])
+            enemy_image.fill((255, 0, 0))
+            enemy = Enemy("Luki", enemy_image)
+
+            enemies_phase_1.append(enemy)
+        
+        for enemy in enemies_phase_1:
+        
+            self.all_sprites.add(enemy)
+            self.moving_sprites.add(enemy)
+            self.enemy_group.add(enemy)
+        
+        coordinates = coordinates(screen, ground, enemy)
+        
+        enemies_phase_1[0].set_position(coordinates["ground_right_edge"])
+        
+        enemies_phase_1[1].set_position(coordinates["ground_left_edge"])
+    

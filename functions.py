@@ -77,3 +77,31 @@ def knockback(player, enemy, player_beaten=False):
 
     # set up knockback y speed (jump)
     sprite_beaten.y_vel = sprite_beater.knockback_y_force
+
+
+def coordinates(screen, ground, enemy):
+    
+    screen_width, screen_height = screen.get_size()
+    
+    coordinates = {
+    # LADO DERECHO (Para que caminen hacia la izquierda)
+    # X: Ancho de pantalla (afuera). Y: Suelo menos altura del enemigo (pisando el suelo).
+    "ground_right_edge" : (screen_width, ground.rect.top - enemy.rect.height),
+    
+    # VOLADORES DERECHA
+    "1/2_right_edge" : (screen_width, screen_height / 2),
+
+    # LADO IZQUIERDO (Para que caminen hacia la derecha)
+    # X: Menos ancho del enemigo (afuera a la izq). 
+    "ground_left_edge" : (-enemy.rect.width, ground.rect.top - enemy.rect.height),
+    
+    # VOLADORES IZQUIERDA
+    "1/2_left_edge" : (-enemy.rect.width, screen_height / 2),
+
+    # TECHO (Para que caigan)
+    # X: Posicion deseada. Y: Menos altura del enemigo (escondido arriba).
+    "1/4_top_edge" : (screen_width / 4, -enemy.rect.height),
+    "1/2_top_edge" : (screen_width / 2, -enemy.rect.height),
+    "1/8_top_edge" : (screen_width / 8, -enemy.rect.height),
+}
+    return coordinates
