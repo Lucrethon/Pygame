@@ -31,6 +31,9 @@ player = functions.set_up_player(virtual_canvas, ground)
 
 # --------------------------------------------------------------------------
 
+game_master = models.GameMaster()
+
+
 # set game clock to control the time the loop
 clock = pygame.time.Clock()
 # Each round loop is a frame
@@ -41,8 +44,6 @@ running = True
 
 # Initial game bucle
 while running:
-
-    counter = 0
 
     # 1. CLOCK
 
@@ -58,40 +59,28 @@ while running:
     # if speed = 200 and delta_time = 0.016 (1/60 fps), the player is moving at 200 * 0.016 = 3.2 píxels in that frame
 
     # 2. INPUT (events)
-
-    TrigerAttack = False
     
     events = pygame.event.get()
-
 
     for event in events:  # iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:
             running = False
-        # pygame.QUIT event means the user clicked X to close your window
-
-        # if event.type == pygame.KEYDOWN:
-        #     if event.key == pygame.K_ESCAPE:
-        #         running = False
-            # pygame.K_SCAPE event means the user press Esc button to close your window
-        if event.key == pygame.K_s:
-            TrigerAttack = True
-
-    # 3. MOVEMENT
-
-    # set attack
-    if TrigerAttack:
-        player.trigger_attack(attack=True)
-
-
-    # 5. DRAW
+    
+    game_master.handle_events(events, player)
+    
+    #3. UPDATES 
+    
+    game_master.update_game(player, delta_time, virtual_canvas, ground)
+    
+    #4. DRAW
 
     # Set ground rect & image
     ground.draw(virtual_canvas)
 
     # set background
     virtual_canvas.blit(background, (0, 0))
-
-    player.draw_attack(virtual_canvas)
+    
+    game_master.draw(virtual_canvas, player)
 
     streched_canvas = pygame.transform.scale(
         virtual_canvas, (screen_width, screen_height)
