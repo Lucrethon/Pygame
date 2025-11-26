@@ -672,26 +672,23 @@ class GameMaster(pygame.sprite.Sprite):
         self.start_button_rect = None
         self.resume_button_rect = None
         self.return_button_rect = None
+        self.game_phases = 2
         
-
 
     def update_game(self, player, delta_time, screen, ground):
         
-        game_phases = 2
-        
         if self.GAME_STATE == GameState.MAIN_MENU:
-            self.display_main_menu(screen)
+            pass
             
         elif self.GAME_STATE == GameState.PAUSE:
-            #sprites.draw
-            self.display_pause_menu(screen)
+            pass
         
         elif self.GAME_STATE == GameState.GAME_OVER:
-            self.display_game_over_screen(screen)
+            pass
 
         
         elif self.GAME_STATE == GameState.VICTORY:
-            self.display_victory_screen(screen)
+            pass
                     
         else: 
             #en los siguientes estados se lee el movimiento del jugador en todo momento
@@ -707,12 +704,11 @@ class GameMaster(pygame.sprite.Sprite):
                     self.phase_1(screen, ground) #Aqui se spawmean los enemigos de la fase correspondiente y se agregan enemigos a la lista enemies[]
                     self.GAME_STATE = GameState.PLAYING
                     
-                #if GAME_PHASE = 2
-                    #game_phase_2()
-                
+                elif self.GAME_PHASE == 2:
+                    self.phase_2(screen, ground)    
+                    self.GAME_STATE = GameState.PLAYING
                 #(...)
                 
-            
             elif self.GAME_STATE == GameState.TRANSITION: 
                 self.timer += delta_time 
                 
@@ -723,6 +719,8 @@ class GameMaster(pygame.sprite.Sprite):
                             
             elif self.GAME_STATE == GameState.PLAYING:
                 
+                moving_sprites.update()
+                
                 #enemigos.update()
                 for enemy in enemy_group:
                     enemy.update_enemy(delta_time, screen, ground)
@@ -731,17 +729,16 @@ class GameMaster(pygame.sprite.Sprite):
                 self.handle_enemies_collision(player)
                 self.handle_attack_collision(player)
                 
-                if not enemy_group and self.GAME_PHASE < game_phases: 
+                if not enemy_group and self.GAME_PHASE < self.game_phases: 
                     self.timer = 0.0
                     self.GAME_STATE = GameState.TRANSITION
                     
-                elif not enemy_group and self.GAME_PHASE == game_phases: 
+                elif not enemy_group and self.GAME_PHASE == self.game_phases: 
                     self.GAME_STATE = GameState.VICTORY
                     
                 else: 
                     if player.isDead:
                         self.GAME_STATE = GameState.GAME_OVER
-
 
     def handle_events(self, events):
         
@@ -789,7 +786,32 @@ class GameMaster(pygame.sprite.Sprite):
                 
                 if event.key == pygame.K_ESCAPE:
                     self.GAME_STATE = GameState.PAUSE
+
+    def draw(self, screen):
+        
+        if self.GAME_STATE == GameState.MAIN_MENU:
+            self.display_main_menu(screen)
+            
+        elif self.GAME_STATE == GameState.PAUSE:
+            #Quiero que se dibujen los sprites en la pausa tambien debajo del boton de pausa
+            for sprite in all_sprites:
+                sprite.draw(screen)
                 
+            self.display_pause_menu(screen)
+        
+        elif self.GAME_STATE == GameState.GAME_OVER:
+            self.display_game_over_screen(screen)
+
+        
+        elif self.GAME_STATE == GameState.VICTORY:
+            self.display_victory_screen(screen)
+        
+        else:
+            #quiero que en todos los demas estados se dibujen los sprites 
+            for sprite in all_sprites:
+                sprite.draw(screen)
+                # call to .draw() method from GameObjects that can handle gifs
+
     def display_main_menu(self, screen):
         start_title = self.title_font.render("Start", False, (15, 15, 27))
         
@@ -912,4 +934,29 @@ class GameMaster(pygame.sprite.Sprite):
         enemies_phase_1[0].set_position(coordinates["ground_right_edge"])
         
         enemies_phase_1[1].set_position(coordinates["ground_left_edge"])
+        
+    def phase_2(self, screen, ground): 
+        
+        enemies_phase_2 = []
+        
+        for _ in range(2):
+        
+            enemy_image = pygame.Surface([90, 90])
+            enemy_image.fill((255, 0, 0))
+            enemy = Enemy("Luki", enemy_image)
+
+            enemies_phase_2.append(enemy)
+        
+        for enemy in enemies_phase_2:
+        
+            self.all_sprites.add(enemy)
+            self.moving_sprites.add(enemy)
+            self.enemy_group.add(enemy)
+        
+        coordinates = coordinates(screen, ground, enemy)
+        
+        enemies_phase_2[0].set_position(coordinates["ground_right_edge"])
+        
+        enemies_phase_2[1].set_position(coordinates["ground_left_edge"])
+
     

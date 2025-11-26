@@ -25,40 +25,9 @@ virtual_canvas = pygame.Surface((virtual_width, virtual_height))
 # background image
 background = pygame.image.load("./assets/Background_960x540.png").convert()
 
-# ground image
-ground_image = pygame.image.load("./assets/Ground_scaled_960x540.png")
+ground = functions.set_up_ground(virtual_canvas)
 
-# creating ground object
-ground = models.Platform("ground", ground_image)
-
-# set ground position
-ground.set_position(
-    (virtual_width - ground.rect.width), (virtual_height - ground.rect.height)
-)
-
-# Set player image using gif-pygame library
-player_image = functions.setup_player_gif(virtual_canvas)
-
-# Player attack slash sprite
-sprite_attack_slash = pygame.image.load("./assets/Attack_Slashx3.png").convert_alpha()
-
-# Set player speed
-player_x_speed = 300
-
-# Player name
-player_name = "Arnaldo"
-
-# creating player object
-player = models.Player(player_name, player_image, player_x_speed, sprite_attack_slash)
-
-# set player inicial position
-player.set_position(virtual_width / 2, ground.rect.top, True)
-
-# creating enemy object and setting position
-enemy_image = pygame.Surface([90, 90])
-enemy_image.fill((255, 0, 0))
-enemy = models.Enemy("Luki", enemy_image)
-enemy.set_position((virtual_width / 4), ground.rect.top, True)
+player = functions.set_up_player(virtual_canvas, ground)
 
 # --------------------------------------------------------------------------
 
@@ -68,11 +37,6 @@ clock = pygame.time.Clock()
 # without the control (clock), the loop will run at the fastest speed that the computer can allow
 
 running = True
-
-# Creating pygame groups and adding sprites into them
-models.all_sprites.add(player)
-models.all_sprites.add(enemy)
-models.enemy_group.add(enemy)
 
 
 # Initial game bucle
@@ -98,7 +62,6 @@ while running:
     TrigerAttack = False
     
     events = pygame.event.get()
-    #game_master.handle_events(events)
 
 
     for event in events:  # iteracion sobre todos los eventos de pygame
@@ -119,57 +82,6 @@ while running:
     if TrigerAttack:
         player.trigger_attack(attack=True)
 
-    player.update_player(
-        delta_time,
-        virtual_canvas,
-        ground
-    )
-    # El jugador ahora gestiona sus propios inputs de movimiento dentro de update_player
-    player.update_player(delta_time, virtual_canvas, ground)
-
-    enemy.update_enemy(delta_time, virtual_canvas, ground)
-
-    models.moving_sprites.update()
-
-    # 4. CHECK COLLISIONS
-
-    enemies_collision = pygame.sprite.spritecollide(player, models.enemy_group, False)
-
-    if enemies_collision:
-
-        for enemy in enemies_collision:
-
-            if player.state == models.States.HURT or player.is_invulnerable:
-                pass
-            else:
-                player.take_damage()
-                functions.knockback(player, enemy, True)
-
-    # check hitbox collision
-    if player.active_hitbox:
-
-        for enemy in models.enemy_group:
-
-            if player.active_hitbox.colliderect(enemy.rect):
-
-                if enemy not in player.enemies_attacked:
-
-                    if player.orientation == models.Orientation.DOWN:
-                        enemy.take_damage()
-                        # functions.knockback(player, enemy, False)
-                        player.trigger_pogo()
-                        player.enemies_attacked.append(enemy)
-
-                    else:
-                        enemy.take_damage()
-                        functions.knockback(player, enemy, False)
-                        player.start_attack_recoil()
-                        player.enemies_attacked.append(enemy)
-                else:
-                    pass
-
-            else:
-                pass
 
     # 5. DRAW
 
@@ -178,12 +90,6 @@ while running:
 
     # set background
     virtual_canvas.blit(background, (0, 0))
-
-    # Set moving objects
-    for sprite in models.moving_sprites:
-        sprite.draw(
-            virtual_canvas
-        )  # call to .draw() method from GameObjects that can handle gifs
 
     player.draw_attack(virtual_canvas)
 

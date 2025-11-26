@@ -1,7 +1,7 @@
 import pygame
 import gif_pygame
 from gif_pygame import transform
-
+import models
 
 # function to resize sprites acording scale factors
 def resize(sprite, screen):
@@ -105,3 +105,44 @@ def coordinates(screen, ground, enemy):
     "1/8_top_edge" : (screen_width / 8, -enemy.rect.height),
 }
     return coordinates
+
+def set_up_player(screen, ground):
+    
+    screen_width, screen_height = screen.get_size()
+    
+    # Set player image using gif-pygame library
+    player_image = setup_player_gif(screen)
+
+    # Player attack slash sprite
+    sprite_attack_slash = pygame.image.load("./assets/Attack_Slashx3.png").convert_alpha()
+
+    # Set player speed
+    player_x_speed = 300
+
+    # Player name
+    player_name = "Arnaldo"
+
+    # creating player object
+    player = models.Player(player_name, player_image, player_x_speed, sprite_attack_slash)
+
+    # set player inicial position
+    player.set_position(screen_width / 2, ground.rect.top, True)
+    
+    return player
+
+def set_up_ground(screen):
+    
+    screen_width, screen_height = screen.get_size()
+    
+    # Set ground image# ground image
+    ground_image = pygame.image.load("./assets/Ground_scaled_960x540.png")
+
+    # creating ground object
+    ground = models.Platform("ground", ground_image)
+
+    # set ground position
+    ground.set_position(
+        (screen_width - ground.rect.width), (screen_height - ground.rect.height)
+)
+
+    return ground
