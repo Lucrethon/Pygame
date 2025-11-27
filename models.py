@@ -30,11 +30,6 @@ class Orientation(Enum):
 # Initiate pygame
 pygame.init()
 
-# Grupos de srpites
-all_sprites = pygame.sprite.Group()  # Grupo para DIBUJAR todo
-moving_sprites = pygame.sprite.Group()  # Grupo para ACTUALIZAR solo lo que se mueve
-enemy_group = pygame.sprite.Group()  # Grupo para colisiones de enemigos
-
 
 class GameObject(ABC, pygame.sprite.Sprite):
 
@@ -76,7 +71,6 @@ class GameObject(ABC, pygame.sprite.Sprite):
 
 class Player(GameObject, mixin.Gravity):
     def __init__(self, name, image, move_speed, sprite_attack_slash):
-        super().__init__(name, image, all_sprites, moving_sprites)
         # Los grupos se pasarán desde el GameMaster
         super().__init__(name, image)
 
@@ -194,7 +188,9 @@ class Player(GameObject, mixin.Gravity):
         elif self.state == States.RECOILING:
             self.attack_recoil_timer += delta_time
             if self.attack_recoil_timer >= self.attack_recoil_duration:
-                self.is_recoiling = False
+                self.state = States.IDDLE
+                self.attack_recoil_timer = 0.0
+
 
         else:
 
@@ -359,6 +355,7 @@ class Player(GameObject, mixin.Gravity):
             # reset timer
             self.timer = 0.0
 
+
     def lock_attack_ortientation(self):
 
         # up the player
@@ -425,11 +422,16 @@ class Player(GameObject, mixin.Gravity):
         return hitbox, rotate_slash_sprite
 
     def draw_attack(self, screen):  # DRAW SLASH SPRITE AND RECT
+        
+        if self.state == States.ATTACKING or self.state == States.RECOILING:
+                
+            # draw hitbox
+            if self.active_hitbox and self.active_slash_sprite:
 
-        # draw hitbox
-        if self.active_hitbox and self.active_slash_sprite:
-
-            screen.blit(self.active_slash_sprite, self.active_hitbox)
+                screen.blit(self.active_slash_sprite, self.active_hitbox)
+        
+        else: 
+            pass
 
     def take_damage(self):  # call this method in the main cycle 
     
@@ -518,8 +520,6 @@ class Player(GameObject, mixin.Gravity):
 
 
 class Platform(GameObject):
-    def __init__(self, name, image):
-        super().__init__(name, image, all_sprites)
     def __init__(self, name, image, *groups):
         super().__init__(name, image, *groups)
 
@@ -536,7 +536,6 @@ class Platform(GameObject):
 class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
     def __init__(self, name, image):
-        super().__init__(name, image, all_sprites, moving_sprites, enemy_group)
         # Los grupos se pasarán desde el GameMaster al crear el enemigo
         super().__init__(name, image)
         
@@ -556,7 +555,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         self.y_vel = 0
 
         # --- HEALTH ---
-        self.HP = 200
+        self.HP = 5
 
         # --- STATE OF ACTION ---
         self.state = States.IDDLE
@@ -654,7 +653,6 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         pass
 
 
-
 class GameState(Enum):
     
     MAIN_MENU = 1
@@ -663,12 +661,12 @@ class GameState(Enum):
     SPAWNING = 4
     GAME_OVER = 5
     VICTORY = 6
+    TRANSITION = 7
 
-class GameMaster(pygame.sprite.Sprite): 
+
 class GameMaster: 
     
     def __init__(self):
-        super().__init__(all_sprites, moving_sprites, enemy_group)
         # El GameMaster ahora es dueño de los grupos de sprites
         self.all_sprites = pygame.sprite.Group()
         self.moving_sprites = pygame.sprite.Group()
@@ -693,6 +691,7 @@ class GameMaster:
     def update_game(self, player, delta_time, screen, ground):
         
         if self.GAME_STATE == GameState.MAIN_MENU:
+            
             pass
             
         elif self.GAME_STATE == GameState.PAUSE:
@@ -734,22 +733,20 @@ class GameMaster:
                             
             elif self.GAME_STATE == GameState.PLAYING:
                 
-                moving_sprites.update()
+                self.moving_sprites.update()
                 
                 #enemigos.update()
-                for enemy in enemy_group:
+                for enemy in self.enemy_group:
                     enemy.update_enemy(delta_time, screen, ground)
                     
                 #detectar colisiones con enemigos
                 self.handle_enemies_collision(player)
                 self.handle_attack_collision(player)
                 
-                if not enemy_group and self.GAME_PHASE < self.game_phases: 
                 if not self.enemy_group and self.GAME_PHASE < self.game_phases: 
                     self.timer = 0.0
                     self.GAME_STATE = GameState.TRANSITION
                     
-                elif not enemy_group and self.GAME_PHASE == self.game_phases: 
                 elif not self.enemy_group and self.GAME_PHASE == self.game_phases: 
                     self.GAME_STATE = GameState.VICTORY
                     
@@ -757,7 +754,7 @@ class GameMaster:
                     if player.isDead:
                         self.GAME_STATE = GameState.GAME_OVER
 
-    def handle_events(self, events, player):
+    def handle_events(self, events, player, screen, ground):
         
         for event in events: 
             if self.GAME_STATE == GameState.MAIN_MENU:
@@ -777,15 +774,23 @@ class GameMaster:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
                     
-                    if self.resume_button_rect.collidepoint(mouse_pos) or event.key == pygame.K_ESCAPE:
+                    if self.resume_button_rect.collidepoint(mouse_pos) or event.type == pygame.K_ESCAPE:
                         self.GAME_STATE = GameState.PLAYING
                     
                     elif self.return_button_rect.collidepoint(mouse_pos):
+                        self.all_sprites.remove(self.enemy_group)
+                        self.moving_sprites.empty()
+                        self.enemy_group.empty()
+                        self.set_up_player_position(player, screen, ground)
                         self.GAME_STATE = GameState.MAIN_MENU
             
             elif self.GAME_STATE == GameState.GAME_OVER:
                 
                 if event.type == pygame.KEYDOWN:
+                        self.all_sprites.remove(self.enemy_group)
+                        self.moving_sprites.empty()
+                        self.enemy_group.empty()
+                        self.set_up_player_position(player, screen, ground)
                         self.GAME_STATE = GameState.MAIN_MENU
                 
                 elif event.key == pygame.K_ESCAPE:
@@ -794,46 +799,59 @@ class GameMaster:
             elif self.GAME_STATE == GameState.VICTORY:
                 
                 if event.type == pygame.KEYDOWN:
+                        self.all_sprites.remove(self.enemy_group)
+                        self.moving_sprites.empty()
+                        self.enemy_group.empty()
+                        self.set_up_player_position(player, screen, ground)
                         self.GAME_STATE = GameState.MAIN_MENU
                 
-                elif event.key == pygame.K_ESCAPE:
+                elif event.type == pygame.K_ESCAPE:
                     pygame.quit()
             
             else:
                 
-                if event.key == pygame.K_ESCAPE:
-                    self.GAME_STATE = GameState.PAUSE
-                    
-                if event.key == pygame.K_s:
-                    player.trigger_attack(attack=True)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.GAME_STATE = GameState.PAUSE
+                    elif event.key == pygame.K_s:
+                        player.trigger_attack(attack=True)
 
-    def draw(self, screen, player):
+    def draw(self, screen, player, background, ground):
+        
         
         if self.GAME_STATE == GameState.MAIN_MENU:
+            screen.blit(background, (0,0))
             self.display_main_menu(screen)
             
         elif self.GAME_STATE == GameState.PAUSE:
+            screen.blit(background, (0,0))
             #Quiero que se dibujen los sprites en la pausa tambien debajo del boton de pausa
-            for sprite in all_sprites:
             for sprite in self.all_sprites:
                 sprite.draw(screen)
                 
             self.display_pause_menu(screen)
         
         elif self.GAME_STATE == GameState.GAME_OVER:
+            screen.blit(background, (0,0))
             self.display_game_over_screen(screen)
 
         
         elif self.GAME_STATE == GameState.VICTORY:
+            screen.blit(background, (0,0))
             self.display_victory_screen(screen)
         
         else:
+            ground.draw(screen)
+            screen.blit(background, (0,0))
             #quiero que en todos los demas estados se dibujen los sprites 
-            for sprite in all_sprites:
             for sprite in self.all_sprites:
                 sprite.draw(screen)
                 # call to .draw() method from GameObjects that can handle gifs
             player.draw_attack(screen)
+
+    def set_up_player_position(self, player, screen, ground):
+        
+        player.set_position(screen.get_width() / 2, ground.rect.top, True)
 
     def display_main_menu(self, screen):
         start_title = self.title_font.render("Start", False, (15, 15, 27))
@@ -853,12 +871,12 @@ class GameMaster:
         
         resume_title = self.subtitle_font.render("Resume", False, (15, 15, 27))
         resume_title_rect = resume_title.get_rect()
-        resume_title_rect.top = (screen.get_width() / 2, pause_title_rect.bottom + 10)
+        resume_title_rect.midtop = (screen.get_width() / 2, pause_title_rect.bottom + 10)
         self.resume_button_rect = resume_title_rect
         
         return_title = self.subtitle_font.render("Return to Menu", False, (15, 15, 27))
         return_title_rect = return_title.get_rect()
-        return_title_rect.top = (screen.get_width() / 2, resume_title_rect.bottom + 10)
+        return_title_rect.midtop = (screen.get_width() / 2, resume_title_rect.bottom + 10)
         self.return_button_rect = return_title_rect
 
         
@@ -874,7 +892,7 @@ class GameMaster:
         
         press_enter_title = self.subtitle_font.render("Press Enter to Restart", False, (15, 15, 27))
         press_enter_title_rect = press_enter_title.get_rect()
-        press_enter_title_rect.top = (screen.get_width() / 2, game_over_title_rect.bottom + 10)
+        press_enter_title_rect.midtop = (screen.get_width() / 2, game_over_title_rect.bottom + 10)
         
         screen.blit(game_over_title, game_over_title_rect)
         screen.blit(press_enter_title, press_enter_title_rect)
@@ -887,18 +905,17 @@ class GameMaster:
         
         press_enter_title = self.subtitle_font.render("Press Enter to Restart", False, (15, 15, 27))
         press_enter_title_rect = press_enter_title.get_rect()
-        press_enter_title_rect.top = (screen.get_width() / 2, victory_title_rect.bottom + 10)
+        press_enter_title_rect.midtop = (screen.get_width() / 2, victory_title_rect.bottom + 10)
         
         screen.blit(victory_title, victory_title_rect)
         screen.blit(press_enter_title, press_enter_title_rect)
         
     def handle_enemies_collision(self, player):
         
-        enemies_collision = pygame.sprite.spritecollide(player, enemy_group, False)
+        enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False)
 
         if enemies_collision:
 
-            for enemy in enemies_collision:
             for enemy in enemies_collision: # enemies_collision es una lista de enemigos que colisionaron
 
                 if player.state == States.HURT or player.is_invulnerable:
@@ -912,7 +929,6 @@ class GameMaster:
                         # check hitbox collision
         if player.active_hitbox:
 
-            for enemy in enemy_group:
             for enemy in self.enemy_group:
 
                 if player.active_hitbox.colliderect(enemy.rect):
@@ -944,7 +960,6 @@ class GameMaster:
         
             enemy_image = pygame.Surface([90, 90])
             enemy_image.fill((255, 0, 0))
-            enemy = Enemy("Luki", enemy_image)
             enemy = Enemy("Luki", enemy_image) # No se añaden a grupos aquí
 
             enemies_phase_1.append(enemy)
@@ -955,12 +970,11 @@ class GameMaster:
             self.moving_sprites.add(enemy)
             self.enemy_group.add(enemy)
         
-        coordinates = coordinates(screen, ground, enemy)
         enemy_coords = coordinates(screen, ground, enemies_phase_1[0]) # Usar un enemigo de la lista
         
-        enemies_phase_1[0].set_position(coordinates["ground_right_edge"])
+        enemies_phase_1[0].set_position(*enemy_coords["ground_right_edge"])
         
-        enemies_phase_1[1].set_position(coordinates["ground_left_edge"])
+        enemies_phase_1[1].set_position(*enemy_coords["ground_left_edge"])
         
     def phase_2(self, screen, ground): 
         
@@ -970,7 +984,6 @@ class GameMaster:
         
             enemy_image = pygame.Surface([90, 90])
             enemy_image.fill((255, 0, 0))
-            enemy = Enemy("Luki", enemy_image)
             enemy = Enemy("Luki", enemy_image) # No se añaden a grupos aquí
 
             enemies_phase_2.append(enemy)
@@ -981,15 +994,10 @@ class GameMaster:
             self.moving_sprites.add(enemy)
             self.enemy_group.add(enemy)
         
-        coordinates = coordinates(screen, ground, enemy)
         enemy_coords = coordinates(screen, ground, enemies_phase_2[0]) # Usar un enemigo de la lista
         
-        enemies_phase_2[0].set_position(coordinates["ground_right_edge"])
+        enemies_phase_2[0].set_position(*enemy_coords["ground_right_edge"])
         
-        enemies_phase_2[1].set_position(coordinates["ground_left_edge"])
-
-```
-```diff
---- a/home/lucrethon/Developer/Pygame/main.py
-+++ b/home/lucrethon/Developer/Pygame/main.py
-    
+        #El asteriscto es importante porque el método set_position(x, y) espera dos argumentos separados (x e y), pero enemy_coords["ground_right_edge"] devuelve una tupla (x, y). El asterisco "desempaqueta" la tupla, pasando sus elementos como argumentos individuales a la función.
+        
+        enemies_phase_2[1].set_position(*enemy_coords["ground_left_edge"])

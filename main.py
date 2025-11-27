@@ -25,13 +25,15 @@ virtual_canvas = pygame.Surface((virtual_width, virtual_height))
 # background image
 background = pygame.image.load("./assets/Background_960x540.png").convert()
 
-ground = functions.set_up_ground(virtual_canvas)
-
-player = functions.set_up_player(virtual_canvas, ground)
-
 # --------------------------------------------------------------------------
 
 game_master = models.GameMaster()
+
+# Ahora que GameMaster gestiona los grupos, creamos los objetos y los añadimos a sus grupos
+ground = functions.set_up_ground(virtual_canvas)
+player = functions.set_up_player(virtual_canvas, ground)
+
+game_master.all_sprites.add(player)
 
 
 # set game clock to control the time the loop
@@ -66,7 +68,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     
-    game_master.handle_events(events, player)
+    game_master.handle_events(events, player, virtual_canvas, ground)
     
     #3. UPDATES 
     
@@ -74,13 +76,7 @@ while running:
     
     #4. DRAW
 
-    # Set ground rect & image
-    ground.draw(virtual_canvas)
-
-    # set background
-    virtual_canvas.blit(background, (0, 0))
-    
-    game_master.draw(virtual_canvas, player)
+    game_master.draw(virtual_canvas, player, background, ground)
 
     streched_canvas = pygame.transform.scale(
         virtual_canvas, (screen_width, screen_height)
