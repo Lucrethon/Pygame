@@ -26,7 +26,6 @@ class Orientation(Enum):
     DOWN = 4
 
 
-
 # Initiate pygame
 pygame.init()
 
@@ -664,6 +663,16 @@ class GameState(Enum):
     TRANSITION = 7
 
 
+class Position(Enum):
+    GROUND_RIGHT_EDGE = "ground_right_edge"
+    MIDDLE_RIGHT_EDGE = "1/2_right_edge"
+    GROUND_LEFT_EDGE = "ground_left_edge"
+    MIDDLE_LEFT_EDGE = "1/2_left_edge"
+    QUARTER_TOP_EDGE = "1/4_top_edge"
+    MIDDLE_TOP_EDGE = "1/2_top_edge"
+    THREE_QUARTER_TOP_EDGE = "1/8_top_edge"
+
+
 class GameMaster: 
     
     def __init__(self):
@@ -687,7 +696,6 @@ class GameMaster:
         self.return_button_rect = None
         self.game_phases = 2
         
-
     def update_game(self, player, delta_time, screen, ground):
         
         if self.GAME_STATE == GameState.MAIN_MENU:
@@ -951,7 +959,9 @@ class GameMaster:
 
                 else:
                     pass
-        
+    
+    
+    
     def phase_1(self, screen, ground): 
         
         enemies_phase_1 = []
@@ -1001,3 +1011,57 @@ class GameMaster:
         #El asteriscto es importante porque el método set_position(x, y) espera dos argumentos separados (x e y), pero enemy_coords["ground_right_edge"] devuelve una tupla (x, y). El asterisco "desempaqueta" la tupla, pasando sus elementos como argumentos individuales a la función.
         
         enemies_phase_2[1].set_position(*enemy_coords["ground_left_edge"])
+    
+    
+    def returnEnemyWithPosition(screen, ground, enemy, position):
+        
+        enemy_coords = coordinates(screen, ground, enemy)
+        
+        if position in enemy_coords:
+            
+            enemy_image = pygame.Surface([90, 90])
+            enemy_image.fill((255, 0, 0))
+            
+            new_enemy = Enemy("Luki", enemy_image)
+            new_enemy.set_position(*enemy_coords[position])
+            
+            return new_enemy
+
+    
+    def generic_phase(self, phases):
+        
+        pass
+        
+
+# phases = {
+#     phase_1: {
+#         wave_1: [
+#             returnEnemyWithPosition(caracol, POSTION.top_right_edge),
+#             returnEnemyWithPosition(caracol, POSTION.top_left_edge),
+            
+#             returnEnemyWithPosition(caracol, POSTION.top_left_edge),
+#             returnEnemyWithPosition(caracol, POSTION.top_left_edge),
+#         ],
+#         wave_2: [
+            
+#         ],
+#         wave_3: [
+            
+#         ]
+#     },
+#     phase_2: {
+#         wave_1: [
+            
+#         ]
+#     },
+#     phase_3: {
+#         wave_1: [
+            
+#         ]
+#     },
+#     phase_4: {
+#         wave_1: [
+            
+#         ]
+#     }
+# }
