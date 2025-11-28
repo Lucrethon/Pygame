@@ -119,11 +119,8 @@ def set_up_player(screen, ground):
     # Set player speed
     player_x_speed = 300
 
-    # Player name
-    player_name = "Arnaldo"
-
     # creating player object
-    player = models.Player(player_name, player_image, player_x_speed, sprite_attack_slash)
+    player = models.Player(player_image, player_x_speed, sprite_attack_slash)
 
     # set player inicial position
     player.set_position(screen_width / 2, ground.rect.top, True)
@@ -138,7 +135,7 @@ def set_up_ground(screen):
     ground_image = pygame.image.load("./assets/Ground_scaled_960x540.png")
 
     # creating ground object
-    ground = models.Platform("ground", ground_image)
+    ground = models.Platform(ground_image)
 
     # set ground position
     ground.set_position(

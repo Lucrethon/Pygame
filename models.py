@@ -26,15 +26,10 @@ class Orientation(Enum):
     DOWN = 4
 
 
-# Initiate pygame
-pygame.init()
-
-
 class GameObject(ABC, pygame.sprite.Sprite):
 
-    def __init__(self, name, image, *groups):
+    def __init__(self, image, *groups):
         super().__init__(*groups)
-        self.name = name
         self.image = image
         self.rect = self.image.get_rect()  # get the size of the image to create a rects
 
@@ -63,15 +58,11 @@ class GameObject(ABC, pygame.sprite.Sprite):
         else:
             self.rect.topleft = (x_pos, y_pos)
 
-    @abstractmethod
-    def movement(self):
-        pass
-
 
 class Player(GameObject, mixin.Gravity):
-    def __init__(self, name, image, move_speed, sprite_attack_slash):
+    def __init__(self, image, move_speed, sprite_attack_slash):
         # Los grupos se pasarán desde el GameMaster
-        super().__init__(name, image)
+        super().__init__(image)
 
         # --- HEALTH ---
         self.HP = 5
@@ -354,7 +345,6 @@ class Player(GameObject, mixin.Gravity):
             # reset timer
             self.timer = 0.0
 
-
     def lock_attack_ortientation(self):
 
         # up the player
@@ -519,8 +509,8 @@ class Player(GameObject, mixin.Gravity):
 
 
 class Platform(GameObject):
-    def __init__(self, name, image, *groups):
-        super().__init__(name, image, *groups)
+    def __init__(self, image, *groups):
+        super().__init__(image, *groups)
 
     def draw(self, screen):
         return super().draw(screen)
@@ -534,14 +524,37 @@ class Platform(GameObject):
 
 class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
-    def __init__(self, name, image):
+    def __init__(self, image):
         # Los grupos se pasarán desde el GameMaster al crear el enemigo
-        super().__init__(name, image)
-        
-        # --- ID ---
-        
-        self.name = "Luki"
+        super().__init__(image)
+    
+    def draw(self, screen):
+        return super().draw(screen)
 
+    def set_position(self, x_pos, y_pos, aling_bottom=False):
+        return super().set_position(x_pos, y_pos, aling_bottom)
+    
+    @abstractmethod
+    def update_enemy(self): 
+        pass
+    
+    @abstractmethod
+    def spawning(self):
+        #animacion de spawn 
+        pass
+
+
+
+
+class Crawlid(Enemy):
+    def __init__(self):
+        # Crear/Cargar la imagen específica para el enemig0
+        image = pygame.Surface([90, 90])
+        image.fill((255, 0, 0))
+
+        # Llamar al constructor de la clase padre (Enemy) con estos atributos
+        super().__init__(image)
+        
         # --- CONSTANTES DE FUERZA ---
         self.move_speed = 240
         self.knockback_y_force = -500
@@ -568,6 +581,7 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         self.timer = 0.0
         self.knockback_duration = 0.2
 
+        
     def draw(self, screen):
         return super().draw(screen)
 
@@ -608,9 +622,6 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
         # Check ground collision
         super().check_ground_collision(ground)
-
-    def movement(self):
-        return super().movement()
 
     def take_damage(self):
 
@@ -970,8 +981,7 @@ class GameMaster:
         
             enemy_image = pygame.Surface([90, 90])
             enemy_image.fill((255, 0, 0))
-            enemy = Enemy("Luki", enemy_image) # No se añaden a grupos aquí
-
+            enemy = Crawlid() # Ahora creas una instancia de Crawlid directamente
             enemies_phase_1.append(enemy)
         
         for enemy in enemies_phase_1:
@@ -994,8 +1004,7 @@ class GameMaster:
         
             enemy_image = pygame.Surface([90, 90])
             enemy_image.fill((255, 0, 0))
-            enemy = Enemy("Luki", enemy_image) # No se añaden a grupos aquí
-
+            enemy = Crawlid() # Igual aquí, creas una instancia de Crawlid
             enemies_phase_2.append(enemy)
         
         for enemy in enemies_phase_2:
@@ -1022,7 +1031,7 @@ class GameMaster:
             enemy_image = pygame.Surface([90, 90])
             enemy_image.fill((255, 0, 0))
             
-            new_enemy = Enemy("Luki", enemy_image)
+            new_enemy = Crawlid()
             new_enemy.set_position(*enemy_coords[position])
             
             return new_enemy
