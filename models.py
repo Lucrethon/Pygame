@@ -544,8 +544,6 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
         pass
 
 
-
-
 class Crawlid(Enemy):
     def __init__(self):
         # Crear/Cargar la imagen específica para el enemig0
@@ -732,6 +730,12 @@ class GameMaster:
             #detectar colisiones con el suelo
 
             if self.GAME_STATE == GameState.SPAWNING:
+                
+                #
+                
+                
+                
+                
                 
                 if self.GAME_PHASE == 1:
                     self.phase_1(screen, ground) #Aqui se spawmean los enemigos de la fase correspondiente y se agregan enemigos a la lista enemies[]
@@ -971,8 +975,6 @@ class GameMaster:
                 else:
                     pass
     
-    
-    
     def phase_1(self, screen, ground): 
         
         enemies_phase_1 = []
@@ -981,7 +983,7 @@ class GameMaster:
         
             enemy_image = pygame.Surface([90, 90])
             enemy_image.fill((255, 0, 0))
-            enemy = Crawlid() # Ahora creas una instancia de Crawlid directamente
+            enemy = Crawlid() 
             enemies_phase_1.append(enemy)
         
         for enemy in enemies_phase_1:
@@ -1031,46 +1033,54 @@ class GameMaster:
             enemy_image = pygame.Surface([90, 90])
             enemy_image.fill((255, 0, 0))
             
-            new_enemy = Crawlid()
+            new_enemy = enemy()
             new_enemy.set_position(*enemy_coords[position])
             
             return new_enemy
 
     
-    def generic_phase(self, phases):
+    def generic_phase(self, phase_number, wave_number, screen, ground):
         
-        pass
+        phases = self.phases(screen, ground)
         
+        if phase_number in phases:
+            
+            for wave in phases[phase_number]:
+                
+                waves = phases[phase_number].get(wave_number, [])
+                
+                for enemy in waves:
+                    
+                    self.all_sprites.add(enemy)
+                    self.moving_sprites.add(enemy)
+                    self.enemy_group.add(enemy)
+                    
+        
+    
+    def phases(self, screen, ground):
 
-# phases = {
-#     phase_1: {
-#         wave_1: [
-#             returnEnemyWithPosition(caracol, POSTION.top_right_edge),
-#             returnEnemyWithPosition(caracol, POSTION.top_left_edge),
-            
-#             returnEnemyWithPosition(caracol, POSTION.top_left_edge),
-#             returnEnemyWithPosition(caracol, POSTION.top_left_edge),
-#         ],
-#         wave_2: [
-            
-#         ],
-#         wave_3: [
-            
-#         ]
-#     },
-#     phase_2: {
-#         wave_1: [
-            
-#         ]
-#     },
-#     phase_3: {
-#         wave_1: [
-            
-#         ]
-#     },
-#     phase_4: {
-#         wave_1: [
-            
-#         ]
-#     }
-# }
+        phases = {
+            "phase_1": {
+                "wave_1": [
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE),
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_LEFT_EDGE),
+                ],
+
+                "wave_2": [
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE),
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_LEFT_EDGE),
+                ]
+            },
+
+            "phase_2": {
+                "wave_1": [
+                    # enemigos aquí
+                ],
+
+                "wave_2": [
+                    # enemigos aquí
+                ]
+            }
+        }
+                    
+        return phases
