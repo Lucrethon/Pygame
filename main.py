@@ -9,7 +9,7 @@ import time
 pygame.init()
 
 # SET UP REAL SCREEN
-screen = functions.setup_screen(False)
+screen = functions.setup_screen(True)
 screen_width, screen_height = screen.get_size()
 
 # --------------------------------------------------------------------------

@@ -715,18 +715,15 @@ class GameMaster:
         screen: pygame.Surface,
         ground: Platform,
     ):
+        
+        # Funcion que se encarga de actualizar los diferentes estados del juego. No dibuja nada 
 
-        if self.GAME_STATE == GameState.MAIN_MENU:
 
-            pass
+        if (self.GAME_STATE == GameState.MAIN_MENU
+            or self.GAME_STATE == GameState.PAUSE
+            or self.GAME_STATE == GameState.GAME_OVER
+            or self.GAME_STATE == GameState.VICTORY):
 
-        elif self.GAME_STATE == GameState.PAUSE:
-            pass
-
-        elif self.GAME_STATE == GameState.GAME_OVER:
-            pass
-
-        elif self.GAME_STATE == GameState.VICTORY:
             pass
 
         else:
@@ -741,6 +738,7 @@ class GameMaster:
                 # Handle spawning of enemies according to phase and wave
 
                 # Se le pasa el numero de fase y oleada actual para spawnear los enemigos correspondientes
+                # Se le pasa en strings para facilitar la lectura del diccionario, archivos json o similares
                 current_phase = "phase_" + str(self.GAME_PHASE)
                 current_wave = "wave_" + str(self.GAME_WAVE)
 
@@ -807,68 +805,89 @@ class GameMaster:
     def handle_events(
         self, events, player: Player, screen: pygame.Surface, ground: Platform
     ):
+        
+        # Funcion que se encarga de manejar los eventos de los diferentes estados del juego
 
         for event in events:
+            
+            #------------ MAIN MENU ------------
+            
             if self.GAME_STATE == GameState.MAIN_MENU:
 
-                if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
 
                     if self.start_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.SPAWNING
                         self.GAME_PHASE = 1
                         self.GAME_WAVE = 1
+                
+                elif event.type == pygame.KEYDOWN:
+                    
+                    if event.key == pygame.K_RETURN:
+                        self.GAME_STATE = GameState.SPAWNING
+                        self.GAME_PHASE = 1
+                        self.GAME_WAVE = 1
 
-                elif event.type == pygame.K_ESCAPE:
-                    pygame.quit()
-
+                    elif event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+            
+            #------------ PAUSE ------------
+            
             elif self.GAME_STATE == GameState.PAUSE:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
 
-                    if (
-                        self.resume_button_rect.collidepoint(mouse_pos)
-                        or event.type == pygame.K_ESCAPE
-                    ):
+                    if self.resume_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.PLAYING
 
                     elif self.return_button_rect.collidepoint(mouse_pos):
-                        self.all_sprites.remove(self.enemy_group)
-                        self.moving_sprites.empty()
-                        self.enemy_group.empty()
-                        self.set_up_player_position(player, screen, ground)
+                        
+                        self.reset_game(player, screen, ground)
                         self.GAME_STATE = GameState.MAIN_MENU
+                
+                elif event.type == pygame.KEYDOWN:
+                    
+                    if event.key == pygame.K_RETURN:
+                        self.GAME_STATE = GameState.PLAYING
+                    
+
+            #------------ GAME OVER ------------
 
             elif self.GAME_STATE == GameState.GAME_OVER:
+                    
+                    if event.type == pygame.KEYDOWN:
+                        
+                        if event.key == pygame.K_ESCAPE:
+                            pygame.quit()
+                            
+                        elif event.key == pygame.K_RETURN:
+                            self.reset_game(player, screen, ground)
+                            self.GAME_STATE = GameState.MAIN_MENU 
 
-                if event.type == pygame.KEYDOWN:
-                    self.all_sprites.remove(self.enemy_group)
-                    self.moving_sprites.empty()
-                    self.enemy_group.empty()
-                    self.set_up_player_position(player, screen, ground)
-                    self.GAME_STATE = GameState.MAIN_MENU
-
-                elif event.key == pygame.K_ESCAPE:
-                    pygame.quit()
+            #------------ VICTORY ------------
 
             elif self.GAME_STATE == GameState.VICTORY:
-
+                    
                 if event.type == pygame.KEYDOWN:
-                    self.all_sprites.remove(self.enemy_group)
-                    self.moving_sprites.empty()
-                    self.enemy_group.empty()
-                    self.set_up_player_position(player, screen, ground)
-                    self.GAME_STATE = GameState.MAIN_MENU
+                    
+                    if event.key == pygame.K_RETURN:
+                    
+                        self.reset_game(player, screen, ground)
+                        self.GAME_STATE = GameState.MAIN_MENU
 
-                elif event.type == pygame.K_ESCAPE:
-                    pygame.quit()
+                    elif event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+
+            #------------ PLAYING, TRANSICION OR SPAWING ------------
 
             else:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.GAME_STATE = GameState.PAUSE
+                        
                     elif event.key == pygame.K_s:
                         player.trigger_attack(attack=True)
 
@@ -879,6 +898,8 @@ class GameMaster:
         background: pygame.Surface,
         ground: Platform,
     ):
+        
+        #Funcion que se encarga de dibujar los diferentes estados del juego
 
         if self.GAME_STATE == GameState.MAIN_MENU:
             screen.blit(background, (0, 0))
@@ -901,7 +922,7 @@ class GameMaster:
             self.display_victory_screen(screen)
 
         else:
-            # ground platform y background se dibujan siempre
+            # ground platform se dibuja primero
             ground.draw(screen)
             screen.blit(background, (0, 0))
             # En todos los demas estados se dibujen los sprites
@@ -918,7 +939,7 @@ class GameMaster:
         player.set_position(screen.get_width() / 2, ground.rect.top, True)
 
     def display_main_menu(self, screen: pygame.Surface):
-        start_title = self.title_font.render("Start", False, (15, 15, 27))
+        start_title = self.title_font.render("Start", False, (15, 15, 27), (250, 251, 246))
 
         start_title_rect = start_title.get_rect()
         start_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
@@ -929,11 +950,11 @@ class GameMaster:
 
     def display_pause_menu(self, screen: pygame.Surface):
 
-        pause_title = self.title_font.render("Pause", False, (15, 15, 27))
+        pause_title = self.title_font.render("Pause", False, (15, 15, 27), (250, 251, 246))
         pause_title_rect = pause_title.get_rect()
         pause_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
 
-        resume_title = self.subtitle_font.render("Resume", False, (15, 15, 27))
+        resume_title = self.subtitle_font.render("Resume", False, (15, 15, 27), (250, 251, 246))
         resume_title_rect = resume_title.get_rect()
         resume_title_rect.midtop = (
             screen.get_width() / 2,
@@ -941,7 +962,7 @@ class GameMaster:
         )
         self.resume_button_rect = resume_title_rect
 
-        return_title = self.subtitle_font.render("Return to Menu", False, (15, 15, 27))
+        return_title = self.subtitle_font.render("Return to Menu", False, (15, 15, 27), (250, 251, 246))
         return_title_rect = return_title.get_rect()
         return_title_rect.midtop = (
             screen.get_width() / 2,
@@ -955,12 +976,12 @@ class GameMaster:
 
     def display_game_over_screen(self, screen: pygame.Surface):
 
-        game_over_title = self.title_font.render("Game Over", False, (15, 15, 27))
+        game_over_title = self.title_font.render("Game Over", False, (15, 15, 27), (250, 251, 246))
         game_over_title_rect = game_over_title.get_rect()
         game_over_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
 
         press_enter_title = self.subtitle_font.render(
-            "Press Enter to Restart", False, (15, 15, 27)
+            "Press Enter to Restart", False, (15, 15, 27), (250, 251, 246)
         )
         press_enter_title_rect = press_enter_title.get_rect()
         press_enter_title_rect.midtop = (
@@ -973,12 +994,12 @@ class GameMaster:
 
     def display_victory_screen(self, screen: pygame.Surface):
 
-        victory_title = self.title_font.render("Victory", False, (15, 15, 27))
+        victory_title = self.title_font.render("Victory", False, (15, 15, 27), (250, 251, 246))
         victory_title_rect = victory_title.get_rect()
         victory_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
 
         press_enter_title = self.subtitle_font.render(
-            "Press Enter to Restart", False, (15, 15, 27)
+            "Press Enter to Restart", False, (15, 15, 27), (250, 251, 246)
         )
         press_enter_title_rect = press_enter_title.get_rect()
         press_enter_title_rect.midtop = (
@@ -990,6 +1011,8 @@ class GameMaster:
         screen.blit(press_enter_title, press_enter_title_rect)
 
     def handle_enemies_collision(self, player: Player):
+        
+        #Funcion que se encarga de manejar las colisiones entre el jugador y los enemigos
 
         # lista que comprueba colisiones entre el jugador y los enemigos
         enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False)
@@ -1007,9 +1030,11 @@ class GameMaster:
                     functions.knockback(player, enemy, True)
 
     def handle_player_attack_collision(self, player: Player):
+        
+        #Funcion que se encarga de manejar las colisiones entre el ataque del jugador y los enemigos
 
-        # check hitbox collision
         if player.active_hitbox:
+            #Si el jugador tiene una hitbox activa (esta atacando)
 
             for enemy in self.enemy_group:
 
@@ -1042,6 +1067,7 @@ class GameMaster:
     def returnEnemyWithPosition(
         self, screen: pygame.Surface, ground: Platform, enemy: Enemy, position: Position
     ):
+        #funcion que devuelve un enemigo en una posicion determinada de la pantalla
 
         # se recibe una clase de enemigo y se instancia un nuevo objeto de esa clase
         new_enemy = enemy()
@@ -1071,6 +1097,7 @@ class GameMaster:
         screen: pygame.Surface,
         ground: Platform,
     ):
+        #Funcion que se encarga de spawnear los enemigos de la fase y oleada actual
 
         phases = self.phases(
             screen, ground
@@ -1146,3 +1173,14 @@ class GameMaster:
         }
 
         return phases
+
+    def reset_game(self, player: Player, screen: pygame.Surface, ground: Platform):
+        #Funcion que se encarga de reiniciar el juego
+
+        self.all_sprites.remove(self.enemy_group)
+        self.moving_sprites.empty()
+        self.enemy_group.empty()
+        self.set_up_player_position(player, screen, ground)
+        self.GAME_PHASE = 0
+        self.GAME_WAVE = 0
+        self.timer = 0.0
