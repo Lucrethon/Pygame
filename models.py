@@ -696,14 +696,16 @@ class GameMaster:
         self.timer = 0.0 
         self.GAME_STATE = GameState.MAIN_MENU
         self.GAME_PHASE = 0
-        self.transition_state_duration = 2
+        self.GAME_WAVE = 0
+        self.transition_state_duration = 2 #secs
         #pygame.font.Font('ruta_del_archivo', tamaño)
         self.title_font = pygame.font.Font("fonts/HarnoldpixelRegularDemo-Yqw84.otf", 40)
         self.subtitle_font = pygame.font.Font("fonts/HarnoldpixelRegularDemo-Yqw84.otf", 25)
         self.start_button_rect = None
         self.resume_button_rect = None
         self.return_button_rect = None
-        self.game_phases = 2
+        self.game_phases = None
+        self.waves_per_phase = None
         
     def update_game(self, player, delta_time, screen, ground):
         
@@ -727,32 +729,32 @@ class GameMaster:
             #leer input de movimiento jugador 
             player.update_player(delta_time, screen, ground)
             
+            
             #detectar colisiones con el suelo
 
             if self.GAME_STATE == GameState.SPAWNING:
                 
-                #
+                current_phase = "phase_" + str(self.GAME_PHASE)
+                current_wave = "wave_" + str(self.GAME_WAVE)
                 
-                
-                
-                
-                
-                if self.GAME_PHASE == 1:
-                    self.phase_1(screen, ground) #Aqui se spawmean los enemigos de la fase correspondiente y se agregan enemigos a la lista enemies[]
-                    self.GAME_STATE = GameState.PLAYING
+                self.current_phase(current_phase, current_wave, screen, ground)
+                self.GAME_STATE = GameState.PLAYING
                     
-                elif self.GAME_PHASE == 2:
-                    self.phase_2(screen, ground)    
-                    self.GAME_STATE = GameState.PLAYING
-                #(...)
                 
             elif self.GAME_STATE == GameState.TRANSITION: 
                 self.timer += delta_time 
                 
                 if self.timer > self.transition_state_duration: 
                     self.timer = 0.0 
-                    self.GAME_PHASE += 1
+                    self.GAME_WAVE +=1
                     self.GAME_STATE = GameState.SPAWNING
+                    
+                    if self.GAME_WAVE > self.waves_per_phase: 
+                        self.GAME_PHASE += 1
+                        self.GAME_WAVE = 1
+                    
+                    else: 
+                        pass
                             
             elif self.GAME_STATE == GameState.PLAYING:
                 
@@ -766,15 +768,16 @@ class GameMaster:
                 self.handle_enemies_collision(player)
                 self.handle_attack_collision(player)
                 
-                if not self.enemy_group and self.GAME_PHASE < self.game_phases: 
-                    self.timer = 0.0
-                    self.GAME_STATE = GameState.TRANSITION
+                if not self.enemy_group:
                     
-                elif not self.enemy_group and self.GAME_PHASE == self.game_phases: 
-                    self.GAME_STATE = GameState.VICTORY
-                    
-                else: 
-                    if player.isDead:
+                    if self.GAME_PHASE == self.game_phases and self.GAME_WAVE == self.waves_per_phase:
+                        self.GAME_STATE = GameState.VICTORY
+                
+                    else: 
+                        self.timer = 0.0
+                        self.GAME_STATE = GameState.TRANSITION
+
+                elif player.isDead:
                         self.GAME_STATE = GameState.GAME_OVER
 
     def handle_events(self, events, player, screen, ground):
@@ -788,6 +791,7 @@ class GameMaster:
                     if self.start_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.SPAWNING
                         self.GAME_PHASE = 1
+                        self.GAME_WAVE = 1
                 
                 elif event.type == pygame.K_ESCAPE:
                     pygame.quit()
@@ -975,88 +979,42 @@ class GameMaster:
                 else:
                     pass
     
-    def phase_1(self, screen, ground): 
+    def returnEnemyWithPosition(self, screen, ground, enemy, position):
         
-        enemies_phase_1 = []
-        
-        for _ in range(2):
-        
-            enemy_image = pygame.Surface([90, 90])
-            enemy_image.fill((255, 0, 0))
-            enemy = Crawlid() 
-            enemies_phase_1.append(enemy)
-        
-        for enemy in enemies_phase_1:
-        
-            self.all_sprites.add(enemy)
-            self.moving_sprites.add(enemy)
-            self.enemy_group.add(enemy)
-        
-        enemy_coords = coordinates(screen, ground, enemies_phase_1[0]) # Usar un enemigo de la lista
-        
-        enemies_phase_1[0].set_position(*enemy_coords["ground_right_edge"])
-        
-        enemies_phase_1[1].set_position(*enemy_coords["ground_left_edge"])
-        
-    def phase_2(self, screen, ground): 
-        
-        enemies_phase_2 = []
-        
-        for _ in range(2):
-        
-            enemy_image = pygame.Surface([90, 90])
-            enemy_image.fill((255, 0, 0))
-            enemy = Crawlid() # Igual aquí, creas una instancia de Crawlid
-            enemies_phase_2.append(enemy)
-        
-        for enemy in enemies_phase_2:
-        
-            self.all_sprites.add(enemy)
-            self.moving_sprites.add(enemy)
-            self.enemy_group.add(enemy)
-        
-        enemy_coords = coordinates(screen, ground, enemies_phase_2[0]) # Usar un enemigo de la lista
-        
-        enemies_phase_2[0].set_position(*enemy_coords["ground_right_edge"])
-        
-        #El asteriscto es importante porque el método set_position(x, y) espera dos argumentos separados (x e y), pero enemy_coords["ground_right_edge"] devuelve una tupla (x, y). El asterisco "desempaqueta" la tupla, pasando sus elementos como argumentos individuales a la función.
-        
-        enemies_phase_2[1].set_position(*enemy_coords["ground_left_edge"])
-    
-    
-    def returnEnemyWithPosition(screen, ground, enemy, position):
-        
-        enemy_coords = coordinates(screen, ground, enemy)
-        
-        if position in enemy_coords:
+        new_enemy = enemy()
             
-            enemy_image = pygame.Surface([90, 90])
-            enemy_image.fill((255, 0, 0))
-            
-            new_enemy = enemy()
-            new_enemy.set_position(*enemy_coords[position])
+        enemy_coords = coordinates(screen, ground, new_enemy)
+        
+        pos_key = position.value
+        
+        if pos_key in enemy_coords:
+        
+            new_enemy.set_position(*enemy_coords[pos_key])
             
             return new_enemy
+        
+        else: 
+            return new_enemy
 
-    
-    def generic_phase(self, phase_number, wave_number, screen, ground):
+    def current_phase(self, phase_number, wave_number, screen, ground):
         
         phases = self.phases(screen, ground)
+        total_phases = len(list(phases.keys()))
+        self.game_phases = total_phases
         
         if phase_number in phases:
             
-            for wave in phases[phase_number]:
+            current_wave = list(phases[phase_number].keys())
+            self.waves_per_phase = len(current_wave)
                 
-                waves = phases[phase_number].get(wave_number, [])
+            wave = phases[phase_number].get(wave_number, [])
                 
-                for enemy in waves:
+            for enemy in wave:
+                
+                self.all_sprites.add(enemy)
+                self.moving_sprites.add(enemy)
+                self.enemy_group.add(enemy)
                     
-                    self.all_sprites.add(enemy)
-                    self.moving_sprites.add(enemy)
-                    self.enemy_group.add(enemy)
-                    
-        
-    
     def phases(self, screen, ground):
 
         phases = {
@@ -1074,12 +1032,14 @@ class GameMaster:
 
             "phase_2": {
                 "wave_1": [
-                    # enemigos aquí
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.QUARTER_TOP_EDGE),
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE),
                 ],
 
                 "wave_2": [
-                    # enemigos aquí
-                ]
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.QUARTER_TOP_EDGE),
+                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE),
+                    ]
             }
         }
                     
