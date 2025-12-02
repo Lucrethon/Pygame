@@ -3,6 +3,7 @@ import gif_pygame
 from gif_pygame import transform
 import models
 
+
 # function to resize sprites acording scale factors
 def resize(sprite, screen):
 
@@ -80,41 +81,40 @@ def knockback(player, enemy, player_beaten=False):
 
 
 def coordinates(screen, ground, enemy):
-    
+
     screen_width, screen_height = screen.get_size()
-    
+
     coordinates = {
-    # LADO DERECHO (Para que caminen hacia la izquierda)
-    # X: Ancho de pantalla (afuera). Y: Suelo menos altura del enemigo (pisando el suelo).
-    "ground_right_edge" : (screen_width, ground.rect.top - enemy.rect.height),
-    
-    # VOLADORES DERECHA
-    "1/2_right_edge" : (screen_width, screen_height / 2),
-
-    # LADO IZQUIERDO (Para que caminen hacia la derecha)
-    # X: Menos ancho del enemigo (afuera a la izq). 
-    "ground_left_edge" : (-enemy.rect.width, ground.rect.top - enemy.rect.height),
-    
-    # VOLADORES IZQUIERDA
-    "1/2_left_edge" : (-enemy.rect.width, screen_height / 2),
-
-    # TECHO (Para que caigan)
-    # X: Posicion deseada. Y: Menos altura del enemigo (escondido arriba).
-    "1/4_top_edge" : (screen_width / 4, -enemy.rect.height),
-    "1/2_top_edge" : (screen_width / 2, -enemy.rect.height),
-    "1/8_top_edge" : (screen_width / 8, -enemy.rect.height),
-}
+        # LADO DERECHO (Para que caminen hacia la izquierda)
+        # X: Ancho de pantalla (afuera). Y: Suelo menos altura del enemigo (pisando el suelo).
+        "ground_right_edge": (screen_width, ground.rect.top - enemy.rect.height),
+        # VOLADORES DERECHA
+        "1/2_right_edge": (screen_width, screen_height / 2),
+        # LADO IZQUIERDO (Para que caminen hacia la derecha)
+        # X: Menos ancho del enemigo (afuera a la izq).
+        "ground_left_edge": (-enemy.rect.width, ground.rect.top - enemy.rect.height),
+        # VOLADORES IZQUIERDA
+        "1/2_left_edge": (-enemy.rect.width, screen_height / 2),
+        # TECHO (Para que caigan)
+        # X: Posicion deseada. Y: Menos altura del enemigo (escondido arriba).
+        "1/4_top_edge": (screen_width / 4, -enemy.rect.height),
+        "1/2_top_edge": (screen_width / 2, -enemy.rect.height),
+        "1/8_top_edge": (screen_width / 8, -enemy.rect.height),
+    }
     return coordinates
 
+
 def set_up_player(screen, ground):
-    
+
     screen_width, screen_height = screen.get_size()
-    
+
     # Set player image using gif-pygame library
     player_image = setup_player_gif(screen)
 
     # Player attack slash sprite
-    sprite_attack_slash = pygame.image.load("./assets/Attack_Slashx3.png").convert_alpha()
+    sprite_attack_slash = pygame.image.load(
+        "./assets/Attack_Slashx3.png"
+    ).convert_alpha()
 
     # Set player speed
     player_x_speed = 300
@@ -124,13 +124,14 @@ def set_up_player(screen, ground):
 
     # set player inicial position
     player.set_position(screen_width / 2, ground.rect.top, True)
-    
+
     return player
 
+
 def set_up_ground(screen):
-    
+
     screen_width, screen_height = screen.get_size()
-    
+
     # Set ground image# ground image
     ground_image = pygame.image.load("./assets/Ground_scaled_960x540.png")
 
@@ -140,6 +141,6 @@ def set_up_ground(screen):
     # set ground position
     ground.set_position(
         (screen_width - ground.rect.width), (screen_height - ground.rect.height)
-)
+    )
 
     return ground

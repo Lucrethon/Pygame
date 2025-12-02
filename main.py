@@ -61,20 +61,20 @@ while running:
     # if speed = 200 and delta_time = 0.016 (1/60 fps), the player is moving at 200 * 0.016 = 3.2 píxels in that frame
 
     # 2. INPUT (events)
-    
+
     events = pygame.event.get()
 
     for event in events:  # iteracion sobre todos los eventos de pygame
         if event.type == pygame.QUIT:
             running = False
-    
+
     game_master.handle_events(events, player, virtual_canvas, ground)
-    
-    #3. UPDATES 
-    
+
+    # 3. UPDATES
+
     game_master.update_game(player, delta_time, virtual_canvas, ground)
-    
-    #4. DRAW
+
+    # 4. DRAW
 
     game_master.draw(virtual_canvas, player, background, ground)
 

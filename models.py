@@ -6,6 +6,7 @@ from enum import Enum
 import mixin
 import functions
 from functions import coordinates
+
 pygame.init()
 pygame.font.init()
 
@@ -139,7 +140,7 @@ class Player(GameObject, mixin.Gravity):
     ):
 
         # triggrs should NEVER be in update method. Only in the main cycle. This method will only receive methods to update the player position that are triggered by trigger methods that change player states. Acording those states, this method will work in one way or another
-        
+
         get_pressed_keys = pygame.key.get_pressed()
         # set a key that occurrs while the player get pressed a button on the keyboard
 
@@ -148,7 +149,6 @@ class Player(GameObject, mixin.Gravity):
         jumping = get_pressed_keys[pygame.K_SPACE]
         face_up = get_pressed_keys[pygame.K_UP]
         face_down = get_pressed_keys[pygame.K_DOWN]
-
 
         # --- TIMERS ---
 
@@ -174,13 +174,12 @@ class Player(GameObject, mixin.Gravity):
         if self.state == States.HURT:
             self.knockback_update(delta_time)
 
-        #recoil state
+        # recoil state
         elif self.state == States.RECOILING:
             self.attack_recoil_timer += delta_time
             if self.attack_recoil_timer >= self.attack_recoil_duration:
                 self.state = States.IDDLE
                 self.attack_recoil_timer = 0.0
-
 
         else:
 
@@ -411,19 +410,19 @@ class Player(GameObject, mixin.Gravity):
         return hitbox, rotate_slash_sprite
 
     def draw_attack(self, screen):  # DRAW SLASH SPRITE AND RECT
-        
+
         if self.state == States.ATTACKING or self.state == States.RECOILING:
-                
+
             # draw hitbox
             if self.active_hitbox and self.active_slash_sprite:
 
                 screen.blit(self.active_slash_sprite, self.active_hitbox)
-        
-        else: 
+
+        else:
             pass
 
-    def take_damage(self):  # call this method in the main cycle 
-    
+    def take_damage(self):  # call this method in the main cycle
+
         # set up HP
         self.HP -= 1
 
@@ -527,20 +526,20 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
     def __init__(self, image):
         # Los grupos se pasarán desde el GameMaster al crear el enemigo
         super().__init__(image)
-    
+
     def draw(self, screen):
         return super().draw(screen)
 
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
-    
+
     @abstractmethod
-    def update_enemy(self): 
+    def update_enemy(self):
         pass
-    
+
     @abstractmethod
     def spawning(self):
-        #animacion de spawn 
+        # animacion de spawn
         pass
 
 
@@ -552,7 +551,7 @@ class Crawlid(Enemy):
 
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
         super().__init__(image)
-        
+
         # --- CONSTANTES DE FUERZA ---
         self.move_speed = 240
         self.knockback_y_force = -500
@@ -579,7 +578,6 @@ class Crawlid(Enemy):
         self.timer = 0.0
         self.knockback_duration = 0.2
 
-        
     def draw(self, screen):
         return super().draw(screen)
 
@@ -655,14 +653,14 @@ class Crawlid(Enemy):
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
-    
+
     def spawning(self):
-        #animacion de spawn 
+        # animacion de spawn
         pass
 
 
 class GameState(Enum):
-    
+
     MAIN_MENU = 1
     PLAYING = 2
     PAUSE = 3
@@ -682,365 +680,469 @@ class Position(Enum):
     THREE_QUARTER_TOP_EDGE = "1/8_top_edge"
 
 
-class GameMaster: 
-    
+class GameMaster:
+
     def __init__(self):
-        # El GameMaster ahora es dueño de los grupos de sprites
+        # El GameMaster es dueño de los grupos de sprites
         self.all_sprites = pygame.sprite.Group()
         self.moving_sprites = pygame.sprite.Group()
         self.enemy_group = pygame.sprite.Group()
-        
-        # El GameMaster ya no es un sprite, así que no necesita llamar a super().__init__()
+
         # super().__init__(all_sprites, moving_sprites, enemy_group)
-        
-        self.timer = 0.0 
+
+        self.timer = 0.0
         self.GAME_STATE = GameState.MAIN_MENU
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0
-        self.transition_state_duration = 2 #secs
-        #pygame.font.Font('ruta_del_archivo', tamaño)
-        self.title_font = pygame.font.Font("fonts/HarnoldpixelRegularDemo-Yqw84.otf", 40)
-        self.subtitle_font = pygame.font.Font("fonts/HarnoldpixelRegularDemo-Yqw84.otf", 25)
+        self.transition_state_duration = 2  # secs - wave_transition duration
+        # pygame.font.Font('ruta_del_archivo', tamaño)
+        self.title_font = pygame.font.Font(
+            "fonts/HarnoldpixelRegularDemo-Yqw84.otf", 40
+        )
+        self.subtitle_font = pygame.font.Font(
+            "fonts/HarnoldpixelRegularDemo-Yqw84.otf", 25
+        )
         self.start_button_rect = None
         self.resume_button_rect = None
         self.return_button_rect = None
         self.game_phases = None
         self.waves_per_phase = None
-        
-    def update_game(self, player, delta_time, screen, ground):
-        
+
+    def update_game(
+        self,
+        player: Player,
+        delta_time: float,
+        screen: pygame.Surface,
+        ground: Platform,
+    ):
+
         if self.GAME_STATE == GameState.MAIN_MENU:
-            
+
             pass
-            
+
         elif self.GAME_STATE == GameState.PAUSE:
             pass
-        
+
         elif self.GAME_STATE == GameState.GAME_OVER:
             pass
 
-        
         elif self.GAME_STATE == GameState.VICTORY:
             pass
-                    
-        else: 
-            #en los siguientes estados se lee el movimiento del jugador en todo momento
-            
-            #leer input de movimiento jugador 
-            player.update_player(delta_time, screen, ground)
-            
-            
-            #detectar colisiones con el suelo
 
+        else:
+            # en los siguientes estados se lee el movimiento del jugador en todo momento
+
+            # leer input de movimiento jugador y detectar colisiones con el suelo
+            player.update_player(delta_time, screen, ground)
+
+            # Spawn phase
             if self.GAME_STATE == GameState.SPAWNING:
-                
+
+                # Handle spawning of enemies according to phase and wave
+
+                # Se le pasa el numero de fase y oleada actual para spawnear los enemigos correspondientes
                 current_phase = "phase_" + str(self.GAME_PHASE)
                 current_wave = "wave_" + str(self.GAME_WAVE)
-                
+
                 self.current_phase(current_phase, current_wave, screen, ground)
+
+                # After spawning, change state to playing
                 self.GAME_STATE = GameState.PLAYING
-                    
-                
-            elif self.GAME_STATE == GameState.TRANSITION: 
-                self.timer += delta_time 
-                
-                if self.timer > self.transition_state_duration: 
-                    self.timer = 0.0 
-                    self.GAME_WAVE +=1
-                    self.GAME_STATE = GameState.SPAWNING
-                    
-                    if self.GAME_WAVE > self.waves_per_phase: 
-                        self.GAME_PHASE += 1
-                        self.GAME_WAVE = 1
-                    
-                    else: 
+
+            elif self.GAME_STATE == GameState.TRANSITION:
+                self.timer += delta_time  # empieza a contar el tiempo de transicion
+
+                if self.timer > self.transition_state_duration:
+                    self.timer = 0.0  # reinicio del timer
+                    self.GAME_WAVE += (
+                        1  # se suma 1 a la oleada actual para ir a la siguiente oleada
+                    )
+                    self.GAME_STATE = (
+                        GameState.SPAWNING
+                    )  # cambio de estado a spawning para spawnear la siguiente oleada
+
+                    # si la oleada actual es mayor que las oleadas por fase, se pasa a la siguiente fase
+                    if self.GAME_WAVE > self.waves_per_phase:
+                        self.GAME_PHASE += 1  # Cambio de fase
+                        self.GAME_WAVE = 1  # reinicio de oleada a 1
+
+                    else:
                         pass
-                            
+
             elif self.GAME_STATE == GameState.PLAYING:
-                
+
+                # actualizar todos los sprites en pantalla
                 self.moving_sprites.update()
-                
-                #enemigos.update()
+
+                # enemigos.update()
                 for enemy in self.enemy_group:
                     enemy.update_enemy(delta_time, screen, ground)
-                    
-                #detectar colisiones con enemigos
+
+                # detectar colisiones con enemigos
                 self.handle_enemies_collision(player)
-                self.handle_attack_collision(player)
-                
+                self.handle_player_attack_collision(player)
+
+                # verificar si hay enemigos en pantalla
                 if not self.enemy_group:
-                    
-                    if self.GAME_PHASE == self.game_phases and self.GAME_WAVE == self.waves_per_phase:
+
+                    # si no hay enemigos,
+                    # la fase actual es igual al numero total de fases
+                    # y la oleada actual es igual al numero total de oleadas por fase,
+                    # se gana el juego
+                    if (
+                        self.GAME_PHASE == self.game_phases
+                        and self.GAME_WAVE == self.waves_per_phase
+                    ):
                         self.GAME_STATE = GameState.VICTORY
-                
-                    else: 
+
+                    else:
+                        # si no hay enemigos en pantalla, pasar a estado de transicion entre oleadas
                         self.timer = 0.0
                         self.GAME_STATE = GameState.TRANSITION
 
                 elif player.isDead:
-                        self.GAME_STATE = GameState.GAME_OVER
+                    # Si el jugador muere, cambiar a estado de game over
+                    self.GAME_STATE = GameState.GAME_OVER
 
-    def handle_events(self, events, player, screen, ground):
-        
-        for event in events: 
+    def handle_events(
+        self, events, player: Player, screen: pygame.Surface, ground: Platform
+    ):
+
+        for event in events:
             if self.GAME_STATE == GameState.MAIN_MENU:
-                
+
                 if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN:
                     mouse_pos = pygame.mouse.get_pos()
-                    
+
                     if self.start_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.SPAWNING
                         self.GAME_PHASE = 1
                         self.GAME_WAVE = 1
-                
+
                 elif event.type == pygame.K_ESCAPE:
                     pygame.quit()
-            
+
             elif self.GAME_STATE == GameState.PAUSE:
-                
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mouse_pos = pygame.mouse.get_pos()
-                    
-                    if self.resume_button_rect.collidepoint(mouse_pos) or event.type == pygame.K_ESCAPE:
+
+                    if (
+                        self.resume_button_rect.collidepoint(mouse_pos)
+                        or event.type == pygame.K_ESCAPE
+                    ):
                         self.GAME_STATE = GameState.PLAYING
-                    
+
                     elif self.return_button_rect.collidepoint(mouse_pos):
                         self.all_sprites.remove(self.enemy_group)
                         self.moving_sprites.empty()
                         self.enemy_group.empty()
                         self.set_up_player_position(player, screen, ground)
                         self.GAME_STATE = GameState.MAIN_MENU
-            
+
             elif self.GAME_STATE == GameState.GAME_OVER:
-                
+
                 if event.type == pygame.KEYDOWN:
-                        self.all_sprites.remove(self.enemy_group)
-                        self.moving_sprites.empty()
-                        self.enemy_group.empty()
-                        self.set_up_player_position(player, screen, ground)
-                        self.GAME_STATE = GameState.MAIN_MENU
-                
+                    self.all_sprites.remove(self.enemy_group)
+                    self.moving_sprites.empty()
+                    self.enemy_group.empty()
+                    self.set_up_player_position(player, screen, ground)
+                    self.GAME_STATE = GameState.MAIN_MENU
+
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
-            
+
             elif self.GAME_STATE == GameState.VICTORY:
-                
+
                 if event.type == pygame.KEYDOWN:
-                        self.all_sprites.remove(self.enemy_group)
-                        self.moving_sprites.empty()
-                        self.enemy_group.empty()
-                        self.set_up_player_position(player, screen, ground)
-                        self.GAME_STATE = GameState.MAIN_MENU
-                
+                    self.all_sprites.remove(self.enemy_group)
+                    self.moving_sprites.empty()
+                    self.enemy_group.empty()
+                    self.set_up_player_position(player, screen, ground)
+                    self.GAME_STATE = GameState.MAIN_MENU
+
                 elif event.type == pygame.K_ESCAPE:
                     pygame.quit()
-            
+
             else:
-                
+
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.GAME_STATE = GameState.PAUSE
                     elif event.key == pygame.K_s:
                         player.trigger_attack(attack=True)
 
-    def draw(self, screen, player, background, ground):
-        
-        
+    def draw(
+        self,
+        screen: pygame.Surface,
+        player: Player,
+        background: pygame.Surface,
+        ground: Platform,
+    ):
+
         if self.GAME_STATE == GameState.MAIN_MENU:
-            screen.blit(background, (0,0))
+            screen.blit(background, (0, 0))
             self.display_main_menu(screen)
-            
+
         elif self.GAME_STATE == GameState.PAUSE:
-            screen.blit(background, (0,0))
-            #Quiero que se dibujen los sprites en la pausa tambien debajo del boton de pausa
+            screen.blit(background, (0, 0))
+            # Los sprites se dibujan en la pausa debajo del boton de pausa
             for sprite in self.all_sprites:
                 sprite.draw(screen)
-                
+
             self.display_pause_menu(screen)
-        
+
         elif self.GAME_STATE == GameState.GAME_OVER:
-            screen.blit(background, (0,0))
+            screen.blit(background, (0, 0))
             self.display_game_over_screen(screen)
 
-        
         elif self.GAME_STATE == GameState.VICTORY:
-            screen.blit(background, (0,0))
+            screen.blit(background, (0, 0))
             self.display_victory_screen(screen)
-        
+
         else:
+            # ground platform y background se dibujan siempre
             ground.draw(screen)
-            screen.blit(background, (0,0))
-            #quiero que en todos los demas estados se dibujen los sprites 
+            screen.blit(background, (0, 0))
+            # En todos los demas estados se dibujen los sprites
             for sprite in self.all_sprites:
                 sprite.draw(screen)
                 # call to .draw() method from GameObjects that can handle gifs
             player.draw_attack(screen)
 
-    def set_up_player_position(self, player, screen, ground):
-        
+    def set_up_player_position(
+        self, player: Player, screen: pygame.Surface, ground: Platform
+    ):
+        # centrar al jugador en la pantalla al reiniciar el juego
+
         player.set_position(screen.get_width() / 2, ground.rect.top, True)
 
-    def display_main_menu(self, screen):
+    def display_main_menu(self, screen: pygame.Surface):
         start_title = self.title_font.render("Start", False, (15, 15, 27))
-        
+
         start_title_rect = start_title.get_rect()
         start_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
-        
+
         self.start_button_rect = start_title_rect
-                
+
         screen.blit(start_title, start_title_rect)
-    
-    def display_pause_menu(self, screen):
-        
+
+    def display_pause_menu(self, screen: pygame.Surface):
+
         pause_title = self.title_font.render("Pause", False, (15, 15, 27))
         pause_title_rect = pause_title.get_rect()
         pause_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
-        
+
         resume_title = self.subtitle_font.render("Resume", False, (15, 15, 27))
         resume_title_rect = resume_title.get_rect()
-        resume_title_rect.midtop = (screen.get_width() / 2, pause_title_rect.bottom + 10)
+        resume_title_rect.midtop = (
+            screen.get_width() / 2,
+            pause_title_rect.bottom + 10,
+        )
         self.resume_button_rect = resume_title_rect
-        
+
         return_title = self.subtitle_font.render("Return to Menu", False, (15, 15, 27))
         return_title_rect = return_title.get_rect()
-        return_title_rect.midtop = (screen.get_width() / 2, resume_title_rect.bottom + 10)
+        return_title_rect.midtop = (
+            screen.get_width() / 2,
+            resume_title_rect.bottom + 10,
+        )
         self.return_button_rect = return_title_rect
 
-        
         screen.blit(pause_title, pause_title_rect)
         screen.blit(resume_title, resume_title_rect)
         screen.blit(return_title, return_title_rect)
-    
-    def display_game_over_screen(self, screen):
-        
+
+    def display_game_over_screen(self, screen: pygame.Surface):
+
         game_over_title = self.title_font.render("Game Over", False, (15, 15, 27))
         game_over_title_rect = game_over_title.get_rect()
         game_over_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
-        
-        press_enter_title = self.subtitle_font.render("Press Enter to Restart", False, (15, 15, 27))
+
+        press_enter_title = self.subtitle_font.render(
+            "Press Enter to Restart", False, (15, 15, 27)
+        )
         press_enter_title_rect = press_enter_title.get_rect()
-        press_enter_title_rect.midtop = (screen.get_width() / 2, game_over_title_rect.bottom + 10)
-        
+        press_enter_title_rect.midtop = (
+            screen.get_width() / 2,
+            game_over_title_rect.bottom + 10,
+        )
+
         screen.blit(game_over_title, game_over_title_rect)
         screen.blit(press_enter_title, press_enter_title_rect)
-        
-    def display_victory_screen(self, screen):
-        
+
+    def display_victory_screen(self, screen: pygame.Surface):
+
         victory_title = self.title_font.render("Victory", False, (15, 15, 27))
         victory_title_rect = victory_title.get_rect()
         victory_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
-        
-        press_enter_title = self.subtitle_font.render("Press Enter to Restart", False, (15, 15, 27))
+
+        press_enter_title = self.subtitle_font.render(
+            "Press Enter to Restart", False, (15, 15, 27)
+        )
         press_enter_title_rect = press_enter_title.get_rect()
-        press_enter_title_rect.midtop = (screen.get_width() / 2, victory_title_rect.bottom + 10)
-        
+        press_enter_title_rect.midtop = (
+            screen.get_width() / 2,
+            victory_title_rect.bottom + 10,
+        )
+
         screen.blit(victory_title, victory_title_rect)
         screen.blit(press_enter_title, press_enter_title_rect)
-        
-    def handle_enemies_collision(self, player):
-        
+
+    def handle_enemies_collision(self, player: Player):
+
+        # lista que comprueba colisiones entre el jugador y los enemigos
         enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False)
 
         if enemies_collision:
 
-            for enemy in enemies_collision: # enemies_collision es una lista de enemigos que colisionaron
+            for enemy in enemies_collision:
 
+                # si hay colision y el jugador esta en estado de daño o invulnerable, el jugador no recibe daño
                 if player.state == States.HURT or player.is_invulnerable:
                     pass
                 else:
+                    # si no esta en esos estados, el jugador recibe daño
                     player.take_damage()
                     functions.knockback(player, enemy, True)
-                    
-    def handle_attack_collision(self, player):
-        
-                        # check hitbox collision
+
+    def handle_player_attack_collision(self, player: Player):
+
+        # check hitbox collision
         if player.active_hitbox:
 
             for enemy in self.enemy_group:
 
+                # si el rect del enemigo colisiona con la hitbox activa del jugador
                 if player.active_hitbox.colliderect(enemy.rect):
 
+                    # si el enemigo no ha sido atacado ya en este ataque (comprobacion con lista interna del jugador)
                     if enemy not in player.enemies_attacked:
 
+                        # si el jugador esta orientado hacia abajo, se aplica pogo y el enemigo recibe daño
                         if player.orientation == Orientation.DOWN:
                             enemy.take_damage()
-                            # functions.knockback(player, enemy, False)
+                            functions.knockback(player, enemy, False)
                             player.trigger_pogo()
                             player.enemies_attacked.append(enemy)
 
+                        # si el jugador tiene cualquier otra orientacion, no se aplica pogo y el enemigo recibe daño
                         else:
                             enemy.take_damage()
                             functions.knockback(player, enemy, False)
                             player.start_attack_recoil()
                             player.enemies_attacked.append(enemy)
                     else:
+                        # si el enemigo ha sido atacado ya en este ataque, no se le aplica daño
                         pass
 
                 else:
                     pass
-    
-    def returnEnemyWithPosition(self, screen, ground, enemy, position):
-        
+
+    def returnEnemyWithPosition(
+        self, screen: pygame.Surface, ground: Platform, enemy: Enemy, position: Position
+    ):
+
+        # se recibe una clase de enemigo y se instancia un nuevo objeto de esa clase
         new_enemy = enemy()
-            
+
+        # se obtienen las coordenadas posibles para spawnear enemigos en la pantalla
         enemy_coords = coordinates(screen, ground, new_enemy)
-        
+
+        # se obtiene el valor del enum Position
         pos_key = position.value
-        
+
+        # si la clave existe en el diccionario de coordenadas, se retorna al enemigo posicionado en esas coordenadas
         if pos_key in enemy_coords:
-        
+
             new_enemy.set_position(*enemy_coords[pos_key])
-            
-            return new_enemy
-        
-        else: 
+
             return new_enemy
 
-    def current_phase(self, phase_number, wave_number, screen, ground):
-        
-        phases = self.phases(screen, ground)
-        total_phases = len(list(phases.keys()))
-        self.game_phases = total_phases
-        
+        else:
+            # si no existe la clave, se retorna el enemigo en la posicion por defecto (centro de la pantalla)
+            new_enemy.set_position(screen.get_width() / 2, ground.rect.top, True)
+            return new_enemy
+
+    def current_phase(
+        self,
+        phase_number: str,
+        wave_number: str,
+        screen: pygame.Surface,
+        ground: Platform,
+    ):
+
+        phases = self.phases(
+            screen, ground
+        )  # se obtienen las fases y oleadas definidas
+        total_phases = len(
+            list(phases.keys())
+        )  # se obtiene el numero total de fases definidas
+        self.game_phases = (
+            total_phases  # se actualiza el numero total de fases en el GameMaster
+        )
+
         if phase_number in phases:
-            
+            # se comprueba si la fase actual existe en las fases definidas.
+            # se tiene que recibir un string con el formato "phase_X", donde X es el numero de fase
+
             current_wave = list(phases[phase_number].keys())
-            self.waves_per_phase = len(current_wave)
-                
+            # Se obtiene el numero total de olas definidas en la fase actual
+            self.waves_per_phase = len(
+                current_wave
+            )  # se actualiza el numero total de oleadas por fase en el GameMaster
+
             wave = phases[phase_number].get(wave_number, [])
-                
+            # se obtienen los enemigos de la oleada actual. Si no existe, se retorna una lista vacia
+
             for enemy in wave:
-                
+                # por cada enemigo en la oleada actual, se añade a los grupos de sprites del GameMaster
+
                 self.all_sprites.add(enemy)
                 self.moving_sprites.add(enemy)
                 self.enemy_group.add(enemy)
-                    
-    def phases(self, screen, ground):
+
+    def phases(self, screen: pygame.Surface, ground: Platform):
+
+        # Diccionario que define las fases y oleadas del juego
 
         phases = {
             "phase_1": {
                 "wave_1": [
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE),
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_LEFT_EDGE),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE
+                    ),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE
+                    ),
                 ],
-
                 "wave_2": [
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE),
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.GROUND_LEFT_EDGE),
-                ]
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE
+                    ),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE
+                    ),
+                ],
             },
-
             "phase_2": {
                 "wave_1": [
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.QUARTER_TOP_EDGE),
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE
+                    ),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE
+                    ),
                 ],
-
                 "wave_2": [
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.QUARTER_TOP_EDGE),
-                    self.returnEnemyWithPosition(screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE),
-                    ]
-            }
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE
+                    ),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE
+                    ),
+                ],
+            },
         }
-                    
+
         return phases
