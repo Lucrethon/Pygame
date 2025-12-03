@@ -507,7 +507,7 @@ class Player(GameObject, mixin.Gravity):
         self.just_pogoed = True
 
     def reset(self):
-        #Funcion que se encarga de reiniciar el estado del jugador a sus valores iniciales.
+        # Funcion que se encarga de reiniciar el estado del jugador a sus valores iniciales.
         self.HP = 5
         self.state = States.IDDLE
         self.x_vel = 0
@@ -515,21 +515,21 @@ class Player(GameObject, mixin.Gravity):
         self.is_on_ground = True
         self.is_invulnerable = False
         self.isDead = False
-        
+
         # --- Limpiar estado de ataque ---
         self.active_hitbox = None
         self.active_slash_sprite = None
         self.enemies_attacked.clear()
-        
+
         # --- Reiniciar Timers ---
         self.timer = 0.0
         self.attack_recoil_timer = 0.0
         self.invulnerability_timer = 0.0
         self.knockback_timer = 0.0
-    
+
     def reset_attack(self):
         self.active_hitbox = None
-        self.active_slash_sprite = None 
+        self.active_slash_sprite = None
         self.enemies_attacked.clear()
 
 
@@ -742,14 +742,15 @@ class GameMaster:
         screen: pygame.Surface,
         ground: Platform,
     ):
-        
-        # Funcion que se encarga de actualizar los diferentes estados del juego. No dibuja nada 
 
+        # Funcion que se encarga de actualizar los diferentes estados del juego. No dibuja nada
 
-        if (self.GAME_STATE == GameState.MAIN_MENU
+        if (
+            self.GAME_STATE == GameState.MAIN_MENU
             or self.GAME_STATE == GameState.PAUSE
             or self.GAME_STATE == GameState.GAME_OVER
-            or self.GAME_STATE == GameState.VICTORY):
+            or self.GAME_STATE == GameState.VICTORY
+        ):
 
             pass
 
@@ -831,20 +832,24 @@ class GameMaster:
                     self.GAME_STATE = GameState.GAME_OVER
 
     def handle_events(
-        self, events, player: Player, screen: pygame.Surface, ground: Platform, real_screen_size
+        self,
+        events,
+        player: Player,
+        screen: pygame.Surface,
+        ground: Platform,
+        real_screen_size,
     ):
-        
+
         # Funcion que se encarga de manejar los eventos de los diferentes estados del juego
         # Maneja tambien el imput del jugador en los diferentes estados del juego
-        
+
         self.is_fullscreen(real_screen_size)
         mouse_pos = self.mouse_pos(real_screen_size)
-    
 
         for event in events:
-            
-            #------------ MAIN MENU ------------
-            
+
+            # ------------ MAIN MENU ------------
+
             if self.GAME_STATE == GameState.MAIN_MENU:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -853,9 +858,9 @@ class GameMaster:
                         self.GAME_STATE = GameState.SPAWNING
                         self.GAME_PHASE = 1
                         self.GAME_WAVE = 1
-                
+
                 elif event.type == pygame.KEYDOWN:
-                    
+
                     if event.key == pygame.K_RETURN:
                         self.GAME_STATE = GameState.SPAWNING
                         self.GAME_PHASE = 1
@@ -863,9 +868,9 @@ class GameMaster:
 
                     elif event.key == pygame.K_ESCAPE:
                         pygame.quit()
-            
-            #------------ PAUSE ------------
-            
+
+            # ------------ PAUSE ------------
+
             elif self.GAME_STATE == GameState.PAUSE:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -874,51 +879,50 @@ class GameMaster:
                         self.GAME_STATE = GameState.PLAYING
 
                     elif self.return_button_rect.collidepoint(mouse_pos):
-                        
+
                         self.reset_game(player, screen, ground)
                         self.GAME_STATE = GameState.MAIN_MENU
-                
+
                 elif event.type == pygame.KEYDOWN:
-                    
+
                     if event.key == pygame.K_RETURN:
                         self.GAME_STATE = GameState.PLAYING
-                    
 
-            #------------ GAME OVER ------------
+            # ------------ GAME OVER ------------
 
             elif self.GAME_STATE == GameState.GAME_OVER:
-                    
-                    if event.type == pygame.KEYDOWN:
-                        
-                        if event.key == pygame.K_ESCAPE:
-                            pygame.quit()
-                            
-                        elif event.key == pygame.K_RETURN:
-                            self.reset_game(player, screen, ground)
-                            self.GAME_STATE = GameState.MAIN_MENU 
 
-            #------------ VICTORY ------------
+                if event.type == pygame.KEYDOWN:
+
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+
+                    elif event.key == pygame.K_RETURN:
+                        self.reset_game(player, screen, ground)
+                        self.GAME_STATE = GameState.MAIN_MENU
+
+            # ------------ VICTORY ------------
 
             elif self.GAME_STATE == GameState.VICTORY:
-                    
+
                 if event.type == pygame.KEYDOWN:
-                    
+
                     if event.key == pygame.K_RETURN:
-                    
+
                         self.reset_game(player, screen, ground)
                         self.GAME_STATE = GameState.MAIN_MENU
 
                     elif event.key == pygame.K_ESCAPE:
                         pygame.quit()
 
-            #------------ PLAYING, TRANSICION OR SPAWING ------------
+            # ------------ PLAYING, TRANSICION OR SPAWING ------------
 
             else:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.GAME_STATE = GameState.PAUSE
-                        
+
                     elif event.key == pygame.K_s:
                         player.trigger_attack(attack=True)
 
@@ -929,8 +933,8 @@ class GameMaster:
         background: pygame.Surface,
         ground: Platform,
     ):
-        
-        #Funcion que se encarga de dibujar los diferentes estados del juego
+
+        # Funcion que se encarga de dibujar los diferentes estados del juego
 
         if self.GAME_STATE == GameState.MAIN_MENU:
             screen.blit(background, (0, 0))
@@ -970,7 +974,9 @@ class GameMaster:
         player.set_position(screen.get_width() / 2, ground.rect.top, True)
 
     def display_main_menu(self, screen: pygame.Surface):
-        start_title = self.title_font.render("Start", False, (15, 15, 27), (250, 251, 246))
+        start_title = self.title_font.render(
+            "Start", False, (15, 15, 27), (250, 251, 246)
+        )
 
         start_title_rect = start_title.get_rect()
         start_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
@@ -981,11 +987,15 @@ class GameMaster:
 
     def display_pause_menu(self, screen: pygame.Surface):
 
-        pause_title = self.title_font.render("Pause", False, (15, 15, 27), (250, 251, 246))
+        pause_title = self.title_font.render(
+            "Pause", False, (15, 15, 27), (250, 251, 246)
+        )
         pause_title_rect = pause_title.get_rect()
         pause_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
 
-        resume_title = self.subtitle_font.render("Resume", False, (15, 15, 27), (250, 251, 246))
+        resume_title = self.subtitle_font.render(
+            "Resume", False, (15, 15, 27), (250, 251, 246)
+        )
         resume_title_rect = resume_title.get_rect()
         resume_title_rect.midtop = (
             screen.get_width() / 2,
@@ -993,7 +1003,9 @@ class GameMaster:
         )
         self.resume_button_rect = resume_title_rect
 
-        return_title = self.subtitle_font.render("Return to Menu", False, (15, 15, 27), (250, 251, 246))
+        return_title = self.subtitle_font.render(
+            "Return to Menu", False, (15, 15, 27), (250, 251, 246)
+        )
         return_title_rect = return_title.get_rect()
         return_title_rect.midtop = (
             screen.get_width() / 2,
@@ -1007,7 +1019,9 @@ class GameMaster:
 
     def display_game_over_screen(self, screen: pygame.Surface):
 
-        game_over_title = self.title_font.render("Game Over", False, (15, 15, 27), (250, 251, 246))
+        game_over_title = self.title_font.render(
+            "Game Over", False, (15, 15, 27), (250, 251, 246)
+        )
         game_over_title_rect = game_over_title.get_rect()
         game_over_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
 
@@ -1025,7 +1039,9 @@ class GameMaster:
 
     def display_victory_screen(self, screen: pygame.Surface):
 
-        victory_title = self.title_font.render("Victory", False, (15, 15, 27), (250, 251, 246))
+        victory_title = self.title_font.render(
+            "Victory", False, (15, 15, 27), (250, 251, 246)
+        )
         victory_title_rect = victory_title.get_rect()
         victory_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
 
@@ -1042,8 +1058,8 @@ class GameMaster:
         screen.blit(press_enter_title, press_enter_title_rect)
 
     def handle_enemies_collision(self, player: Player):
-        
-        #Funcion que se encarga de manejar las colisiones entre el jugador y los enemigos
+
+        # Funcion que se encarga de manejar las colisiones entre el jugador y los enemigos
 
         # lista que comprueba colisiones entre el jugador y los enemigos
         enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False)
@@ -1061,11 +1077,11 @@ class GameMaster:
                     functions.knockback(player, enemy, True)
 
     def handle_player_attack_collision(self, player: Player):
-        
-        #Funcion que se encarga de manejar las colisiones entre el ataque del jugador y los enemigos
+
+        # Funcion que se encarga de manejar las colisiones entre el ataque del jugador y los enemigos
 
         if player.active_hitbox:
-            #Si el jugador tiene una hitbox activa (esta atacando)
+            # Si el jugador tiene una hitbox activa (esta atacando)
 
             for enemy in self.enemy_group:
 
@@ -1098,7 +1114,7 @@ class GameMaster:
     def returnEnemyWithPosition(
         self, screen: pygame.Surface, ground: Platform, enemy: Enemy, position: Position
     ):
-        #funcion que devuelve un enemigo en una posicion determinada de la pantalla
+        # funcion que devuelve un enemigo en una posicion determinada de la pantalla
 
         # se recibe una clase de enemigo y se instancia un nuevo objeto de esa clase
         new_enemy = enemy()
@@ -1128,7 +1144,7 @@ class GameMaster:
         screen: pygame.Surface,
         ground: Platform,
     ):
-        #Funcion que se encarga de spawnear los enemigos de la fase y oleada actual
+        # Funcion que se encarga de spawnear los enemigos de la fase y oleada actual
 
         phases = self.phases(
             screen, ground
@@ -1206,7 +1222,7 @@ class GameMaster:
         return phases
 
     def reset_game(self, player: Player, screen: pygame.Surface, ground: Platform):
-        #Funcion que se encarga de reiniciar el juego
+        # Funcion que se encarga de reiniciar el juego
 
         self.all_sprites.remove(self.enemy_group)
         self.moving_sprites.empty()
@@ -1216,42 +1232,41 @@ class GameMaster:
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0
         self.timer = 0.0
-    
+
     def mouse_pos(self, real_screen: pygame.Surface):
-        
-        #Funcion que se encarga de calcular correctamente la posición del ratón, ya sea en pantalla completa o en modo ventana.
-        #Devuelve la posición del ratón ajustada si está en pantalla completa, o la posición normal si está en modo ventana.
-        
+
+        # Funcion que se encarga de calcular correctamente la posición del ratón, ya sea en pantalla completa o en modo ventana.
+        # Devuelve la posición del ratón ajustada si está en pantalla completa, o la posición normal si está en modo ventana.
+
         mouse_virtual_pos = pygame.mouse.get_pos()
-        
+
         virtual_width = 960
         virtual_height = 540
-        
-        #Calcular el factor de escala actual (Dinámico)
+
+        # Calcular el factor de escala actual (Dinámico)
         # ¿Cuántas veces cabe mi juego pequeño en la pantalla actual?
         scale_x = real_screen.get_width() / virtual_width
         scale_y = real_screen.get_height() / virtual_height
-        
+
         # Usamos el menor de los dos para mantener la proporción (aspect ratio)
         scale_factor = min(scale_x, scale_y)
-        
+
         adj_mouse_x = (mouse_virtual_pos[0]) / scale_factor
         adj_mouse_y = (mouse_virtual_pos[1]) / scale_factor
-            
+
         mouse_adj_pos = (adj_mouse_x, adj_mouse_y)
-        
+
         if self.is_full_screen:
             return mouse_adj_pos
         else:
             return mouse_virtual_pos
-    
+
     def is_fullscreen(self, real_screen: pygame.Surface):
-        
-        #Funccion que se encarga de actualizar el estado self.is_full_screen 
+
+        # Funccion que se encarga de actualizar el estado self.is_full_screen
         # para que el método mouse_pos pueda calcular correctamente la posición del ratón
-        
+
         if real_screen.get_size() != (960, 540):
             self.is_full_screen = True
         else:
             self.is_full_screen = False
-        
