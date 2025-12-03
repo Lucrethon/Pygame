@@ -8,6 +8,8 @@ import time
 # Initiate pygame
 pygame.init()
 
+game_master = models.GameMaster()
+
 # SET UP REAL SCREEN
 screen = functions.setup_screen(True)
 screen_width, screen_height = screen.get_size()
@@ -68,7 +70,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    game_master.handle_events(events, player, virtual_canvas, ground)
+    game_master.handle_events(events, player, virtual_canvas, ground, screen)
 
     # 3. UPDATES
 

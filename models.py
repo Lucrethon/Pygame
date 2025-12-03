@@ -707,6 +707,7 @@ class GameMaster:
         self.return_button_rect = None
         self.game_phases = None
         self.waves_per_phase = None
+        self.is_full_screen = False
 
     def update_game(
         self,
@@ -803,10 +804,15 @@ class GameMaster:
                     self.GAME_STATE = GameState.GAME_OVER
 
     def handle_events(
-        self, events, player: Player, screen: pygame.Surface, ground: Platform
+        self, events, player: Player, screen: pygame.Surface, ground: Platform, real_screen_size
     ):
         
         # Funcion que se encarga de manejar los eventos de los diferentes estados del juego
+        # Maneja tambien el imput del jugador en los diferentes estados del juego
+        
+        self.is_fullscreen(real_screen_size)
+        mouse_pos = self.mouse_pos(real_screen_size)
+    
 
         for event in events:
             
@@ -815,7 +821,6 @@ class GameMaster:
             if self.GAME_STATE == GameState.MAIN_MENU:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
 
                     if self.start_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.SPAWNING
@@ -837,7 +842,6 @@ class GameMaster:
             elif self.GAME_STATE == GameState.PAUSE:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    mouse_pos = pygame.mouse.get_pos()
 
                     if self.resume_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.PLAYING
@@ -1184,3 +1188,42 @@ class GameMaster:
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0
         self.timer = 0.0
+    
+    def mouse_pos(self, real_screen: pygame.Surface):
+        
+        #Funcion que se encarga de calcular correctamente la posición del ratón, ya sea en pantalla completa o en modo ventana.
+        #Devuelve la posición del ratón ajustada si está en pantalla completa, o la posición normal si está en modo ventana.
+        
+        mouse_virtual_pos = pygame.mouse.get_pos()
+        
+        virtual_width = 960
+        virtual_height = 540
+        
+        #Calcular el factor de escala actual (Dinámico)
+        # ¿Cuántas veces cabe mi juego pequeño en la pantalla actual?
+        scale_x = real_screen.get_width() / virtual_width
+        scale_y = real_screen.get_height() / virtual_height
+        
+        # Usamos el menor de los dos para mantener la proporción (aspect ratio)
+        scale_factor = min(scale_x, scale_y)
+        
+        adj_mouse_x = (mouse_virtual_pos[0]) / scale_factor
+        adj_mouse_y = (mouse_virtual_pos[1]) / scale_factor
+            
+        mouse_adj_pos = (adj_mouse_x, adj_mouse_y)
+        
+        if self.is_full_screen:
+            return mouse_adj_pos
+        else:
+            return mouse_virtual_pos
+    
+    def is_fullscreen(self, real_screen: pygame.Surface):
+        
+        #Funccion que se encarga de actualizar el estado self.is_full_screen 
+        # para que el método mouse_pos pueda calcular correctamente la posición del ratón, 
+        
+        if real_screen.get_size() != (960, 540):
+            self.is_full_screen = True
+        else:
+            self.is_full_screen = False
+        

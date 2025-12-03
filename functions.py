@@ -26,8 +26,10 @@ def resize(sprite, screen):
 
 # Function to change between 960x540 to fullscrean (1920x1080) if wanted
 def setup_screen(isFullScreen=False):
+    
     if isFullScreen:
         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        
     else:
         screen = pygame.display.set_mode((960, 540))
 
