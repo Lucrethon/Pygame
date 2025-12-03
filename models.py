@@ -506,6 +506,32 @@ class Player(GameObject, mixin.Gravity):
     def trigger_pogo(self):
         self.just_pogoed = True
 
+    def reset(self):
+        #Funcion que se encarga de reiniciar el estado del jugador a sus valores iniciales.
+        self.HP = 5
+        self.state = States.IDDLE
+        self.x_vel = 0
+        self.y_vel = 0
+        self.is_on_ground = True
+        self.is_invulnerable = False
+        self.isDead = False
+        
+        # --- Limpiar estado de ataque ---
+        self.active_hitbox = None
+        self.active_slash_sprite = None
+        self.enemies_attacked.clear()
+        
+        # --- Reiniciar Timers ---
+        self.timer = 0.0
+        self.attack_recoil_timer = 0.0
+        self.invulnerability_timer = 0.0
+        self.knockback_timer = 0.0
+    
+    def reset_attack(self):
+        self.active_hitbox = None
+        self.active_slash_sprite = None 
+        self.enemies_attacked.clear()
+
 
 class Platform(GameObject):
     def __init__(self, image, *groups):
@@ -797,6 +823,7 @@ class GameMaster:
                     else:
                         # si no hay enemigos en pantalla, pasar a estado de transicion entre oleadas
                         self.timer = 0.0
+                        player.reset_attack()
                         self.GAME_STATE = GameState.TRANSITION
 
                 elif player.isDead:
@@ -1184,6 +1211,7 @@ class GameMaster:
         self.all_sprites.remove(self.enemy_group)
         self.moving_sprites.empty()
         self.enemy_group.empty()
+        player.reset()
         self.set_up_player_position(player, screen, ground)
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0
@@ -1220,7 +1248,7 @@ class GameMaster:
     def is_fullscreen(self, real_screen: pygame.Surface):
         
         #Funccion que se encarga de actualizar el estado self.is_full_screen 
-        # para que el método mouse_pos pueda calcular correctamente la posición del ratón, 
+        # para que el método mouse_pos pueda calcular correctamente la posición del ratón
         
         if real_screen.get_size() != (960, 540):
             self.is_full_screen = True
