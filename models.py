@@ -15,9 +15,14 @@ class States(Enum):
     IDDLE = 1
     ATTACKING = 2
     HURT = 3
-    RECOIL = 4
+    RECOILING = 4
     SPAWNING = 5
-    RECOILING = 6
+    WALKING = 6
+    JUMPING = 7
+    FALLING = 8
+    DEAD = 9
+
+
 
 
 class Orientation(Enum):
@@ -131,6 +136,18 @@ class Player(GameObject, mixin.Gravity):
 
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
+    
+    def keyboard_input(self):
+        get_pressed_keys = pygame.key.get_pressed()
+        # set a key that occurrs while the player get pressed a button on the keyboard
+
+        move_right = get_pressed_keys[pygame.K_RIGHT]
+        move_left = get_pressed_keys[pygame.K_LEFT]
+        jumping = get_pressed_keys[pygame.K_SPACE]
+        face_up = get_pressed_keys[pygame.K_UP]
+        face_down = get_pressed_keys[pygame.K_DOWN]
+
+        return move_right, move_left, jumping, face_up, face_down
 
     def update_player(
         self,
@@ -141,14 +158,7 @@ class Player(GameObject, mixin.Gravity):
 
         # triggrs should NEVER be in update method. Only in the main cycle. This method will only receive methods to update the player position that are triggered by trigger methods that change player states. Acording those states, this method will work in one way or another
 
-        get_pressed_keys = pygame.key.get_pressed()
-        # set a key that occurrs while the player get pressed a button on the keyboard
-
-        move_right = get_pressed_keys[pygame.K_RIGHT]
-        move_left = get_pressed_keys[pygame.K_LEFT]
-        jumping = get_pressed_keys[pygame.K_SPACE]
-        face_up = get_pressed_keys[pygame.K_UP]
-        face_down = get_pressed_keys[pygame.K_DOWN]
+        move_right, move_left, jumping, face_up, face_down = self.keyboard_input()
 
         # --- TIMERS ---
 
