@@ -73,7 +73,7 @@ class Player(GameObject, mixin.Gravity):
         # --- HEALTH ---
         self.HP = 5
 
-        # --- SPRITES ---
+        # --- ATTACK SPRITES ---
         self.sprite_attack_slash = sprite_attack_slash
         self.active_slash_sprite = None
 
@@ -91,8 +91,9 @@ class Player(GameObject, mixin.Gravity):
         self.attack_recoil_force = 300
         self.pogo_force = -800
 
-        # --- STATE OF ACTION ---
-        self.state = States.IDDLE
+        # --- STATES ---
+        self.movement_state = States.IDDLE #state that handles only movement (walking, jumping, falling). It allows player input
+        self.action_state = None #state that handles actions that block player input (attacking, hurt, recoiling)
 
         # --- EFFECTS OF ACCTION ---
         self.active_hitbox = None
@@ -156,64 +157,87 @@ class Player(GameObject, mixin.Gravity):
         ground,
     ):
 
-        # triggrs should NEVER be in update method. Only in the main cycle. This method will only receive methods to update the player position that are triggered by trigger methods that change player states. Acording those states, this method will work in one way or another
-
+        # 1. INPUTS Y ESTADOS DE ACCIÓN
+        # -----------------------------
+        # Gestiona estados prioritarios (atacar, herido) que pueden anular el control del jugador.
         move_right, move_left, jumping, face_up, face_down = self.keyboard_input()
 
-        # --- TIMERS ---
-
-        if self.state == States.ATTACKING:
-
+        # Actualiza timers de acción
+        if self.action_state == States.ATTACKING:
             self.attack_update(delta_time)
 
         if self.is_invulnerable:
-
             self.invulnerability_timer += delta_time
-
             if self.invulnerability_timer >= self.invulnerability_duration:
                 self.is_invulnerable = False
 
-        # --- X-Vel CONTROL ---
-
-        delta_x = 0  # variation in x
-        delta_y = 0  # variation in y
-
-        current_x_speed = 0
-
-        # Knockback State
-        if self.state == States.HURT:
+        # Lógica de estados que bloquean el movimiento
+        if self.action_state == States.HURT:
             self.knockback_update(delta_time)
-
-        # recoil state
-        elif self.state == States.RECOILING:
+            
+        elif self.action_state == States.RECOILING:
             self.attack_recoil_timer += delta_time
             if self.attack_recoil_timer >= self.attack_recoil_duration:
                 self.state = States.IDDLE
                 self.attack_recoil_timer = 0.0
-
         else:
-
+            # Si no hay bloqueo, procesa el movimiento normal del jugador
+            current_x_speed = 0
             current_x_speed = self.movement(move_right, move_left)
             self.x_vel = current_x_speed
             self.jump(jumping)
             self.facing_input(face_down, face_up)
 
+        # 2. APLICAR FÍSICA
+        # -----------------
+        # Aplica fuerzas globales como la gravedad para tener las velocidades finales.
+        super().apply_gravity(delta_time)
+
+        # 3. MOVER AL JUGADOR
+        # -------------------
+        # Calcula el desplazamiento y actualiza la posición del rect.
+        delta_x = 0  # variation in x
+        delta_y = 0  # variation in y
         delta_x = self.x_vel * delta_time
         delta_y = self.y_vel * delta_time
 
-        # Check screen collision
+        # Evita que el jugador salga de la pantalla
         delta_x = self.not_cross_edge_screen(screen, delta_x)
 
-        # updates rect position
+        # Aplica el movimiento al rect
         self.rect.x += delta_x
         self.rect.y += delta_y
 
-        # Check ground collision
+        # 4. GESTIONAR COLISIONES
+        # -----------------------
+        # Corrige la posición del jugador si colisiona con el entorno (ej. suelo).
         super().check_ground_collision(ground)
 
-        # aply gravity
-        super().apply_gravity(delta_time)
+        # 5. ACTUALIZAR ESTADO DE MOVIMIENTO
+        # ----------------------------------
+        # Con la posición y velocidades finales, determina el estado de animación (IDLE, WALKING, etc.).
+        self.update_movement_state()
 
+    
+    def update_movement_state(self):
+        
+        if self.is_on_ground == False: 
+            if self.y_vel < 0: #SI ESTA SUBIENDO
+                self.movement_state = States.JUMPING
+            
+            elif self.y_vel >= 0: #SI ESTA CAYENDO 
+                    self.movement_state = States.FALLING
+        
+        else: #SI ESTA EN EL SUELO
+            if self.x_vel != 0:
+                self.movement_state = States.WALKING
+                
+            elif self.x_vel == 0 and self.y_vel == 0:
+                self.movement_state = States.IDDLE
+                
+
+        return self.movement_state
+    
     def movement(
         self, right=False, left=False
     ):  # --> Return x speed (update player position)
