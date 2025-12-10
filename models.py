@@ -566,7 +566,83 @@ class Player(GameObject, mixin.Gravity):
         self.active_slash_sprite = None
         self.enemies_attacked.clear()
 
-    def draw_player(self):
+    def player_sprites(self):
+        
+        player_sprites = {
+            
+            "IDDLE": {
+                "iddle_x3": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3.gif"),
+                "iddle_x6": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6.gif"),
+            },
+            
+            "WALKING": {
+                    "walking_x3": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3.gif"),
+                    "walking_x6": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6.gif"),
+            },
+            
+            "ATTACKING": {
+                
+                "RIGTH": {
+                    
+                    "buildup_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing1.png").convert_alpha(),
+                    "active_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing2.png").convert_alpha(),
+                    "recovery_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha(),
+                    
+                },
+                
+                "LEFT": {
+                    
+                    "abuildup_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing1.png").convert_alpha()), True, False),
+                    "active_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing2.png").convert_alpha()), True, False),
+                    "recovery_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha()), True, False),
+                    
+                },
+                
+                "UP": {
+                    "buildup_phase": pygame.image.load("./assets/Player_Sprites/Up_Slashing1.png").convert_alpha(),
+                    "active_phase": pygame.image.load("./assets/Player_Sprites/Up_Slashing2.png").convert_alpha(),
+                    "recovery_phase": pygame.image.load("./assets/Player_Sprites/Up_Slashing3.png").convert_alpha(),
+                    
+                },
+                
+                "DOWN": {
+                    "buildup_phase": pygame.image.load("./assets/Player_Sprites/Down_Slashing1.png").convert_alpha(),
+                    "active_phase": pygame.image.load("./assets/Player_Sprites/Down_Slashing2.png").convert_alpha(),
+                    "recovery_phase": pygame.image.load("./assets/Player_Sprites/Down_Slashing3.png").convert_alpha(),
+                
+                },
+                
+            },
+            
+            "JUMPING": {
+                
+                "jumping1": pygame.image.load("./assets/Player_Sprites/Player_Jumping1.png").convert_alpha(),
+                "jumping2": pygame.image.load("./assets/Player_Sprites/Player_Jumping2.png").convert_alpha(),
+                "jumping3": pygame.image.load("./assets/Player_Sprites/Player_Jumping3.png").convert_alpha(),
+                "jumping4": pygame.image.load("./assets/Player_Sprites/Player_Jumping4.png").convert_alpha(),
+            
+            },
+            
+            "FALLING": {
+            
+                    "falling1": pygame.image.load("./assets/Player_Sprites/Player_Falling1.png").convert_alpha(),
+                    "falling2": pygame.image.load("./assets/Player_Sprites/Player_Falling2.png").convert_alpha(),
+                    "falling3": pygame.image.load("./assets/Player_Sprites/Player_Falling3.png").convert_alpha(),
+                    "falling4": pygame.image.load("./assets/Player_Sprites/Player_Falling4.png").convert_alpha(),
+                    "falling5": pygame.image.load("./assets/Player_Sprites/Player_Falling5.png").convert_alpha(),
+            },
+            
+            "KNOCKBACK": {
+            "knockback": pygame.image.load("./assets/Player_Sprites/Player_Knockback.png").convert_alpha(),
+            
+            },
+            
+        }
+        
+        return player_sprites
+
+    def draw_player_states(self):
+        
         pass
 
 class Platform(GameObject):
