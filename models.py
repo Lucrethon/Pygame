@@ -14,7 +14,7 @@ pygame.font.init()
 class States(Enum):
     IDDLE = 1
     ATTACKING = 2
-    HURT = 3
+    KNOCKBACK = 3
     RECOILING = 4
     SPAWNING = 5
     WALKING = 6
@@ -172,13 +172,13 @@ class Player(GameObject, mixin.Gravity):
                 self.is_invulnerable = False
 
         # Lógica de estados que bloquean el movimiento
-        if self.action_state == States.HURT:
+        if self.action_state == States.KNOCKBACK:
             self.knockback_update(delta_time)
             
         elif self.action_state == States.RECOILING:
             self.attack_recoil_timer += delta_time
             if self.attack_recoil_timer >= self.attack_recoil_duration:
-                self.state = States.IDDLE
+                self.action_state = None
                 self.attack_recoil_timer = 0.0
         else:
             # Si no hay bloqueo, procesa el movimiento normal del jugador
@@ -218,7 +218,6 @@ class Player(GameObject, mixin.Gravity):
         # Con la posición y velocidades finales, determina el estado de animación (IDLE, WALKING, etc.).
         self.update_movement_state()
 
-    
     def update_movement_state(self):
         
         if self.is_on_ground == False: 
@@ -322,10 +321,10 @@ class Player(GameObject, mixin.Gravity):
         self, attack=False
     ):  # call this method in the main cycle (trigger. This method changes player state)
 
-        if attack and self.state == States.IDDLE:
+        if attack and self.action_state == None:
 
             # setting self state
-            self.state = States.ATTACKING
+            self.action_state = States.ATTACKING
 
             # restart self.timer
             self.timer = 0.0
@@ -373,8 +372,8 @@ class Player(GameObject, mixin.Gravity):
             pass
 
         else:
-            # return to iddle animation
-            self.state = States.IDDLE
+            # reset
+            self.action_state = None
             # reset timer
             self.timer = 0.0
 
@@ -445,7 +444,7 @@ class Player(GameObject, mixin.Gravity):
 
     def draw_attack(self, screen):  # DRAW SLASH SPRITE AND RECT
 
-        if self.state == States.ATTACKING or self.state == States.RECOILING:
+        if self.action_state == States.ATTACKING or self.action_state == States.RECOILING:
 
             # draw hitbox
             if self.active_hitbox and self.active_slash_sprite:
@@ -465,10 +464,10 @@ class Player(GameObject, mixin.Gravity):
 
     def trigger_knockback(self):
 
-        if self.state == States.HURT:
+        if self.action_state == States.KNOCKBACK:
             return
 
-        self.state = States.HURT
+        self.action_state = States.KNOCKBACK
 
         self.timer = 0.0
 
@@ -502,7 +501,7 @@ class Player(GameObject, mixin.Gravity):
             self.x_vel = 0
 
         if self.timer >= self.knockback_duration:
-            self.state = States.IDDLE
+            self.action_state = None
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
@@ -514,7 +513,7 @@ class Player(GameObject, mixin.Gravity):
         # start the timer
         self.attack_recoil_timer = 0
 
-        self.state = States.RECOILING
+        self.action_state = States.RECOILING
 
         self.attack_recoil()
 
@@ -543,7 +542,8 @@ class Player(GameObject, mixin.Gravity):
     def reset(self):
         # Funcion que se encarga de reiniciar el estado del jugador a sus valores iniciales.
         self.HP = 5
-        self.state = States.IDDLE
+        self.action_state = States.IDDLE
+        self.movement_state = None
         self.x_vel = 0
         self.y_vel = 0
         self.is_on_ground = True
@@ -566,6 +566,8 @@ class Player(GameObject, mixin.Gravity):
         self.active_slash_sprite = None
         self.enemies_attacked.clear()
 
+    def draw_player(self):
+        pass
 
 class Platform(GameObject):
     def __init__(self, image, *groups):
@@ -655,7 +657,7 @@ class Crawlid(Enemy):
         delta_y = 0  # variation in y
 
         # Knockback State
-        if self.state == States.HURT:
+        if self.state == States.KNOCKBACK:
 
             self.knockback_update(delta_time)
             # Usa la velocidad de knockback
@@ -683,7 +685,7 @@ class Crawlid(Enemy):
 
         self.HP -= 1
 
-        self.state = States.HURT
+        self.state = States.KNOCKBACK
 
         self.is_on_ground = False
 
@@ -1103,7 +1105,7 @@ class GameMaster:
             for enemy in enemies_collision:
 
                 # si hay colision y el jugador esta en estado de daño o invulnerable, el jugador no recibe daño
-                if player.state == States.HURT or player.is_invulnerable:
+                if player.action_state == States.KNOCKBACK or player.is_invulnerable:
                     pass
                 else:
                     # si no esta en esos estados, el jugador recibe daño
