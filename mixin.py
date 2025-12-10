@@ -37,7 +37,7 @@ class CrossScreen:
 
         if self.rect.right >= screen.get_width():
 
-            if self.orientation == models.Orientation.RIGTH:
+            if self.orientation == models.Orientation.RIGHT:
                 self.orientation = models.Orientation.LEFT
                 self.move_speed *= -1
 
@@ -47,7 +47,7 @@ class CrossScreen:
         if self.rect.left <= 0:
 
             if self.orientation == models.Orientation.LEFT:
-                self.orientation = models.Orientation.RIGTH
+                self.orientation = models.Orientation.RIGHT
                 self.move_speed *= -1
 
             self.rect.left = 0

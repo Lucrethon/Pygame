@@ -23,13 +23,16 @@ class States(Enum):
     DEAD = 9
 
 
-
-
 class Orientation(Enum):
-    RIGTH = 1
+    RIGHT = 1
     LEFT = 2
     UP = 3
     DOWN = 4
+
+class AttackState(Enum):
+    BUILDUP = "buildup_phase"
+    ACTIVE = "active_phase"
+    RECOVERY = "recovery_phase"
 
 
 class GameObject(ABC, pygame.sprite.Sprite):
@@ -66,23 +69,29 @@ class GameObject(ABC, pygame.sprite.Sprite):
 
 
 class Player(GameObject, mixin.Gravity):
-    def __init__(self, image, move_speed, sprite_attack_slash):
+    def __init__(self, sprite_attack_slash):
         # Los grupos se pasarán desde el GameMaster
+        
+        image = None
+        
         super().__init__(image)
 
+        self.player_sprites = self.player_sprites()
+        
         # --- HEALTH ---
         self.HP = 5
 
         # --- ATTACK SPRITES ---
         self.sprite_attack_slash = sprite_attack_slash
         self.active_slash_sprite = None
+        self.attack_state = None
 
         # --- CURRENT SPEED ---
         self.x_vel = 0
         self.y_vel = 0
 
         # --- CONSTANTES DE FUERZA ---
-        self.move_speed = move_speed
+        self.move_speed = 300
         self.gravity = 2700
         self.jump_force = -1000
         self.knockback_y_force = -100
@@ -100,9 +109,9 @@ class Player(GameObject, mixin.Gravity):
         self.is_invulnerable = False  # invulnerability state after knockback to avoid multiple collisions at the same time
 
         # --- ORIENTATION AND POSITION ---
-        self.orientation = Orientation.RIGTH
+        self.orientation = Orientation.RIGHT
         self.is_on_ground = True  # <-- Is not jumping
-        self.attack_orientation = Orientation.RIGTH
+        self.attack_orientation = Orientation.RIGHT
 
         # --- DURATION OF STATES (SECONDS) ---
         # Knockback state
@@ -123,6 +132,8 @@ class Player(GameObject, mixin.Gravity):
             0.0  # separate time to count time even if the player is attacking or iddle.
         )
         self.knockback_timer = 0.0
+        self.jumping_time = 0.0
+        self.falling_time = 0.0
 
         # --- FLAGS ---
         self.just_pogoed = False
@@ -246,13 +257,12 @@ class Player(GameObject, mixin.Gravity):
         if right:
             current_x_speed = self.move_speed
 
-            if self.orientation == Orientation.RIGTH:
+            if self.orientation == Orientation.RIGHT:
                 pass
             else:
 
                 # flip sprite to right
-                self.orientation = Orientation.RIGTH
-                gif_pygame.transform.flip(self.image, True, False)
+                self.orientation = Orientation.RIGHT
 
         if left:
             current_x_speed = -self.move_speed
@@ -263,7 +273,6 @@ class Player(GameObject, mixin.Gravity):
             else:
                 # flip sprite to left
                 self.orientation = Orientation.LEFT
-                gif_pygame.transform.flip(self.image, True, False)
 
         return current_x_speed
 
@@ -337,6 +346,8 @@ class Player(GameObject, mixin.Gravity):
 
         # buildup phase
         if self.timer < self.build_up_attack_duration:
+            
+            self.attack_state = AttackState.BUILDUP
 
             self.active_hitbox = None
 
@@ -348,6 +359,8 @@ class Player(GameObject, mixin.Gravity):
             self.build_up_attack_duration + self.active_frames_attack_duration
         ):
             if self.active_hitbox is None:
+                
+                self.attack_state = AttackState.ACTIVE
 
                 self.enemies_attacked.clear()  # vaciar lista de enemigos golpeados anteriormente
 
@@ -365,6 +378,7 @@ class Player(GameObject, mixin.Gravity):
             + self.active_frames_attack_duration
             + self.recovery_attack_duration
         ):
+            self.attack_state = AttackState.RECOVERY
 
             self.active_hitbox = None
 
@@ -374,6 +388,7 @@ class Player(GameObject, mixin.Gravity):
         else:
             # reset
             self.action_state = None
+            self.attack_state = None
             # reset timer
             self.timer = 0.0
 
@@ -390,9 +405,9 @@ class Player(GameObject, mixin.Gravity):
             self.attack_orientation = Orientation.DOWN
 
         # right the player
-        elif self.orientation == Orientation.RIGTH:
+        elif self.orientation == Orientation.RIGHT:
 
-            self.attack_orientation = Orientation.RIGTH
+            self.attack_orientation = Orientation.RIGHT
 
         # left the player
         else:
@@ -424,7 +439,7 @@ class Player(GameObject, mixin.Gravity):
             hitbox.midtop = self.rect.midbottom
 
         # right the player
-        elif self.attack_orientation == Orientation.RIGTH:
+        elif self.attack_orientation == Orientation.RIGHT:
 
             rotate_slash_sprite = pygame.transform.rotate(self.sprite_attack_slash, 0)
             hitbox = rotate_slash_sprite.get_rect()
@@ -522,7 +537,7 @@ class Player(GameObject, mixin.Gravity):
         x_direction = 0
 
         # set up knockback direction
-        if self.orientation == Orientation.RIGTH:
+        if self.orientation == Orientation.RIGHT:
             x_direction = -1  # empuje a la izquierda
 
         elif self.orientation == Orientation.LEFT:
@@ -571,18 +586,44 @@ class Player(GameObject, mixin.Gravity):
         player_sprites = {
             
             "IDDLE": {
+                
+                "RIGHT": 
+                    {
                 "iddle_x3": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3.gif"),
-                "iddle_x6": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6.gif"),
+                "iddle_x6": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6.gif"),  
+                
+                },
+                
+                "LEFT": 
+                    {
+                "iddle_x3": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3.gif")), True, False),
+                "iddle_x6": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6.gif")), True, False),                    
+                
+                },
+                
+
             },
             
             "WALKING": {
-                    "walking_x3": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3.gif"),
-                    "walking_x6": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6.gif"),
+                
+                "RIGHT": 
+                    {
+                "walking_x3": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3.gif"),
+                "walking_x6": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6.gif"),  
+                
+                },
+                
+                "LEFT": 
+                    {
+                "walking_x3": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3.gif")), True, False),
+                "walking_x6": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6.gif")), True, False),                    
+                
+                },
             },
             
             "ATTACKING": {
                 
-                "RIGTH": {
+                "RIGHT": {
                     
                     "buildup_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing1.png").convert_alpha(),
                     "active_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing2.png").convert_alpha(),
@@ -592,7 +633,7 @@ class Player(GameObject, mixin.Gravity):
                 
                 "LEFT": {
                     
-                    "abuildup_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing1.png").convert_alpha()), True, False),
+                    "buildup_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing1.png").convert_alpha()), True, False),
                     "active_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing2.png").convert_alpha()), True, False),
                     "recovery_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha()), True, False),
                     
@@ -614,36 +655,151 @@ class Player(GameObject, mixin.Gravity):
                 
             },
             
+            "RECOILING": {
+                
+                "RIGHT": {
+                    
+                    "recoil": pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha(),
+                    
+                },
+                
+                "LEFT": {
+                    
+
+                    "recoil": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha()), True, False),
+                    
+                },
+                
+                "UP": {
+                    
+                    "recoil": pygame.image.load("./assets/Player_Sprites/Up_Slashing3.png").convert_alpha(),
+                    
+                },
+                
+                "DOWN": {
+                    
+                    "recoil": pygame.image.load("./assets/Player_Sprites/Down_Slashing3.png").convert_alpha(),
+                
+                },
+            
+            },
+
+            
             "JUMPING": {
                 
+                "RIGHT": 
+                    {
                 "jumping1": pygame.image.load("./assets/Player_Sprites/Player_Jumping1.png").convert_alpha(),
                 "jumping2": pygame.image.load("./assets/Player_Sprites/Player_Jumping2.png").convert_alpha(),
                 "jumping3": pygame.image.load("./assets/Player_Sprites/Player_Jumping3.png").convert_alpha(),
-                "jumping4": pygame.image.load("./assets/Player_Sprites/Player_Jumping4.png").convert_alpha(),
-            
+                "jumping4": pygame.image.load("./assets/Player_Sprites/Player_Jumping4.png").convert_alpha(),                        
+                
+                },
+                    
+                "LEFT": 
+                    {
+                "jumping1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping1.png").convert_alpha()), True, False),
+                "jumping2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping2.png").convert_alpha()), True, False), 
+                "jumping3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping3.png").convert_alpha()), True, False),
+                "jumping4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping4.png").convert_alpha()), True, False),                        
+                
+                },
+                
             },
             
             "FALLING": {
-            
+                
+                "RIGHT": 
+                    {
                     "falling1": pygame.image.load("./assets/Player_Sprites/Player_Falling1.png").convert_alpha(),
                     "falling2": pygame.image.load("./assets/Player_Sprites/Player_Falling2.png").convert_alpha(),
                     "falling3": pygame.image.load("./assets/Player_Sprites/Player_Falling3.png").convert_alpha(),
                     "falling4": pygame.image.load("./assets/Player_Sprites/Player_Falling4.png").convert_alpha(),
-                    "falling5": pygame.image.load("./assets/Player_Sprites/Player_Falling5.png").convert_alpha(),
+                    "falling5": pygame.image.load("./assets/Player_Sprites/Player_Falling5.png").convert_alpha(),                        
+                    },
+                    
+                "LEFT": 
+                    {
+                    "falling1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling1.png").convert_alpha()), True, False),
+                    "falling2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling2.png").convert_alpha()), True, False), 
+                    "falling3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling3.png").convert_alpha()), True, False),
+                    "falling4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling4.png").convert_alpha()), True, False),
+                    "falling5": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling5.png").convert_alpha()), True, False),
+                        
+                        },
+
+
             },
             
             "KNOCKBACK": {
-            "knockback": pygame.image.load("./assets/Player_Sprites/Player_Knockback.png").convert_alpha(),
-            
+                
+                "RIGHT": {"knockback": pygame.image.load("./assets/Player_Sprites/Player_Knockback.png").convert_alpha(),},
+                "LEFT": {"knockback": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Knockback.png").convert_alpha()), True, False)},
             },
             
         }
         
         return player_sprites
 
-    def draw_player_states(self):
+    def set_up_sprite_state(self, screen):
         
-        pass
+        screen_width, screen_height = screen.get_size()
+        
+        current_sprite = None
+        
+        if self.action_state != None: 
+            
+            if self.action_state == States.KNOCKBACK:
+                
+                current_sprite = self.player_sprites[self.action_state.name][self.orientation.name]["knockback"]
+            
+            elif self.action_state == States.RECOILING: 
+                
+                current_sprite = self.player_sprites[self.action_state.name][self.attack_orientation.name]["recoil"]
+            
+            elif self.action_state == States.ATTACKING: 
+                    
+                current_sprite = self.player_sprites[self.action_state.name][self.attack_orientation.name][self.attack_state.value]
+        else: 
+            if self.movement_state == States.IDDLE: 
+                
+                if screen_width == 960 and screen_height == 540:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["iddle_x3"]
+                
+                elif screen_width == 1920 and screen_height == 1080:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["iddle_x6"]
+            
+            elif self.movement_state == States.WALKING:
+                
+                if screen_width == 960 and screen_height == 540:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["walking_x3"]
+                
+                elif screen_width == 1920 and screen_height == 1080:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["walking_x6"]
+            
+            elif self.movement_state == States.JUMPING: 
+                if self.y_vel < -750:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping1"]
+                elif self.y_vel >= -750 and self.y_vel < -500:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping2"]
+                elif self.y_vel >= -500 and self.y_vel < -250:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping3"]
+                elif self.y_vel >= -250 and self.y_vel < 0:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping4"]
+            
+            elif self.movement_state == States.FALLING: 
+                if self.y_vel >= 0 and self.y_vel < 200:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling1"]
+                elif self.y_vel >= 200 and self.y_vel < 400:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling2"]
+                elif self.y_vel >= 400 and self.y_vel < 600:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling3"]
+                elif self.y_vel >= 600 and self.y_vel < 800:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling4"]
+                elif self.y_vel >= 800:
+                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling5"]
+        
+        self.image = current_sprite
 
 class Platform(GameObject):
     def __init__(self, image, *groups):
@@ -709,7 +865,7 @@ class Crawlid(Enemy):
         self.isDead = False
 
         # --- ORIENTATION AND POSITION ---
-        self.orientation = Orientation.RIGTH
+        self.orientation = Orientation.RIGHT
         self.is_on_ground = True  # <-- Is not jumping
 
         # --- TIMERS ---

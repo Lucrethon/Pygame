@@ -118,11 +118,8 @@ def set_up_player(screen, ground):
         "./assets/Attack_Slashx3.png"
     ).convert_alpha()
 
-    # Set player speed
-    player_x_speed = 300
-
     # creating player object
-    player = models.Player(player_image, player_x_speed, sprite_attack_slash)
+    player = models.Player(player_image, sprite_attack_slash)
 
     # set player inicial position
     player.set_position(screen_width / 2, ground.rect.top, True)
