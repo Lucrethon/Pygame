@@ -47,7 +47,7 @@ class GameObject(ABC, pygame.sprite.Sprite):
     # sintaxis: gif.render(screen_size, (gif_coordinates_tobe_placed))
 
     @abstractmethod
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface):
         if hasattr(
             self.image, "render"
         ):  # this condition check if an object (self.image in this case) has certain atribute ("render" in this case, proper of gif_pygame library (gif objects))
@@ -69,10 +69,8 @@ class GameObject(ABC, pygame.sprite.Sprite):
 
 
 class Player(GameObject, mixin.Gravity):
-    def __init__(self, sprite_attack_slash):
+    def __init__(self, sprite_attack_slash, image):
         # Los grupos se pasarán desde el GameMaster
-        
-        image = None
         
         super().__init__(image)
 
@@ -228,6 +226,7 @@ class Player(GameObject, mixin.Gravity):
         # ----------------------------------
         # Con la posición y velocidades finales, determina el estado de animación (IDLE, WALKING, etc.).
         self.update_movement_state()
+        self.set_up_sprite_state(screen)
 
     def update_movement_state(self):
         
@@ -596,8 +595,8 @@ class Player(GameObject, mixin.Gravity):
                 
                 "LEFT": 
                     {
-                "iddle_x3": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3.gif")), True, False),
-                "iddle_x6": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6.gif")), True, False),                    
+                "iddle_x3": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3_left.gif"),
+                "iddle_x6": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6_left.gif"),                    
                 
                 },
                 
@@ -615,8 +614,8 @@ class Player(GameObject, mixin.Gravity):
                 
                 "LEFT": 
                     {
-                "walking_x3": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3.gif")), True, False),
-                "walking_x6": gif_pygame.transform.flip((gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6.gif")), True, False),                    
+                "walking_x3": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3_left.gif"),
+                "walking_x6": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6_left.gif"), 
                 
                 },
             },
@@ -744,8 +743,6 @@ class Player(GameObject, mixin.Gravity):
     def set_up_sprite_state(self, screen):
         
         screen_width, screen_height = screen.get_size()
-        
-        current_sprite = None
         
         if self.action_state != None: 
             

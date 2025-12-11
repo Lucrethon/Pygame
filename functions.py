@@ -42,10 +42,10 @@ def setup_player_gif(screen):
     screen_width, screen_height = screen.get_size()
 
     if screen_width == 960 and screen_height == 540:
-        player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx3.gif")
+        player_image = gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3.gif")
 
     if screen_width == 1920 and screen_height == 1080:
-        player_image = gif_pygame.load("./assets/Personaje_Arnaldo_Escaledx6.gif")
+        player_image = gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6.gif")
 
     return player_image
 
@@ -119,7 +119,7 @@ def set_up_player(screen, ground):
     ).convert_alpha()
 
     # creating player object
-    player = models.Player(player_image, sprite_attack_slash)
+    player = models.Player(sprite_attack_slash, player_image)
 
     # set player inicial position
     player.set_position(screen_width / 2, ground.rect.top, True)
