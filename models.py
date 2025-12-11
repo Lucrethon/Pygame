@@ -28,6 +28,7 @@ class Orientation(Enum):
     LEFT = 2
     UP = 3
     DOWN = 4
+    NEUTRAL = 5
 
 class AttackState(Enum):
     BUILDUP = "buildup_phase"
@@ -107,7 +108,9 @@ class Player(GameObject, mixin.Gravity):
         self.is_invulnerable = False  # invulnerability state after knockback to avoid multiple collisions at the same time
 
         # --- ORIENTATION AND POSITION ---
-        self.orientation = Orientation.RIGHT
+        #self.orientation = Orientation.RIGHT
+        self.x_orientation = Orientation.RIGHT
+        self.y_orientation = Orientation.NEUTRAL
         self.is_on_ground = True  # <-- Is not jumping
         self.attack_orientation = Orientation.RIGHT
 
@@ -255,23 +258,22 @@ class Player(GameObject, mixin.Gravity):
 
         if right:
             current_x_speed = self.move_speed
-
-            if self.orientation == Orientation.RIGHT:
+            
+            #right orientation (x_orientation)
+            if self.x_orientation == Orientation.RIGHT:
                 pass
+            
             else:
-
-                # flip sprite to right
-                self.orientation = Orientation.RIGHT
-
-        if left:
+                self.x_orientation = Orientation.RIGHT
+        #left orientation (x_orientation)
+        elif left:
             current_x_speed = -self.move_speed
 
-            if self.orientation == Orientation.LEFT:
+            if self.x_orientation == Orientation.LEFT:
                 pass
 
             else:
-                # flip sprite to left
-                self.orientation = Orientation.LEFT
+                self.x_orientation = Orientation.LEFT
 
         return current_x_speed
 
@@ -301,19 +303,24 @@ class Player(GameObject, mixin.Gravity):
             self.just_jumped = False
 
     def facing_input(self, down=False, up=False):  # (update player facing)
+        
+        #up orientation (y_orientation)
+        if up:
+            if self.y_orientation == Orientation.UP:
+                pass
+            else:
+                self.y_orientation = Orientation.UP
 
-        # Facing up
-        if up and not down:
-            self.orientation = Orientation.UP
-
-        # Facing down
-        elif down and not up:
-            self.orientation = Orientation.DOWN
-
-        # else:
-        #     self.facing_up = False
-        #     self.facing_down = False
-
+        #down orientation (y_orientation)
+        elif down:
+            if self.y_orientation == Orientation.DOWN:
+                pass
+            else:
+                self.y_orientation = Orientation.DOWN
+        
+        else:
+            self.y_orientation = Orientation.NEUTRAL
+            
     def not_cross_edge_screen(self, screen, delta_x):  # return position variation in X
         # setting player to don't go off the edge of the screen
 
@@ -392,25 +399,27 @@ class Player(GameObject, mixin.Gravity):
             self.timer = 0.0
 
     def lock_attack_ortientation(self):
+        
+        if self.y_orientation != Orientation.NEUTRAL:
 
-        # up the player
-        if self.orientation == Orientation.UP:
+            # up the player
+            if self.y_orientation == Orientation.UP:
 
-            self.attack_orientation = Orientation.UP
+                self.attack_orientation = Orientation.UP
 
-        # down the player
-        elif self.orientation == Orientation.DOWN:
+            # down the player
+            elif self.y_orientation == Orientation.DOWN:
 
-            self.attack_orientation = Orientation.DOWN
+                self.attack_orientation = Orientation.DOWN
 
         # right the player
-        elif self.orientation == Orientation.RIGHT:
+        elif self.x_orientation == Orientation.RIGHT:
 
             self.attack_orientation = Orientation.RIGHT
 
         # left the player
         else:
-            if self.orientation == Orientation.LEFT:
+            if self.x_orientation == Orientation.LEFT:
 
                 self.attack_orientation = Orientation.LEFT
 
@@ -536,10 +545,10 @@ class Player(GameObject, mixin.Gravity):
         x_direction = 0
 
         # set up knockback direction
-        if self.orientation == Orientation.RIGHT:
+        if self.x_orientation == Orientation.RIGHT:
             x_direction = -1  # empuje a la izquierda
 
-        elif self.orientation == Orientation.LEFT:
+        elif self.x_orientation == Orientation.LEFT:
             x_direction = 1  # empuje a la derecha
 
         else:
@@ -748,7 +757,7 @@ class Player(GameObject, mixin.Gravity):
             
             if self.action_state == States.KNOCKBACK:
                 
-                current_sprite = self.player_sprites[self.action_state.name][self.orientation.name]["knockback"]
+                current_sprite = self.player_sprites[self.action_state.name][self.x_orientation.name]["knockback"]
             
             elif self.action_state == States.RECOILING: 
                 
@@ -761,40 +770,40 @@ class Player(GameObject, mixin.Gravity):
             if self.movement_state == States.IDDLE: 
                 
                 if screen_width == 960 and screen_height == 540:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["iddle_x3"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["iddle_x3"]
                 
                 elif screen_width == 1920 and screen_height == 1080:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["iddle_x6"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["iddle_x6"]
             
             elif self.movement_state == States.WALKING:
                 
                 if screen_width == 960 and screen_height == 540:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["walking_x3"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["walking_x3"]
                 
                 elif screen_width == 1920 and screen_height == 1080:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["walking_x6"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["walking_x6"]
             
             elif self.movement_state == States.JUMPING: 
                 if self.y_vel < -750:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping1"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping1"]
                 elif self.y_vel >= -750 and self.y_vel < -500:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping2"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping2"]
                 elif self.y_vel >= -500 and self.y_vel < -250:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping3"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping3"]
                 elif self.y_vel >= -250 and self.y_vel < 0:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["jumping4"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping4"]
             
             elif self.movement_state == States.FALLING: 
                 if self.y_vel >= 0 and self.y_vel < 200:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling1"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling1"]
                 elif self.y_vel >= 200 and self.y_vel < 400:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling2"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling2"]
                 elif self.y_vel >= 400 and self.y_vel < 600:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling3"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling3"]
                 elif self.y_vel >= 600 and self.y_vel < 800:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling4"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling4"]
                 elif self.y_vel >= 800:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.orientation.name]["falling5"]
+                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling5"]
         
         self.image = current_sprite
 
@@ -1357,7 +1366,7 @@ class GameMaster:
                     if enemy not in player.enemies_attacked:
 
                         # si el jugador esta orientado hacia abajo, se aplica pogo y el enemigo recibe daño
-                        if player.orientation == Orientation.DOWN:
+                        if player.y_orientation == Orientation.DOWN:
                             enemy.take_damage()
                             functions.knockback(player, enemy, False)
                             player.trigger_pogo()
