@@ -1,13 +1,13 @@
 import pygame
 import functions
 from functions import coordinates
-from main_player import Player
-from models import Platform
-from enemies import Enemy, Crawlid
-from utils import Orientation
-from utils import States
-from utils import Position
-from utils import GameState
+from models.main_player import Player
+from models.models import Platform
+from models.enemies import Enemy, Crawlid
+from models.utils import Orientation
+from models.utils import States
+from models.utils import Position
+from models.utils import GameState
 
 pygame.init()
 pygame.font.init()

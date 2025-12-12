@@ -1,7 +1,7 @@
 import pygame
 import functions
-import game_master
-import main_player
+import models.game_master as game_master
+import models.main_player as main_player
 
 # Initiate pygame
 pygame.init()

@@ -1,7 +1,7 @@
 import pygame
 import gif_pygame
-import models
-import main_player
+import models.models as models
+import models.main_player as main_player
 
 
 # function to resize sprites acording scale factors

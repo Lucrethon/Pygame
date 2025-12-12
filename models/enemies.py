@@ -1,10 +1,10 @@
 import pygame
 from abc import ABC, abstractmethod
-import mixin
-from utils import Orientation
-from utils import States
-from utils import AttackState
-from models import GameObject
+import models.mixin as mixin
+from models.utils import Orientation
+from models.utils import States
+from models.utils import AttackState
+from models.models import GameObject
 
 
 class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):

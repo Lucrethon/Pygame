@@ -1,10 +1,10 @@
 import pygame
 import gif_pygame
-import mixin
-from models import GameObject
-from utils import Orientation
-from utils import States
-from utils import AttackState
+import models.mixin as mixin
+from models.models import GameObject
+from models.utils import Orientation
+from models.utils import States
+from models.utils import AttackState
     
 class Player(GameObject, mixin.Gravity):
     def __init__(self, sprite_attack_slash, image):

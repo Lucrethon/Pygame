@@ -1,5 +1,5 @@
 
-import utils
+import models.utils as utils
 
 
 class Gravity:
