@@ -1,7 +1,7 @@
 import pygame
 import gif_pygame
-from gif_pygame import transform
 import models
+import main_player
 
 
 # function to resize sprites acording scale factors
@@ -119,7 +119,7 @@ def set_up_player(screen, ground):
     ).convert_alpha()
 
     # creating player object
-    player = models.Player(sprite_attack_slash, player_image)
+    player = main_player.Player(sprite_attack_slash, player_image)
 
     # set player inicial position
     player.set_position(screen_width / 2, ground.rect.top, True)

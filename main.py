@@ -1,14 +1,11 @@
 import pygame
-import gif_pygame
-import models
 import functions
-from gif_pygame import transform
-import time
+import game_master
+import main_player
 
 # Initiate pygame
 pygame.init()
 
-game_master = models.GameMaster()
 
 # SET UP REAL SCREEN
 screen = functions.setup_screen(True)
@@ -29,7 +26,7 @@ background = pygame.image.load("./assets/Background_960x540.png").convert()
 
 # --------------------------------------------------------------------------
 
-game_master = models.GameMaster()
+game_master = game_master.GameMaster()
 
 # Ahora que GameMaster gestiona los grupos, creamos los objetos y los añadimos a sus grupos
 ground = functions.set_up_ground(virtual_canvas)
