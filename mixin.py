@@ -1,7 +1,5 @@
-import pygame
-import gif_pygame
-import gif_pygame.transform
-import models
+
+import utils
 
 
 class Gravity:
@@ -37,8 +35,8 @@ class CrossScreen:
 
         if self.rect.right >= screen.get_width():
 
-            if self.orientation == models.Orientation.RIGHT:
-                self.orientation = models.Orientation.LEFT
+            if self.orientation == utils.Orientation.RIGHT:
+                self.orientation = utils.Orientation.LEFT
                 self.move_speed *= -1
 
             # "Si te pasaste, te traigo de vuelta al borde exacto"
@@ -46,8 +44,8 @@ class CrossScreen:
 
         if self.rect.left <= 0:
 
-            if self.orientation == models.Orientation.LEFT:
-                self.orientation = models.Orientation.RIGHT
+            if self.orientation == utils.Orientation.LEFT:
+                self.orientation = utils.Orientation.RIGHT
                 self.move_speed *= -1
 
             self.rect.left = 0
