@@ -116,7 +116,7 @@ class Player(GameObject, mixin.Gravity):
 
         # --- DURATION OF STATES (SECONDS) ---
         # Knockback state
-        self.knockback_duration = 0.08
+        self.knockback_duration = 0.2
         # Attacking state
         self.build_up_attack_duration = 0.08
         self.active_frames_attack_duration = 0.07
@@ -171,7 +171,7 @@ class Player(GameObject, mixin.Gravity):
 
         # 1. INPUTS Y ESTADOS DE ACCIÓN
         # -----------------------------
-        # Gestiona estados prioritarios (atacar, herido) que pueden anular el control del jugador.
+        # Gestion de estados prioritarios
         move_right, move_left, jumping, face_up, face_down = self.keyboard_input()
 
         # Actualiza timers de acción
@@ -183,7 +183,7 @@ class Player(GameObject, mixin.Gravity):
             if self.invulnerability_timer >= self.invulnerability_duration:
                 self.is_invulnerable = False
 
-        # Lógica de estados que bloquean el movimiento
+        # Lógica de estados que bloquean el movimiento del jugador (knockback, recoiling)
         if self.action_state == States.KNOCKBACK:
             self.knockback_update(delta_time)
             
@@ -193,21 +193,21 @@ class Player(GameObject, mixin.Gravity):
                 self.action_state = None
                 self.attack_recoil_timer = 0.0
         else:
-            # Si no hay bloqueo, procesa el movimiento normal del jugador
+            # Si no hay bloqueo, se procesa el movimiento normal del jugador
             current_x_speed = 0
             current_x_speed = self.movement(move_right, move_left)
             self.x_vel = current_x_speed
             self.jump(jumping)
             self.facing_input(face_down, face_up)
 
-        # 2. APLICAR FÍSICA
+        # 2. FÍSICAS
         # -----------------
-        # Aplica fuerzas globales como la gravedad para tener las velocidades finales.
+        # Aplicar fuerzas globales como la gravedad para tener las velocidades finales
         super().apply_gravity(delta_time)
 
         # 3. MOVER AL JUGADOR
         # -------------------
-        # Calcula el desplazamiento y actualiza la posición del rect.
+        # Calculo del desplazamiento y actualizacion de la posición del rect.
         delta_x = 0  # variation in x
         delta_y = 0  # variation in y
         delta_x = self.x_vel * delta_time
@@ -216,11 +216,11 @@ class Player(GameObject, mixin.Gravity):
         # Evita que el jugador salga de la pantalla
         delta_x = self.not_cross_edge_screen(screen, delta_x)
 
-        # Aplica el movimiento al rect
+        # Aplicar el movimiento al rect
         self.rect.x += delta_x
         self.rect.y += delta_y
 
-        # 4. GESTIONAR COLISIONES
+        # 4. COLISIONES
         # -----------------------
         # Corrige la posición del jugador si colisiona con el entorno (ej. suelo).
         super().check_ground_collision(ground)
@@ -591,6 +591,9 @@ class Player(GameObject, mixin.Gravity):
 
     def player_sprites(self):
         
+        #Diccionario que contiene todos los sprites del jugador organizados por estado y orientación
+        #Dentro de cada estado, hay sub-diccionarios para cada orientación (DERECHA, IZQUIERDA, ARRIBA, ABAJO)
+        
         player_sprites = {
             
             "IDDLE": {
@@ -749,10 +752,16 @@ class Player(GameObject, mixin.Gravity):
         
         return player_sprites
 
-    def set_up_sprite_state(self, screen):
+    def set_up_sprite_state(self, screen: pygame.Surface):
+        
+        #Funcion para gestionar y actualizar el sprite actual del jugador en función de su estado y orientación.
+        #Algunos estados tienen prioridad sobre otros (por ejemplo, atacar tiene prioridad sobre caminar).
+        #Algunos estados leen solamente la orientacion vertical y otros la horizontal.
+        #El estado de attacking lee la orientacion del ataque (lockeada al iniciar el ataque).
         
         screen_width, screen_height = screen.get_size()
         
+        #se gestionan primero los estados de acción que tienen prioridad sobre los estados de movimiento (attack, knockback, recoiling)
         if self.action_state != None: 
             
             if self.action_state == States.KNOCKBACK:
@@ -761,9 +770,12 @@ class Player(GameObject, mixin.Gravity):
             
             elif self.action_state == States.RECOILING: 
                 
+                #el sprite de recoil es el mismo que el de recovery del ataque
                 current_sprite = self.player_sprites[self.action_state.name][self.attack_orientation.name]["recoil"]
             
             elif self.action_state == States.ATTACKING: 
+                
+                #el sprite de attacking depende de la fase del ataque (build up, active, recovery)
                     
                 current_sprite = self.player_sprites[self.action_state.name][self.attack_orientation.name][self.attack_state.value]
         else: 
@@ -784,6 +796,8 @@ class Player(GameObject, mixin.Gravity):
                     current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["walking_x6"]
             
             elif self.movement_state == States.JUMPING: 
+                
+                #en el estado de jumping, el sprite depende de la velocidad vertical del jugador hacia arriba. Va cambiado a corde al cambio de velocidad
                 if self.y_vel < -750:
                     current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping1"]
                 elif self.y_vel >= -750 and self.y_vel < -500:
@@ -794,6 +808,8 @@ class Player(GameObject, mixin.Gravity):
                     current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping4"]
             
             elif self.movement_state == States.FALLING: 
+                
+                #en el estado de falling, el sprite depende de la velocidad vertical del jugador hacia abajo. Va cambiado a corde al cambio de velocidad
                 if self.y_vel >= 0 and self.y_vel < 200:
                     current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling1"]
                 elif self.y_vel >= 200 and self.y_vel < 400:
