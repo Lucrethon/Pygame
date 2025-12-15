@@ -534,7 +534,7 @@ class GameMaster:
         self.all_sprites.remove(self.enemy_group)
         self.moving_sprites.empty()
         self.enemy_group.empty()
-        player.reset()
+        player.reset(screen)
         self.set_up_player_position(player, screen, ground)
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0

@@ -499,11 +499,12 @@ class Player(GameObject, mixin.Gravity):
     def trigger_pogo(self):
         self.just_pogoed = True
 
-    def reset(self):
+    def reset(self, screen: pygame.Surface):
         # Funcion que se encarga de reiniciar el estado del jugador a sus valores iniciales.
         self.HP = 5
-        self.action_state = States.IDDLE
-        self.movement_state = None
+        self.action_state = None
+        self.movement_state = States.IDDLE
+        self.image = self.set_up_sprite_state(screen)
         self.x_vel = 0
         self.y_vel = 0
         self.is_on_ground = True
@@ -759,3 +760,5 @@ class Player(GameObject, mixin.Gravity):
                     current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling5"]
         
         self.image = current_sprite
+        
+        return current_sprite
