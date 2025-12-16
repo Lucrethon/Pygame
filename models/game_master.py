@@ -3,7 +3,7 @@ import functions
 from functions import coordinates
 from models.main_player import Player
 from models.models import Platform
-from models.enemies import Enemy, Crawlid
+from models.enemies import Enemy, Crawlid, Gruzzer
 from models.utils import Orientation
 from models.utils import States
 from models.utils import Position
@@ -496,6 +496,9 @@ class GameMaster:
                     ),
                     self.returnEnemyWithPosition(
                         screen, ground, Crawlid, Position.GROUND_LEFT_EDGE, Orientation.RIGHT
+                    ),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Gruzzer, Position.MIDDLE_RIGHT_EDGE, Orientation.LEFT
                     ),
                 ],
                 "wave_2": [

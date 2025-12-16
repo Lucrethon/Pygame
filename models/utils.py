@@ -11,6 +11,7 @@ class States(Enum):
     JUMPING = 7
     FALLING = 8
     DEAD = 9
+    FLYING = 10
 
 
 class Orientation(Enum):

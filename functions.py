@@ -65,6 +65,7 @@ def knockback(player, enemy, player_beaten=False):
         sprite_beater = player
 
     x_direction = 0
+    y_direction = 0
 
     # set up knockback direction
     if sprite_beaten.rect.centerx < sprite_beater.rect.centerx:
@@ -72,6 +73,13 @@ def knockback(player, enemy, player_beaten=False):
 
     else:
         x_direction = 1  # empuje a la derecha
+    
+    if sprite_beaten.rect.centery < sprite_beater.rect.centery:
+        y_direction = -1  # empuje hacia arriba
+
+    else:
+        y_direction = 1  # empuje hacia abajo
+    
 
     # --- ADD UP AND DOWN DIRECTION --
 
@@ -79,7 +87,7 @@ def knockback(player, enemy, player_beaten=False):
     sprite_beaten.x_vel = sprite_beater.knockback_x_force * x_direction
 
     # set up knockback y speed (jump)
-    sprite_beaten.y_vel = sprite_beater.knockback_y_force
+    sprite_beaten.y_vel = sprite_beater.knockback_y_force * y_direction
 
 
 def coordinates(screen, ground, enemy):

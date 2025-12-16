@@ -30,7 +30,7 @@ class Player(GameObject, mixin.Gravity):
         self.move_speed = 300
         self.gravity = 2700
         self.jump_force = -1000
-        self.knockback_y_force = -100
+        self.knockback_y_force = 400
         self.knockback_x_force = 600
         self.air_friction = 0.90  # fuerza de arrastre que se opone al movimiento de un objeto al atravesar el aire
         self.attack_recoil_force = 300
