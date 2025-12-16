@@ -35,17 +35,25 @@ class CrossScreen:
 
         if self.rect.right >= screen.get_width():
 
-            if self.orientation == utils.Orientation.RIGHT:
-                self.orientation = utils.Orientation.LEFT
-                self.move_speed *= -1
+            if self.x_orientation == utils.Orientation.RIGHT or self.move_speed > 0:
+                self.x_orientation = utils.Orientation.LEFT
+                if self.move_speed > 0:
+                    self.move_speed *= -1
+
+                if hasattr(self, "x_vel"):
+                    self.x_vel = self.move_speed
 
             # "Si te pasaste, te traigo de vuelta al borde exacto"
             self.rect.right = screen.get_width()
 
         if self.rect.left <= 0:
 
-            if self.orientation == utils.Orientation.LEFT:
-                self.orientation = utils.Orientation.RIGHT
-                self.move_speed *= -1
+            if self.x_orientation == utils.Orientation.LEFT or self.move_speed < 0:
+                self.x_orientation = utils.Orientation.RIGHT
+                if self.move_speed < 0:
+                    self.move_speed *= -1
+
+                if hasattr(self, "x_vel"):
+                    self.x_vel = self.move_speed
 
             self.rect.left = 0

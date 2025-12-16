@@ -3,10 +3,13 @@ from abc import ABC, abstractmethod
 
 class GameObject(ABC, pygame.sprite.Sprite):
 
-    def __init__(self, image, *groups):
+    def __init__(self, image=None, *groups):
         super().__init__(*groups)
         self.image = image
-        self.rect = self.image.get_rect()  # get the size of the image to create a rects
+        if self.image:
+            self.rect = self.image.get_rect()  # get the size of the image to create a rects
+        else:
+            self.rect = pygame.Rect(0, 0, 0, 0)
 
     # if self.image is .gif, it has to be place on the screen diferently than static images that uses blit(). Gifs have to be placed with .render()
 
@@ -48,5 +51,3 @@ class Platform(GameObject):
 
     def movement(self):
         pass
-
-

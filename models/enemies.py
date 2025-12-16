@@ -5,13 +5,14 @@ from models.utils import Orientation
 from models.utils import States
 from models.utils import AttackState
 from models.models import GameObject
+import gif_pygame
 
 
 class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
-    def __init__(self, image):
+    def __init__(self, screen, orientation):
         # Los grupos se pasarán desde el GameMaster al crear el enemigo
-        super().__init__(image)
+        super().__init__()
 
     def draw(self, screen):
         return super().draw(screen)
@@ -30,13 +31,16 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
 
 class Crawlid(Enemy):
-    def __init__(self):
+    def __init__(self, screen, orientation):
         # Crear/Cargar la imagen específica para el enemig0
-        image = pygame.Surface([90, 90])
-        image.fill((255, 0, 0))
 
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
-        super().__init__(image)
+        super().__init__(screen, orientation)
+        
+        self.x_orientation = orientation
+        self.enemy_sprites = self.enemy_sprites()
+        self.set_up_sprite(screen)
+        self.rect = self.image.get_rect()
 
         # --- CONSTANTES DE FUERZA ---
         self.move_speed = 240
@@ -53,11 +57,10 @@ class Crawlid(Enemy):
         self.HP = 5
 
         # --- STATE OF ACTION ---
-        self.state = States.IDDLE
+        self.state = States.WALKING
         self.isDead = False
 
         # --- ORIENTATION AND POSITION ---
-        self.orientation = Orientation.RIGHT
         self.is_on_ground = True  # <-- Is not jumping
 
         # --- TIMERS ---
@@ -104,6 +107,8 @@ class Crawlid(Enemy):
 
         # Check ground collision
         super().check_ground_collision(ground)
+        self.update_orientation()
+        self.set_up_sprite(screen)
 
     def take_damage(self):
 
@@ -135,7 +140,7 @@ class Crawlid(Enemy):
             self.x_vel = 0
 
         if self.timer >= self.knockback_duration:
-            self.state = States.IDDLE
+            self.state = States.WALKING
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
@@ -143,3 +148,46 @@ class Crawlid(Enemy):
     def spawning(self):
         # animacion de spawn
         pass
+    
+    def update_orientation(self):
+        
+        if self.x_vel >= 0:
+            self.x_orientation = Orientation.RIGHT
+        elif self.x_vel < 0:
+            self.x_orientation = Orientation.LEFT
+    
+    def enemy_sprites(self):
+        
+        enemy_sprites = {
+            
+            "RIGHT": 
+                {
+            "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3.gif"),
+            "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6.gif"),  
+            
+            },
+            
+            "LEFT": 
+                {
+            "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3_left.gif"),
+            "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6_left.gif"),  
+                }
+        
+        }
+        
+        return enemy_sprites
+    
+    def set_up_sprite(self, screen: pygame.Surface):
+        
+        screen_width, screen_height = screen.get_size()
+        # Funcion que se encarga de establecer el sprite inicial del jugador basado en su estado actual.
+        current_sprite = None
+        
+        if screen_width == 960 and screen_height == 540:
+            current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x3"]
+                
+        elif screen_width == 1920 and screen_height == 1080:
+            current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x6"]
+
+        
+        self.image = current_sprite 

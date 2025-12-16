@@ -419,12 +419,12 @@ class GameMaster:
                     pass
 
     def returnEnemyWithPosition(
-        self, screen: pygame.Surface, ground: Platform, enemy: Enemy, position: Position
+        self, screen: pygame.Surface, ground: Platform, enemy: Enemy, position: Position, facing: Orientation,
     ):
         # funcion que devuelve un enemigo en una posicion determinada de la pantalla
 
         # se recibe una clase de enemigo y se instancia un nuevo objeto de esa clase
-        new_enemy = enemy()
+        new_enemy = enemy(screen, facing)
 
         # se obtienen las coordenadas posibles para spawnear enemigos en la pantalla
         enemy_coords = coordinates(screen, ground, new_enemy)
@@ -442,6 +442,7 @@ class GameMaster:
         else:
             # si no existe la clave, se retorna el enemigo en la posicion por defecto (centro de la pantalla)
             new_enemy.set_position(screen.get_width() / 2, ground.rect.top, True)
+            
             return new_enemy
 
     def current_phase(
@@ -491,36 +492,36 @@ class GameMaster:
             "phase_1": {
                 "wave_1": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE
+                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE, Orientation.LEFT
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE
+                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE, Orientation.RIGHT
                     ),
                 ],
                 "wave_2": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE
+                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE, Orientation.LEFT
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE
+                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE, Orientation.RIGHT
                     ),
                 ],
             },
             "phase_2": {
                 "wave_1": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE
+                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE, Orientation.LEFT
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE
+                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE, Orientation.RIGHT
                     ),
                 ],
                 "wave_2": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE
+                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE, Orientation.LEFT
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE
+                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE, Orientation.RIGHT
                     ),
                 ],
             },
