@@ -251,7 +251,10 @@ class GameMaster:
             screen.blit(background, (0, 0))
             # Los sprites se dibujan en la pausa debajo del boton de pausa
             for sprite in self.all_sprites:
-                sprite.draw(screen)
+                if sprite != player:
+                    sprite.draw(screen)
+            
+            player.draw(screen)
 
             self.display_pause_menu(screen)
 
@@ -269,8 +272,16 @@ class GameMaster:
             screen.blit(background, (0, 0))
             # En todos los demas estados se dibujen los sprites
             for sprite in self.all_sprites:
-                sprite.draw(screen)
+                if sprite != player:
+                    sprite.draw(screen)
+                
+                # if hasattr(sprite, "hitbox"):
+                #     pygame.draw.rect(screen, (255, 0, 0), sprite.hitbox, 1)  # debug hitboxes
+                # else:
+                #     pygame.draw.rect(screen, (255, 0, 0), sprite.rect, 1)  # debug rects
+                
                 # call to .draw() method from GameObjects that can handle gifs
+            player.draw(screen)
             player.draw_attack(screen)
 
     def set_up_player_position(
@@ -364,12 +375,20 @@ class GameMaster:
         screen.blit(victory_title, victory_title_rect)
         screen.blit(press_enter_title, press_enter_title_rect)
 
+    def hitbox_collision(self, player: Player, enemy: Enemy):
+        
+        player_hitbox = getattr(player, 'hitbox', player.rect)
+        
+        enemy_hitbox = getattr(enemy, 'hitbox', enemy.rect)
+
+        return player_hitbox.colliderect(enemy_hitbox)
+    
     def handle_enemies_collision(self, player: Player):
 
         # Funcion que se encarga de manejar las colisiones entre el jugador y los enemigos
 
         # lista que comprueba colisiones entre el jugador y los enemigos
-        enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False)
+        enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False, collided=self.hitbox_collision)
 
         if enemies_collision:
 
@@ -393,7 +412,7 @@ class GameMaster:
             for enemy in self.enemy_group:
 
                 # si el rect del enemigo colisiona con la hitbox activa del jugador
-                if player.active_hitbox.colliderect(enemy.rect):
+                if player.active_hitbox.colliderect(enemy.hitbox):
 
                     # si el enemigo no ha sido atacado ya en este ataque (comprobacion con lista interna del jugador)
                     if enemy not in player.enemies_attacked:

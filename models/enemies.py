@@ -41,6 +41,7 @@ class Crawlid(Enemy):
         self.enemy_sprites = self.enemy_sprites()
         self.set_up_sprite(screen)
         self.rect = self.image.get_rect()
+        self.hitbox = (self.rect.x, self.rect.y + 20, 80, 38)
 
         # --- CONSTANTES DE FUERZA ---
         self.move_speed = 240
@@ -109,6 +110,7 @@ class Crawlid(Enemy):
         super().check_ground_collision(ground)
         self.update_orientation()
         self.set_up_sprite(screen)
+        self.hitbox = (self.rect.x, self.rect.y + 10, 83, 40)
 
     def take_damage(self):
 
@@ -203,6 +205,7 @@ class Gruzzer(Enemy):
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
         super().__init__(screen, orientation)
         
+        self.hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
         self.x_orientation = orientation
         self.enemy_sprites = self.enemy_sprites()
         self.set_up_sprite(screen)
@@ -278,6 +281,7 @@ class Gruzzer(Enemy):
 
         self.update_orientation()
         self.set_up_sprite(screen)
+        self.hitbox = (self.rect.x, self.rect.y + 20, 80, 38)
 
     def update_orientation(self):
         

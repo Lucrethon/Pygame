@@ -12,16 +12,20 @@ class Player(GameObject, mixin.Gravity):
         
         super().__init__(image)
 
-        self.player_sprites = self.player_sprites()
+        # --- HITBOX ---
+        self.hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
         
         # --- HEALTH ---
         self.HP = 5
 
         # --- ATTACK SPRITES ---
+        self.player_sprites = self.player_sprites()
         self.sprite_attack_slash = sprite_attack_slash
         self.active_slash_sprite = None
         self.attack_state = None
-
+        self.player_damaged = None
+    
+            
         # --- CURRENT SPEED ---
         self.x_vel = 0
         self.y_vel = 0
@@ -59,7 +63,7 @@ class Player(GameObject, mixin.Gravity):
         self.active_frames_attack_duration = 0.07
         self.recovery_attack_duration = 0.08
         # Invulnerability state
-        self.invulnerability_duration = 0.9
+        self.invulnerability_duration = 1
         # Recoil state
         self.attack_recoil_duration = 0.07
 
@@ -105,7 +109,7 @@ class Player(GameObject, mixin.Gravity):
         screen,
         ground,
     ):
-
+        
         # 1. INPUTS Y ESTADOS DE ACCIÓN
         # -----------------------------
         # Gestion de estados prioritarios
@@ -167,6 +171,13 @@ class Player(GameObject, mixin.Gravity):
         # Con la posición y velocidades finales, determina el estado de animación (IDLE, WALKING, etc.).
         self.update_movement_state()
         self.set_up_sprite_state(screen)
+        self.update_hitbox()
+        
+        if self.is_invulnerable:
+            
+            self.i_frames_sprite()
+        else:
+            pass
 
     def update_movement_state(self):
         
@@ -186,7 +197,16 @@ class Player(GameObject, mixin.Gravity):
                 
 
         return self.movement_state
-    
+
+    def update_hitbox(self):
+        
+        if self.action_state == States.ATTACKING and self.x_orientation == Orientation.RIGHT:
+            hitbox = (self.rect.x + 30, self.rect.y + 30, 60, 80)    
+        else:
+            hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
+        
+        self.hitbox = pygame.Rect(hitbox)
+        
     def movement(
         self, right=False, left=False
     ):  # --> Return x speed (update player position)
@@ -447,6 +467,35 @@ class Player(GameObject, mixin.Gravity):
         self.is_invulnerable = True
 
         self.invulnerability_timer = 0.0
+
+    def i_frames_sprite(self):
+        
+        if hasattr(self.image, "render"):
+            
+            self.player_damaged = self.image.copy()
+            
+            # Modificamos los elementos de la lista existente porque la propiedad .frames no tiene setter
+            for i, frame in enumerate(self.player_damaged.frames):
+                # frame es una tupla (surface, duration)
+                damaged_surface = frame[0].copy() #accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
+                damaged_surface.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD) #pintamos esa surface de blanco
+                
+                self.player_damaged.frames[i] = (damaged_surface, frame[1]) #despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
+        
+        else: 
+            self.player_damaged = self.image.copy().convert_alpha()
+            self.player_damaged.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
+        
+        
+        split_invulnerability_duration = self.invulnerability_duration / 6
+    
+        # Usamos int() para que la división resulte en un número entero (0, 1, 2...)
+        # y el módulo % 2 funcione correctamente para alternar el sprite.
+        if int(self.invulnerability_timer / split_invulnerability_duration) % 2 == 0: 
+            self.image = self.player_damaged
+        else:
+            pass
+
 
     def knockback_update(self, delta_time):
 
