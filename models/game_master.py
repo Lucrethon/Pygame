@@ -1,3 +1,4 @@
+import gif_pygame
 import pygame
 import functions
 from functions import coordinates
@@ -41,6 +42,12 @@ class GameMaster:
         self.game_phases = None
         self.waves_per_phase = None
         self.is_full_screen = False
+        
+        self.broken_mask_timer = 0.0
+        self.broken_mask_animation_duration = 0.3  # seconds
+        self.broken_masks_animation = self.broken_mask_animations()
+        self.Health_UI = self.health_UI_assets()
+        self.is_animating_broken_mask = False
 
     def update_game(
         self,
@@ -239,6 +246,7 @@ class GameMaster:
         player: Player,
         background: pygame.Surface,
         ground: Platform,
+        delta_time: float,
     ):
 
         # Funcion que se encarga de dibujar los diferentes estados del juego
@@ -246,6 +254,7 @@ class GameMaster:
         if self.GAME_STATE == GameState.MAIN_MENU:
             screen.blit(background, (0, 0))
             self.display_main_menu(screen)
+            self.draw_health_UI(screen, player)
 
         elif self.GAME_STATE == GameState.PAUSE:
             screen.blit(background, (0, 0))
@@ -255,16 +264,19 @@ class GameMaster:
                     sprite.draw(screen)
             
             player.draw(screen)
+            self.draw_health_UI(screen, player)
 
             self.display_pause_menu(screen)
 
         elif self.GAME_STATE == GameState.GAME_OVER:
             screen.blit(background, (0, 0))
             self.display_game_over_screen(screen)
+            self.draw_health_UI(screen, player)
 
         elif self.GAME_STATE == GameState.VICTORY:
             screen.blit(background, (0, 0))
             self.display_victory_screen(screen)
+            self.draw_health_UI(screen, player)
 
         else:
             # ground platform se dibuja primero
@@ -283,6 +295,8 @@ class GameMaster:
                 # call to .draw() method from GameObjects that can handle gifs
             player.draw(screen)
             player.draw_attack(screen)
+            self.draw_health_UI(screen, player)
+            self.trigger_broken_mask_animation(screen, player, delta_time)
 
     def set_up_player_position(
         self, player: Player, screen: pygame.Surface, ground: Platform
@@ -401,6 +415,9 @@ class GameMaster:
                     # si no esta en esos estados, el jugador recibe daño
                     player.take_damage()
                     functions.knockback(player, enemy, True)
+                    self.is_animating_broken_mask = True
+                    #esta linea activa la animacion de mascara rota en el GameMaster
+                    
 
     def handle_player_attack_collision(self, player: Player):
 
@@ -600,3 +617,111 @@ class GameMaster:
             self.is_full_screen = True
         else:
             self.is_full_screen = False
+    
+    def health_UI_assets(self):
+        
+        Health_UI = {
+            "0_masks": pygame.image.load("./assets/UI_Health/0_Masks.png").convert_alpha(),
+            "1_masks": pygame.image.load("./assets/UI_Health/1_Mask.png").convert_alpha(),
+            "2_masks": pygame.image.load("./assets/UI_Health/2_Masks.png").convert_alpha(),
+            "3_masks": pygame.image.load("./assets/UI_Health/3_Masks.png").convert_alpha(),
+            "4_masks": pygame.image.load("./assets/UI_Health/4_Masks.png").convert_alpha(),
+            "5_masks": pygame.image.load("./assets/UI_Health/5_Masks.png").convert_alpha()
+        }
+        
+        return Health_UI
+    
+    def broken_mask_animations(self):
+        
+        broken_masks_animation = {
+            
+            "broken_mask_1": {
+                "1": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_1.png").convert_alpha(),
+                "2": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_2.png").convert_alpha(),
+                "3": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_3.png").convert_alpha(),
+                "4": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_4.png").convert_alpha(),
+                "5": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_5.png").convert_alpha(),
+            },
+
+            "broken_mask_2": {
+                "1": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_1.png").convert_alpha(),
+                "2": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_2.png").convert_alpha(),
+                "3": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_3.png").convert_alpha(),
+                "4": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_4.png").convert_alpha(),
+                "5": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_5.png").convert_alpha(),
+                        },
+            
+            "broken_mask_3": {
+                "1": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_1.png").convert_alpha(),
+                "2": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_2.png").convert_alpha(),
+                "3": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_3.png").convert_alpha(),
+                "4": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_4.png").convert_alpha(),
+                "5": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_5.png").convert_alpha(),
+            },
+            
+            "broken_mask_4": {
+                "1": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_1.png").convert_alpha(),
+                "2": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_2.png").convert_alpha(),
+                "3": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_3.png").convert_alpha(),
+                "4": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_4.png").convert_alpha(),
+                "5": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_5.png").convert_alpha(),
+            },
+            
+            "broken_mask_5": {
+                "1": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_1.png").convert_alpha(),
+                "2": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_2.png").convert_alpha(),
+                "3": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_3.png").convert_alpha(),
+                "4": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_4.png").convert_alpha(),
+                "5": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_5.png").convert_alpha(),
+            },
+        
+        }
+        
+        return broken_masks_animation
+    
+    def draw_health_UI(self, screen: pygame.Surface, player: Player):
+        # Funcion que dibuja la UI de la salud del jugador en pantalla
+        
+        player_current_health = str(player.HP) + "_masks"
+    
+        if player_current_health in self.Health_UI:
+            
+            screen.blit(self.Health_UI[player_current_health], (10, 10))
+    
+    def trigger_broken_mask_animation(self, screen: pygame.Surface, player: Player, delta_time: float):
+        
+        if self.is_animating_broken_mask == True:
+        
+            self.broken_mask_timer += delta_time
+        #self.is_animating_broken_mask = True
+            
+            broken_mask_key = "broken_mask_" + str(player.max_HP - player.HP)
+            # Get the key (to search into the dicctionary) for the broken mask animation based on how much health was lost
+            
+            if broken_mask_key in self.broken_masks_animation:
+                
+                total_frames = len(self.broken_masks_animation[broken_mask_key])
+                # Calculate total frames in the animation
+                
+                frame_time = self.broken_mask_animation_duration / total_frames
+                # Calculate the time per frame
+                
+                actual_frame = min(int(self.broken_mask_timer / frame_time) + 1, total_frames)
+                # Calculate the current frame based on the timer. +1 because frames start at 1 in the dicctionary
+                    
+                
+                if actual_frame > total_frames:
+                    
+                    player_current_health = str(player.HP) + "_masks"
+                    screen.blit(self.Health_UI[player_current_health], (10, 10))
+                    #if for some reason actual frame is out of bounds, draw the normal health UI
+                else:
+                    
+                    current_frame = self.broken_masks_animation[broken_mask_key][str(actual_frame)]
+                    screen.blit(current_frame, (10, 10))
+
+        
+        if self.broken_mask_timer >= self.broken_mask_animation_duration:
+            #stop timer
+            self.is_animating_broken_mask = False
+            self.broken_mask_timer = 0.0

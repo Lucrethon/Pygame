@@ -75,7 +75,7 @@ while running:
 
     # 4. DRAW
 
-    game_master.draw(virtual_canvas, player, background, ground)
+    game_master.draw(virtual_canvas, player, background, ground, delta_time)
 
     streched_canvas = pygame.transform.scale(
         virtual_canvas, (screen_width, screen_height)

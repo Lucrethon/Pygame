@@ -37,9 +37,13 @@ class Crawlid(Enemy):
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
         super().__init__(screen, orientation)
         
-        self.x_orientation = orientation
+        # --- SPRITES ---
         self.enemy_sprites = self.enemy_sprites()
+        self.x_orientation = orientation
         self.set_up_sprite(screen)
+        self.enemy_damaged = None
+        
+        # --- HITBOX ---
         self.rect = self.image.get_rect()
         self.hitbox = (self.rect.x, self.rect.y + 20, 80, 38)
 
@@ -67,6 +71,12 @@ class Crawlid(Enemy):
         # --- TIMERS ---
         self.timer = 0.0
         self.knockback_duration = 0.2
+        self.hit_twinkle_duration = 0.3
+        self.hit_twinkle_timer = 0.0
+        
+        # --- FLAGS ---
+        self.is_twinkle = False
+        
 
     def draw(self, screen):
         return super().draw(screen)
@@ -83,6 +93,12 @@ class Crawlid(Enemy):
 
         delta_x = 0  # variation in x
         delta_y = 0  # variation in y
+
+        if self.is_twinkle:
+            self.hit_twinkle_timer += delta_time
+            if self.hit_twinkle_timer >= self.hit_twinkle_duration:
+                self.hit_twinkle_timer = 0.0
+                self.is_twinkle = False
 
         # Knockback State
         if self.state == States.KNOCKBACK:
@@ -111,6 +127,12 @@ class Crawlid(Enemy):
         self.update_orientation()
         self.set_up_sprite(screen)
         self.hitbox = (self.rect.x, self.rect.y + 10, 83, 40)
+        
+        if self.is_twinkle:
+            self.set_sprite_hit_twinkle()
+        else: 
+            pass
+        
 
     def take_damage(self):
 
@@ -126,6 +148,10 @@ class Crawlid(Enemy):
         if self.HP <= 0:
             self.isDead = True
             super().kill()
+        
+        self.is_twinkle = True
+        self.hit_twinkle_timer = 0.0
+
 
         # Knockback physic
 
@@ -146,7 +172,7 @@ class Crawlid(Enemy):
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
-
+            
     def spawning(self):
         # animacion de spawn
         pass
@@ -196,6 +222,33 @@ class Crawlid(Enemy):
         
         self.image = current_sprite 
     
+    def set_sprite_hit_twinkle(self):
+        
+        if hasattr(self.image, "render"):
+            
+            self.enemy_damaged = self.image.copy()
+            
+            # Modificamos los elementos de la lista existente porque la propiedad .frames no tiene setter
+            for i, frame in enumerate(self.enemy_damaged.frames):
+                # frame es una tupla (surface, duration)
+                damaged_surface = frame[0].copy() #accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
+                damaged_surface.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD) #pintamos esa surface de blanco
+                
+                self.enemy_damaged.frames[i] = (damaged_surface, frame[1]) #despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
+        
+        else: 
+            self.enemy_damaged = self.image.copy().convert_alpha()
+            self.ememy_damaged.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
+        
+        
+        split_invulnerability_duration = self.hit_twinkle_duration / 3
+    
+        # Usamos int() para que la división resulte en un número entero (0, 1, 2...)
+        # y el módulo % 2 funcione correctamente para alternar el sprite.
+        if int(self.hit_twinkle_timer / split_invulnerability_duration) % 2 == 0: 
+            self.image = self.enemy_damaged
+        else:
+            pass
 
 class Gruzzer(Enemy):
     

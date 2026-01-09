@@ -17,6 +17,7 @@ class Player(GameObject, mixin.Gravity):
         
         # --- HEALTH ---
         self.HP = 5
+        self.max_HP = 5
 
         # --- ATTACK SPRITES ---
         self.player_sprites = self.player_sprites()
