@@ -44,6 +44,7 @@ class Crawlid(Enemy):
         self.x_orientation = orientation
         self.set_up_sprite(screen)
         self.enemy_damaged = None
+        self.sounds = sounds
         
         # --- HITBOX ---
         self.rect = self.image.get_rect()
@@ -139,6 +140,9 @@ class Crawlid(Enemy):
     def take_damage(self):
 
         self.HP -= 1
+        
+        #sound effect 
+        self.sounds["hurt"].play()
 
         self.state = States.KNOCKBACK
 
@@ -267,6 +271,7 @@ class Gruzzer(Enemy):
         self.enemy_sprites = self.enemy_sprites()
         self.set_up_sprite(screen)
         self.rect = self.image.get_rect()
+        self.sounds = sounds
 
         # --- CONSTANTES DE FUERZA ---
         self.x_speed = 240
@@ -362,6 +367,9 @@ class Gruzzer(Enemy):
 
         # restart timer
         self.timer = 0.0
+        
+        #sound effect 
+        self.sounds["hurt"].play()
 
         if self.HP <= 0:
             self.isDead = True
