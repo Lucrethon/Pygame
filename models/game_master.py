@@ -9,6 +9,7 @@ from models.utils import Orientation
 from models.utils import States
 from models.utils import Position
 from models.utils import GameState
+from functions import enemy_sounds
 
 
 class GameMaster:
@@ -45,6 +46,9 @@ class GameMaster:
         self.broken_masks_animation = self.broken_mask_animations()
         self.Health_UI = self.health_UI_assets()
         self.is_animating_broken_mask = False
+        
+        #--- SOUNDS ---
+        self.enemy_sounds_dict = enemy_sounds()
 
     def update_game(
         self,
@@ -460,7 +464,7 @@ class GameMaster:
         # funcion que devuelve un enemigo en una posicion determinada de la pantalla
 
         # se recibe una clase de enemigo y se instancia un nuevo objeto de esa clase
-        new_enemy = enemy(screen, facing)
+        new_enemy = enemy(screen, facing, self.enemy_sounds_dict[enemy.__name__])
 
         # se obtienen las coordenadas posibles para spawnear enemigos en la pantalla
         enemy_coords = coordinates(screen, ground, new_enemy)

@@ -151,3 +151,21 @@ def set_up_ground(screen):
     )
 
     return ground
+
+def enemy_sounds():
+
+    enemy_sounds = {
+
+        "Crawlid": {
+            "hurt": pygame.mixer.Sound("./assets/audio_assets/enemies/enemy_damage.wav"),
+        },
+        
+        "Gruzzer": {
+            "hurt": pygame.mixer.Sound("./assets/audio_assets/enemies/enemy_damage.wav"),
+            "flying": pygame.mixer.Sound("./assets/audio_assets/enemies/buzzer/bursting_buzzer_fly_loop.wav"),
+        },
+        
+        
+    }
+
+    return enemy_sounds

@@ -8,9 +8,10 @@ from models.models import GameObject
 import gif_pygame
 
 
+
 class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
-    def __init__(self, screen, orientation):
+    def __init__(self, screen, orientation, sounds: dict):
         # Los grupos se pasarán desde el GameMaster al crear el enemigo
         super().__init__()
 
@@ -31,12 +32,13 @@ class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
 
 class Crawlid(Enemy):
-    def __init__(self, screen, orientation):
+    def __init__(self, screen, orientation, sounds: dict):
         # Crear/Cargar la imagen específica para el enemig0
 
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
-        super().__init__(screen, orientation)
+        super().__init__(screen, orientation, sounds)
         
+        self.name = "Crawlid"
         # --- SPRITES ---
         self.enemy_sprites = self.enemy_sprites()
         self.x_orientation = orientation
@@ -252,11 +254,13 @@ class Crawlid(Enemy):
 
 class Gruzzer(Enemy):
     
-    def __init__(self, screen, orientation):
+    def __init__(self, screen, orientation, sounds: dict):
         # Crear/Cargar la imagen específica para el enemig0
 
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
-        super().__init__(screen, orientation)
+        super().__init__(screen, orientation, sounds)
+        
+        self.name = "Gruzzer"
         
         self.hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
         self.x_orientation = orientation
