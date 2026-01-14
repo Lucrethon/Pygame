@@ -5,7 +5,7 @@ from models.models import GameObject
 from models.utils import Orientation
 from models.utils import States
 from models.utils import AttackState
-    
+
 class Player(GameObject, mixin.Gravity):
     def __init__(self, sprite_attack_slash, image):
         # Los grupos se pasarán desde el GameMaster
@@ -85,7 +85,10 @@ class Player(GameObject, mixin.Gravity):
 
         # --- ARRAYS ---
         self.enemies_attacked = []
-
+        
+        # --- SOUNDS ---
+        self.sounds = self.upload_sounds()
+        
     def draw(self, screen):
         return super().draw(screen)
 
@@ -115,6 +118,7 @@ class Player(GameObject, mixin.Gravity):
         # -----------------------------
         # Gestion de estados prioritarios
         move_right, move_left, jumping, face_up, face_down = self.keyboard_input()
+        was_on_ground = self.is_on_ground
 
         # Actualiza timers de acción
         if self.action_state == States.ATTACKING:
@@ -167,6 +171,10 @@ class Player(GameObject, mixin.Gravity):
         # Corrige la posición del jugador si colisiona con el entorno (ej. suelo).
         super().check_ground_collision(ground)
 
+        # Sound effect: Land
+        if not was_on_ground and self.is_on_ground:
+            self.sounds["land"].play()
+
         # 5. ACTUALIZAR ESTADO DE MOVIMIENTO
         # ----------------------------------
         # Con la posición y velocidades finales, determina el estado de animación (IDLE, WALKING, etc.).
@@ -179,7 +187,10 @@ class Player(GameObject, mixin.Gravity):
             self.i_frames_sprite()
         else:
             pass
-
+            
+        #walking sound
+        self.walking_sound()
+        
     def update_movement_state(self):
         
         if self.is_on_ground == False: 
@@ -250,6 +261,9 @@ class Player(GameObject, mixin.Gravity):
             self.y_vel = self.jump_force
             self.is_on_ground = False
             self.just_jumped = True
+            
+            #sound effect
+            self.sounds["jump"].play()
 
         # if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
         elif not jump and self.y_vel < 0 and self.just_jumped:
@@ -301,6 +315,9 @@ class Player(GameObject, mixin.Gravity):
 
             # restart self.timer
             self.timer = 0.0
+            
+            #sound effect
+            self.sounds["attack"].play()
 
     def attack_update(
         self, delta_time
@@ -439,7 +456,11 @@ class Player(GameObject, mixin.Gravity):
 
         # set up HP
         self.HP -= 1
-
+        
+        #sound
+        self.sounds["hurt"].play()
+        
+        #knockback and invulnerability
         self.trigger_knockback()
         self.trigger_invulnerability()
 
@@ -496,7 +517,6 @@ class Player(GameObject, mixin.Gravity):
             self.image = self.player_damaged
         else:
             pass
-
 
     def knockback_update(self, delta_time):
 
@@ -560,6 +580,7 @@ class Player(GameObject, mixin.Gravity):
         self.is_on_ground = True
         self.is_invulnerable = False
         self.isDead = False
+        self.stop_walking_sound()
 
         # --- Limpiar estado de ataque ---
         self.active_hitbox = None
@@ -812,3 +833,37 @@ class Player(GameObject, mixin.Gravity):
         self.image = current_sprite
         
         return current_sprite
+    
+    def upload_sounds(self):
+        
+        player_sounds = {
+            
+            "attack": pygame.mixer.Sound("./assets/audio_assets/player/hero_sword.wav"),
+            "jump": pygame.mixer.Sound("./assets/audio_assets/player/hero_jump.wav"),
+            "hurt": pygame.mixer.Sound("./assets/audio_assets/player/hero_damage.wav"),
+            "land": pygame.mixer.Sound("./assets/audio_assets/player/hero_land_soft.wav"),
+            "death": pygame.mixer.Sound("./assets/audio_assets/player/hero_death_extra_details.wav"),
+            "walking": pygame.mixer.Sound("./assets/audio_assets/player/hero_walk_footsteps_stone.wav"),
+        }
+        
+        #Funcion para cargar los sonidos del jugador
+        
+        return player_sounds
+    
+    def walking_sound(self):
+        # Funcion para gestionar el loop del sonido de caminar del jugador
+        
+        # Debe estar caminando Y NO estar en una acción (como atacar)
+        if self.movement_state == States.WALKING and self.action_state is None:
+            
+            # Verificamos si el sonido ya se está reproduciendo para no solaparlo (spam de play)
+            if self.sounds["walking"].get_num_channels() == 0:
+                self.sounds["walking"].play(loops=-1)
+        
+        else:
+            self.sounds["walking"].stop()           
+
+    def stop_walking_sound(self):
+        self.sounds["walking"].stop()
+
+        

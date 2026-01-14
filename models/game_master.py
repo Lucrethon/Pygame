@@ -10,9 +10,6 @@ from models.utils import States
 from models.utils import Position
 from models.utils import GameState
 
-pygame.init()
-pygame.font.init()
-
 
 class GameMaster:
 
@@ -133,6 +130,7 @@ class GameMaster:
                         self.GAME_PHASE == self.game_phases
                         and self.GAME_WAVE == self.waves_per_phase
                     ):
+                        player.stop_walking_sound()
                         self.GAME_STATE = GameState.VICTORY
 
                     else:
@@ -143,6 +141,7 @@ class GameMaster:
 
                 elif player.isDead:
                     # Si el jugador muere, cambiar a estado de game over
+                    player.stop_walking_sound()
                     self.GAME_STATE = GameState.GAME_OVER
 
     def handle_events(
@@ -235,6 +234,7 @@ class GameMaster:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
+                        player.stop_walking_sound()
                         self.GAME_STATE = GameState.PAUSE
 
                     elif event.key == pygame.K_s:
