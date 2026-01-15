@@ -23,6 +23,8 @@ class GameMaster:
         # super().__init__(all_sprites, moving_sprites, enemy_group)
 
         self.timer = 0.0
+        self.slow_motion_timer = 0.0
+        self.slow_motion_duration = 0.09  # seconds
         self.GAME_STATE = GameState.MAIN_MENU
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0
@@ -72,6 +74,9 @@ class GameMaster:
         else:
             # en los siguientes estados se lee el movimiento del jugador en todo momento
 
+            # Aplicar slow motion al delta_time antes de actualizar las entidades
+            delta_time = self.slow_motion(delta_time)
+
             # leer input de movimiento jugador y detectar colisiones con el suelo
             player.update_player(delta_time, screen, ground)
 
@@ -120,7 +125,7 @@ class GameMaster:
                     enemy.update_enemy(delta_time, screen, ground)
 
                 # detectar colisiones con enemigos
-                self.handle_enemies_collision(player)
+                self.handle_enemies_collision(player, delta_time)
                 self.handle_player_attack_collision(player)
 
                 # verificar si hay enemigos en pantalla
@@ -401,7 +406,7 @@ class GameMaster:
 
         return player_hitbox.colliderect(enemy_hitbox)
     
-    def handle_enemies_collision(self, player: Player):
+    def handle_enemies_collision(self, player: Player, delta_time: float):
 
         # Funcion que se encarga de manejar las colisiones entre el jugador y los enemigos
 
@@ -418,6 +423,7 @@ class GameMaster:
                 else:
                     # si no esta en esos estados, el jugador recibe daño
                     player.take_damage()
+                    self.trigger_slow_motion(delta_time)
                     functions.knockback(player, enemy, True)
                     self.is_animating_broken_mask = True
                     #esta linea activa la animacion de mascara rota en el GameMaster
@@ -729,3 +735,18 @@ class GameMaster:
             #stop timer
             self.is_animating_broken_mask = False
             self.broken_mask_timer = 0.0
+    
+    def trigger_slow_motion(self, delta_time: float):
+        # Function that triggers slow motion effect for a short duration
+        self.slow_motion_timer = self.slow_motion_duration
+    
+    def slow_motion(self, delta_time: float): 
+        
+        slow_time_scale = 0.3  # 30% speed
+        
+        if self.slow_motion_timer > 0.0:
+            self.slow_motion_timer -= delta_time
+            delta_time *= slow_time_scale
+            return delta_time
+        else:
+            return delta_time
