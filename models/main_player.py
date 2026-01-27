@@ -833,7 +833,27 @@ class Player(GameObject, mixin.Gravity):
                         },
                     
                     "LEFT": {
-                        
+                        "dead_air1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x1.png").convert_alpha()), True, False),
+                        "dead_air2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x2.png").convert_alpha()), True, False),
+                        "dead_air3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x3.png").convert_alpha()), True, False),
+                        "dead_air4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x4.png").convert_alpha()), True, False),
+                        "dead_air5": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x5.png").convert_alpha()), True, False),
+                        "dead_air6": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x6.png").convert_alpha()), True, False),
+                        "dead_air7": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x7.png").convert_alpha()), True, False),
+                        "dead_air8": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x8.png").convert_alpha()), True, False),
+                        "dead_air9": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x9.png").convert_alpha()), True, False),
+                        "dead_air10": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x10.png").convert_alpha()), True, False),
+                        "dead_air11": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x11.png").convert_alpha()), True, False),
+                        "dead_air12": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x12.png").convert_alpha()), True, False),
+                        "dead_air13": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x13.png").convert_alpha()), True, False),
+                        "dead_air14": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x14.png").convert_alpha()), True, False),
+                        "dead_air15": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x15.png").convert_alpha()), True, False),
+                        "dead_air16": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x16.png").convert_alpha()), True, False),
+                        "dead_air17": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x17.png").convert_alpha()), True, False),
+                        "dead_air18": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x18.png").convert_alpha()), True, False),
+                        "dead_air19": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x19.png").convert_alpha()), True, False),
+                        "dead_air20": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x20.png").convert_alpha()), True, False),
+                        "dead_air21": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x21.png").convert_alpha()), True, False),
                         },
                     
                     },                 
