@@ -757,6 +757,88 @@ class Player(GameObject, mixin.Gravity):
                 "LEFT": {"knockback": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Knockback.png").convert_alpha()), True, False)},
             },
             
+            "DEAD":{
+                
+                "ON GROUND": {
+                    
+                    "RIGHT": {
+                        "dead_ground1": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x1.png").convert_alpha(),
+                        "dead_ground2": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x2.png").convert_alpha(),
+                        "dead_ground3": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x3.png").convert_alpha(),
+                        "dead_ground4": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x4.png").convert_alpha(),
+                        "dead_ground5": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x5.png").convert_alpha(),
+                        "dead_ground6": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x6.png").convert_alpha(),
+                        "dead_ground7": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x7.png").convert_alpha(),
+                        "dead_ground8": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x8.png").convert_alpha(),
+                        "dead_ground9": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x9.png").convert_alpha(),
+                        "dead_ground10": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x10.png").convert_alpha(),
+                        "dead_ground11": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x11.png").convert_alpha(),
+                        "dead_ground12": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x12.png").convert_alpha(),
+                        "dead_ground13": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x13.png").convert_alpha(),
+                        "dead_ground14": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x14.png").convert_alpha(),
+                        "dead_ground15": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x15.png").convert_alpha(),
+                        "dead_ground16": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x16.png").convert_alpha(),
+                        "dead_ground17": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x17.png").convert_alpha(),
+                        "dead_ground18": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x18.png").convert_alpha(),
+                        
+                        },
+                    
+                    "LEFT": {
+                        "dead_ground1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x1.png").convert_alpha()), True, False),
+                        "dead_ground2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x2.png").convert_alpha()), True, False),
+                        "dead_ground3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x3.png").convert_alpha()), True, False),
+                        "dead_ground4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x4.png").convert_alpha()), True, False),
+                        "dead_ground5": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x5.png").convert_alpha()), True, False),
+                        "dead_ground6": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x6.png").convert_alpha()), True, False),
+                        "dead_ground7": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x7.png").convert_alpha()), True, False),
+                        "dead_ground8": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x8.png").convert_alpha()), True, False),
+                        "dead_ground9": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x9.png").convert_alpha()), True, False),
+                        "dead_ground10": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x10.png").convert_alpha()), True, False),
+                        "dead_ground11": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x11.png").convert_alpha()), True, False),
+                        "dead_ground12": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x12.png").convert_alpha()), True, False),
+                        "dead_ground13": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x13.png").convert_alpha()), True, False),
+                        "dead_ground14": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x14.png").convert_alpha()), True, False),
+                        "dead_ground15": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x15.png").convert_alpha()), True, False),
+                        "dead_ground16": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x16.png").convert_alpha()), True, False),
+                        "dead_ground17": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x17.png").convert_alpha()), True, False),
+                        "dead_ground18": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x18.png").convert_alpha()), True, False),
+                        },
+                    
+                    }, 
+                
+                "ON AIR": {
+                    
+                    "RIGHT": {
+                        "dead_air1": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x1.png").convert_alpha(),
+                        "dead_air2": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x2.png").convert_alpha(),
+                        "dead_air3": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x3.png").convert_alpha(),
+                        "dead_air4": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x4.png").convert_alpha(),
+                        "dead_air5": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x5.png").convert_alpha(),
+                        "dead_air6": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x6.png").convert_alpha(),
+                        "dead_air7": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x7.png").convert_alpha(),
+                        "dead_air8": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x8.png").convert_alpha(),
+                        "dead_air9": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x9.png").convert_alpha(),
+                        "dead_air10": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x10.png").convert_alpha(),
+                        "dead_air11": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x11.png").convert_alpha(),
+                        "dead_air12": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x12.png").convert_alpha(),
+                        "dead_air13": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x13.png").convert_alpha(),
+                        "dead_air14": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x14.png").convert_alpha(),
+                        "dead_air15": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x15.png").convert_alpha(),
+                        "dead_air16": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x16.png").convert_alpha(),
+                        "dead_air17": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x17.png").convert_alpha(),
+                        "dead_air18": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x18.png").convert_alpha(),
+                        "dead_air19": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x19.png").convert_alpha(),
+                        "dead_air20": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x20.png").convert_alpha(),
+                        "dead_air21": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x21.png").convert_alpha(),
+                        },
+                    
+                    "LEFT": {
+                        
+                        },
+                    
+                    },                 
+            }
+            
         }
         
         return player_sprites
@@ -866,4 +948,6 @@ class Player(GameObject, mixin.Gravity):
     def stop_walking_sound(self):
         self.sounds["walking"].stop()
 
+    def death_animation(self):
+        
         
