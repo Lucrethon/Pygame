@@ -421,8 +421,8 @@ class Gruzzer(Enemy):
             
             "LEFT": 
                 {
-            "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_x3_left.gif"),
-            "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_x6_left.gif"),  
+            "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x3.gif"),
+            "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x6.gif"),  
                 }
         
         }
