@@ -25,6 +25,8 @@ class GameMaster:
         self.timer = 0.0
         self.slow_motion_timer = 0.0
         self.slow_motion_duration = 0.09  # seconds
+        self.game_over_timer = 0.0
+        self.game_over_duration = 5.0  # seconds
         self.GAME_STATE = GameState.MAIN_MENU
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0
@@ -161,10 +163,14 @@ class GameMaster:
                         player.reset_attack()
                         self.GAME_STATE = GameState.TRANSITION
 
-                elif player.isDead:
+                elif player.action_state == States.DEAD:
                     # Si el jugador muere, cambiar a estado de game over
                     player.stop_walking_sound()
-                    self.GAME_STATE = GameState.GAME_OVER
+                    self.game_over_timer += delta_time
+
+                    if self.game_over_timer > self.game_over_duration:
+                        self.game_over_timer = 0.0
+                        self.GAME_STATE = GameState.GAME_OVER
 
     def handle_events(
         self,
