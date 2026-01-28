@@ -412,6 +412,9 @@ class GameMaster:
 
         # lista que comprueba colisiones entre el jugador y los enemigos
         enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False, collided=self.hitbox_collision)
+        
+        if player.action_state == States.DEAD:
+            return  # si el jugador esta muerto, no se comprueban colisiones
 
         if enemies_collision:
 

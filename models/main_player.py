@@ -134,7 +134,9 @@ class Player(GameObject, mixin.Gravity):
         if self.action_state == States.DEAD:
             
             self.death_timer += delta_time
-            self.x_vel = 0 # Detener movimiento horizontal al morir
+            self.x_vel = 0
+            self.y_vel = 0
+            
         
         elif self.action_state == States.KNOCKBACK:
             self.knockback_update(delta_time)
@@ -155,7 +157,8 @@ class Player(GameObject, mixin.Gravity):
         # 2. FÍSICAS
         # -----------------
         # Aplicar fuerzas globales como la gravedad para tener las velocidades finales
-        super().apply_gravity(delta_time)
+        if self.action_state != States.DEAD:
+            super().apply_gravity(delta_time)
 
         # 3. MOVER AL JUGADOR
         # -------------------
@@ -466,17 +469,19 @@ class Player(GameObject, mixin.Gravity):
         #sound
         self.sounds["hurt"].play()
         
-        #knockback and invulnerability
-        self.trigger_knockback()
-        self.trigger_invulnerability()
-        
         if self.HP <= 0:
             self.dead()
+        else:
+            #knockback and invulnerability
+            self.trigger_knockback()
+            self.trigger_invulnerability()
         
     def dead(self):
         
         self.action_state = States.DEAD
         self.sounds["death"].play()
+        self.active_hitbox = None
+        self.active_slash_sprite = None
 
     def trigger_knockback(self):
 
@@ -606,6 +611,7 @@ class Player(GameObject, mixin.Gravity):
         self.attack_recoil_timer = 0.0
         self.invulnerability_timer = 0.0
         self.knockback_timer = 0.0
+        self.death_timer = 0.0
 
     def reset_attack(self):
         self.active_hitbox = None
