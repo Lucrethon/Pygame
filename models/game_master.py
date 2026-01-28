@@ -31,10 +31,13 @@ class GameMaster:
         self.transition_state_duration = 2  # secs - wave_transition duration
         # pygame.font.Font('ruta_del_archivo', tamaño)
         self.title_font = pygame.font.Font(
+            "fonts/HarnoldpixelRegularDemo-Yqw84.otf", 70
+        )
+        self.button_font = pygame.font.Font(
             "fonts/HarnoldpixelRegularDemo-Yqw84.otf", 40
         )
         self.subtitle_font = pygame.font.Font(
-            "fonts/HarnoldpixelRegularDemo-Yqw84.otf", 25
+            "fonts/HarnoldpixelRegularDemo-Yqw84.otf", 30
         )
         self.start_button_rect = None
         self.resume_button_rect = None
@@ -51,6 +54,11 @@ class GameMaster:
         
         #--- SOUNDS ---
         self.enemy_sounds_dict = enemy_sounds()
+        
+        # --- UI ASSETS ---
+        self.overlay = pygame.Surface((960, 540))
+        self.overlay.fill((0, 0, 0))
+        self.overlay.set_alpha(160)
 
     def unpause_sprites(self):
         for sprite in self.all_sprites:
@@ -268,7 +276,7 @@ class GameMaster:
         # Funcion que se encarga de dibujar los diferentes estados del juego
 
         if self.GAME_STATE == GameState.MAIN_MENU:
-            screen.blit(background, (0, 0))
+            screen.blit(background, (0, 0)) # Draw background
             self.display_main_menu(screen)
             self.draw_health_UI(screen, player)
 
@@ -325,89 +333,98 @@ class GameMaster:
 
         player.set_position(screen.get_width() / 2, ground.rect.top, True)
 
+    def get_mouse_pos(self):
+        real_screen = pygame.display.get_surface()
+        if real_screen:
+            return self.mouse_pos(real_screen)
+        return (0, 0)
+
+    def draw_text_centered(self, screen, text, font, color, center_y, shadow=True):
+        if shadow:
+            shadow_surf = font.render(text, False, (0, 0, 0))
+            shadow_rect = shadow_surf.get_rect(center=(screen.get_width() / 2 + 3, center_y + 3))
+            screen.blit(shadow_surf, shadow_rect)
+        
+        text_surf = font.render(text, False, color)
+        text_rect = text_surf.get_rect(center=(screen.get_width() / 2, center_y))
+        screen.blit(text_surf, text_rect)
+        return text_rect
+
+    def draw_button(self, screen, text, font, color, hover_color, center_y, mouse_pos):
+        # Calculate rect to check hover
+        temp_surf = font.render(text, False, color)
+        temp_rect = temp_surf.get_rect(center=(screen.get_width() / 2, center_y))
+        
+        is_hovered = temp_rect.collidepoint(mouse_pos)
+        actual_color = hover_color if is_hovered else color
+        
+        # Draw text with shadow
+        return self.draw_text_centered(screen, text, font, actual_color, center_y)
+
     def display_main_menu(self, screen: pygame.Surface):
-        start_title = self.title_font.render(
-            "Start", False, (15, 15, 27), (250, 251, 246)
+        
+        # Title
+        self.draw_text_centered(screen, "PYGAME KNIGHT", self.title_font, (255, 255, 255), 180)
+        
+        # Start Button
+        mouse_pos = self.get_mouse_pos()
+        self.start_button_rect = self.draw_button(
+            screen, "START GAME", self.button_font, (200, 200, 200), (255, 215, 0), 320, mouse_pos
         )
-
-        start_title_rect = start_title.get_rect()
-        start_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
-
-        self.start_button_rect = start_title_rect
-
-        screen.blit(start_title, start_title_rect)
+        
+        # Hint
+        self.draw_text_centered(screen, "Press Enter or Click to Start", self.subtitle_font, (150, 150, 150), 450, shadow=False)
 
     def display_pause_menu(self, screen: pygame.Surface):
+        
+        # Overlay
+        screen.blit(self.overlay, (0, 0))
 
-        pause_title = self.title_font.render(
-            "Pause", False, (15, 15, 27), (250, 251, 246)
-        )
-        pause_title_rect = pause_title.get_rect()
-        pause_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
+        # Title
+        self.draw_text_centered(screen, "PAUSED", self.title_font, (255, 255, 255), 150)
 
-        resume_title = self.subtitle_font.render(
-            "Resume", False, (15, 15, 27), (250, 251, 246)
-        )
-        resume_title_rect = resume_title.get_rect()
-        resume_title_rect.midtop = (
-            screen.get_width() / 2,
-            pause_title_rect.bottom + 10,
-        )
-        self.resume_button_rect = resume_title_rect
+        mouse_pos = self.get_mouse_pos()
 
-        return_title = self.subtitle_font.render(
-            "Return to Menu", False, (15, 15, 27), (250, 251, 246)
+        # Resume Button
+        self.resume_button_rect = self.draw_button(
+            screen, "RESUME", self.button_font, (200, 200, 200), (255, 215, 0), 260, mouse_pos
         )
-        return_title_rect = return_title.get_rect()
-        return_title_rect.midtop = (
-            screen.get_width() / 2,
-            resume_title_rect.bottom + 10,
-        )
-        self.return_button_rect = return_title_rect
 
-        screen.blit(pause_title, pause_title_rect)
-        screen.blit(resume_title, resume_title_rect)
-        screen.blit(return_title, return_title_rect)
+        # Menu Button
+        self.return_button_rect = self.draw_button(
+            screen, "MAIN MENU", self.button_font, (200, 200, 200), (255, 215, 0), 330, mouse_pos
+        )
 
     def display_game_over_screen(self, screen: pygame.Surface):
+        
+        # Overlay
+        screen.blit(self.overlay, (0, 0))
 
-        game_over_title = self.title_font.render(
-            "Game Over", False, (15, 15, 27), (250, 251, 246)
-        )
-        game_over_title_rect = game_over_title.get_rect()
-        game_over_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
+        # Title
+        self.draw_text_centered(screen, "GAME OVER", self.title_font, (200, 50, 50), 200)
 
-        press_enter_title = self.subtitle_font.render(
-            "Press Enter to Restart", False, (15, 15, 27), (250, 251, 246)
+        # Subtitle
+        self.draw_text_centered(
+            screen, "Press Enter to Restart", self.subtitle_font, (200, 200, 200), 300
         )
-        press_enter_title_rect = press_enter_title.get_rect()
-        press_enter_title_rect.midtop = (
-            screen.get_width() / 2,
-            game_over_title_rect.bottom + 10,
+        
+        # Exit hint
+        self.draw_text_centered(
+            screen, "Press ESC to Quit", self.subtitle_font, (150, 150, 150), 350, shadow=False
         )
-
-        screen.blit(game_over_title, game_over_title_rect)
-        screen.blit(press_enter_title, press_enter_title_rect)
 
     def display_victory_screen(self, screen: pygame.Surface):
+        
+        # Overlay
+        screen.blit(self.overlay, (0, 0))
 
-        victory_title = self.title_font.render(
-            "Victory", False, (15, 15, 27), (250, 251, 246)
-        )
-        victory_title_rect = victory_title.get_rect()
-        victory_title_rect.center = (screen.get_width() / 2, screen.get_height() / 2)
+        # Title
+        self.draw_text_centered(screen, "VICTORY!", self.title_font, (255, 215, 0), 200)
 
-        press_enter_title = self.subtitle_font.render(
-            "Press Enter to Restart", False, (15, 15, 27), (250, 251, 246)
+        # Subtitle
+        self.draw_text_centered(
+            screen, "Press Enter to Play Again", self.subtitle_font, (200, 200, 200), 300
         )
-        press_enter_title_rect = press_enter_title.get_rect()
-        press_enter_title_rect.midtop = (
-            screen.get_width() / 2,
-            victory_title_rect.bottom + 10,
-        )
-
-        screen.blit(victory_title, victory_title_rect)
-        screen.blit(press_enter_title, press_enter_title_rect)
 
     def hitbox_collision(self, player: Player, enemy: Enemy):
         
