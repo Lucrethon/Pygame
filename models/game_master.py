@@ -52,6 +52,11 @@ class GameMaster:
         #--- SOUNDS ---
         self.enemy_sounds_dict = enemy_sounds()
 
+    def unpause_sprites(self):
+        for sprite in self.all_sprites:
+            if hasattr(sprite.image, "unpause"):
+                sprite.image.unpause()
+
     def update_game(
         self,
         player: Player,
@@ -199,6 +204,7 @@ class GameMaster:
 
                     if self.resume_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.PLAYING
+                        self.unpause_sprites()
 
                     elif self.return_button_rect.collidepoint(mouse_pos):
 
@@ -209,6 +215,7 @@ class GameMaster:
 
                     if event.key == pygame.K_RETURN:
                         self.GAME_STATE = GameState.PLAYING
+                        self.unpause_sprites()
 
             # ------------ GAME OVER ------------
 
@@ -271,7 +278,11 @@ class GameMaster:
             for sprite in self.all_sprites:
                 if sprite != player:
                     sprite.draw(screen)
-            
+
+                if hasattr(sprite.image, "pause"):
+                    sprite.image.pause()
+
+
             player.draw(screen)
             self.draw_health_UI(screen, player)
 
@@ -431,7 +442,6 @@ class GameMaster:
                     self.is_animating_broken_mask = True
                     #esta linea activa la animacion de mascara rota en el GameMaster
                     
-
     def handle_player_attack_collision(self, player: Player):
 
         # Funcion que se encarga de manejar las colisiones entre el ataque del jugador y los enemigos
