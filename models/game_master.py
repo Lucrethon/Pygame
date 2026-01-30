@@ -282,7 +282,7 @@ class GameMaster:
                 pygame.mixer.music.play(-1)
             else:
                 pygame.mixer.music.unpause()
-            pygame.mixer.music.set_volume(0.5)
+                pygame.mixer.music.set_volume(0.5)
         
         elif self.GAME_STATE == GameState.PAUSE:
             
@@ -297,7 +297,7 @@ class GameMaster:
             
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.play(-1)
-                pygame.mixer.music.set_volume(0.5)
+                
             else:
                 pygame.mixer.music.unpause()
             
@@ -472,7 +472,7 @@ class GameMaster:
         
         enemy_hitbox = getattr(enemy, 'hitbox', enemy.rect)
 
-        return player_hitbox.colliderect(enemy_hitbox)
+        return player_hitbox.colliderect(enemy_hitbox) #<- Devuelve True si hay colision entre hitboxes del player contre el enemy
     
     def handle_enemies_collision(self, player: Player, delta_time: float):
 
@@ -496,6 +496,7 @@ class GameMaster:
                     player.take_damage()
                     self.trigger_slow_motion(delta_time)
                     functions.knockback(player, enemy, True)
+                    
                     self.is_animating_broken_mask = True
                     #esta linea activa la animacion de mascara rota en el GameMaster
                     
@@ -503,8 +504,8 @@ class GameMaster:
 
         # Funcion que se encarga de manejar las colisiones entre el ataque del jugador y los enemigos
 
-        if player.active_hitbox:
-            # Si el jugador tiene una hitbox activa (esta atacando)
+        if player.active_hitbox and player.action_state == States.ATTACKING:
+            # Si el jugador tiene una hitbox activa y esta atacando
 
             for enemy in self.enemy_group:
 

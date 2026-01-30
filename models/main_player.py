@@ -379,6 +379,7 @@ class Player(GameObject, mixin.Gravity):
             # reset
             self.action_state = None
             self.attack_state = None
+            self.active_hitbox = None
             # reset timer
             self.timer = 0.0
 
