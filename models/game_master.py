@@ -56,6 +56,7 @@ class GameMaster:
         
         #--- SOUNDS ---
         self.enemy_sounds_dict = enemy_sounds()
+        self.background_music = pygame.mixer.music.load("./assets/audio_assets/Queens_Garden.mp3")
         
         # --- UI ASSETS ---
         self.overlay = pygame.Surface((960, 540))
@@ -269,6 +270,39 @@ class GameMaster:
 
                     elif event.key == pygame.K_s:
                         player.trigger_attack(attack=True)
+
+
+    def handle_music(self):
+        
+        if (self.GAME_STATE == GameState.PLAYING
+        or self.GAME_STATE == GameState.TRANSITION 
+        or self.GAME_STATE == GameState.SPAWNING) :
+        
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
+            else:
+                pygame.mixer.music.unpause()
+            pygame.mixer.music.set_volume(0.5)
+        
+        elif self.GAME_STATE == GameState.PAUSE:
+            
+            pygame.mixer.music.set_volume(0.2)
+        
+        elif (self.GAME_STATE == GameState.GAME_OVER
+            or self.GAME_STATE == GameState.VICTORY):
+            
+            pygame.mixer.music.pause()
+
+        elif self.GAME_STATE == GameState.MAIN_MENU:
+            
+            if not pygame.mixer.music.get_busy():
+                pygame.mixer.music.play(-1)
+                pygame.mixer.music.set_volume(0.5)
+            else:
+                pygame.mixer.music.unpause()
+            
+        
+
 
     def draw(
         self,

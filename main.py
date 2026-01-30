@@ -76,7 +76,7 @@ while running:
     game_master.update_game(player, delta_time, virtual_canvas, ground)
 
     # 4. DRAW
-
+    game_master.handle_music()
     game_master.draw(virtual_canvas, player, background, ground, delta_time)
 
     streched_canvas = pygame.transform.scale(
