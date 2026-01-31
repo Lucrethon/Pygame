@@ -614,9 +614,6 @@ class GameMaster:
                     self.returnEnemyWithPosition(
                         screen, ground, Crawlid, Position.GROUND_LEFT_EDGE, Orientation.RIGHT
                     ),
-                    self.returnEnemyWithPosition(
-                        screen, ground, Gruzzer, Position.MIDDLE_RIGHT_EDGE, Orientation.LEFT
-                    ),
                 ],
                 "wave_2": [
                     self.returnEnemyWithPosition(
@@ -625,6 +622,8 @@ class GameMaster:
                     self.returnEnemyWithPosition(
                         screen, ground, Crawlid, Position.GROUND_LEFT_EDGE, Orientation.RIGHT
                     ),
+                    self.returnEnemyWithPosition(
+                        screen, ground, Crawlid, Position.MIDDLE_TOP_EDGE, Orientation.LEFT),
                 ],
             },
             "phase_2": {
@@ -635,6 +634,10 @@ class GameMaster:
                     self.returnEnemyWithPosition(
                         screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE, Orientation.RIGHT
                     ),
+                    
+                    self.returnEnemyWithPosition(
+                        screen, ground, Gruzzer, Position.MIDDLE_RIGHT_EDGE, Orientation.LEFT
+                    ),
                 ],
                 "wave_2": [
                     self.returnEnemyWithPosition(
@@ -643,6 +646,17 @@ class GameMaster:
                     self.returnEnemyWithPosition(
                         screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE, Orientation.RIGHT
                     ),
+                    
+                    self.returnEnemyWithPosition(
+                        screen, ground, Gruzzer, Position.MIDDLE_RIGHT_EDGE, Orientation.LEFT
+                    ),
+                    
+                    self.returnEnemyWithPosition(
+                        screen, ground, Gruzzer, Position.MIDDLE_LEFT_EDGE, Orientation.LEFT
+                    ),
+                    
+                    
+                    
                 ],
             },
         }
