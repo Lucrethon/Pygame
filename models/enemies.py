@@ -261,6 +261,10 @@ class Crawlid(Enemy):
         else:
             pass
 
+
+
+
+
 class Gruzzer(Enemy):
     
     def __init__(self, screen, orientation, sounds: dict):
@@ -304,7 +308,12 @@ class Gruzzer(Enemy):
         # --- TIMERS ---
         self.timer = 0.0
         self.knockback_duration = 0.2
+        self.hit_twinkle_duration = 0.3
+        self.hit_twinkle_timer = 0.0
         
+        # --- FLAGS ---
+        self.is_twinkle = False
+                
     def draw(self, screen):
         return super().draw(screen)
 
@@ -317,6 +326,13 @@ class Gruzzer(Enemy):
         
         delta_x = 0  # variation in x
         delta_y = 0  # variation in y
+        
+        if self.is_twinkle:
+            self.hit_twinkle_timer += delta_time
+            if self.hit_twinkle_timer >= self.hit_twinkle_duration:
+                self.hit_twinkle_timer = 0.0
+                self.is_twinkle = False
+                
         
         if self.state == States.KNOCKBACK:
 
@@ -349,7 +365,12 @@ class Gruzzer(Enemy):
         self.update_orientation()
         self.set_up_sprite(screen)
         self.hitbox = (self.rect.x, self.rect.y + 20, 80, 38)
-
+        
+        if self.is_twinkle:
+            self.set_sprite_hit_twinkle()
+        else: 
+            pass
+        
     def update_orientation(self):
         
         if self.state != States.KNOCKBACK:
@@ -379,6 +400,9 @@ class Gruzzer(Enemy):
         if self.HP <= 0:
             self.isDead = True
             super().kill()
+
+        self.is_twinkle = True
+        self.hit_twinkle_timer = 0.0
     
     def knockback_update(self, delta_time):  # update player position in knockbak state
 
@@ -447,5 +471,38 @@ class Gruzzer(Enemy):
     def spawning(self):
         # animacion de spawn
         pass
+
+    def set_sprite_hit_twinkle(self):
+        
+        if hasattr(self.image, "render"):
+        #comprobamos si el sprite es un gif
+            
+            self.enemy_damaged = self.image.copy()
+            #si es un gif, copiamos el gif original en la variavle self.enemy_damaged
+            #esto nos retorna una lista de frames que componen el gif de la variable self.image
+            #cada frame es una tupla (surface, duration)
+            
+            # Modificamos los elementos de la lista existente porque la propiedad .frames no tiene setter
+            for i, frame in enumerate(self.enemy_damaged.frames):
+                # frame es una tupla (surface, duration)
+                damaged_surface = frame[0].copy() #accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
+                damaged_surface.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD) #pintamos esa surface de blanco
+                
+                self.enemy_damaged.frames[i] = (damaged_surface, frame[1]) 
+                #despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
+        
+        else: 
+            self.enemy_damaged = self.image.copy().convert_alpha()
+            self.enemy_damaged.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
+        
+        
+        split_invulnerability_duration = self.hit_twinkle_duration / 3
+    
+        # Usamos int() para que la división resulte en un número entero (0, 1, 2...)
+        # y el módulo % 2 funcione correctamente para alternar el sprite.
+        if int(self.hit_twinkle_timer / split_invulnerability_duration) % 2 == 0: 
+            self.image = self.enemy_damaged
+        else:
+            pass
 
         
