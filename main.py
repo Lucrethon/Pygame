@@ -5,7 +5,9 @@ import models.main_player as main_player
 
 
 # Initiate pygame
-pygame.mixer.pre_init(44100, -16, 2, 512)
+# Ajustamos a 48000Hz (estándar moderno) y reducimos el buffer a 256 para mínima latencia.
+# Si escuchas "crujidos" o distorsión, sube el 256 a 512 nuevamente.
+pygame.mixer.pre_init(48000, -16, 2, 256)
 pygame.init()
 
 
