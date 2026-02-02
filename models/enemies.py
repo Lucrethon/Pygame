@@ -196,18 +196,38 @@ class Crawlid(Enemy):
         
         enemy_sprites = {
             
-            "RIGHT": 
+            "WALKING": 
                 {
-            "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3.gif"),
-            "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6.gif"),  
             
-            },
-            
-            "LEFT": 
+                "RIGHT": 
+                    {
+                "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3.gif"),
+                "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6.gif"),  
+                
+                },
+                
+                "LEFT": 
+                    {
+                "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3_left.gif"),
+                "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6_left.gif"),  
+                    }
+                
+                },
+                
+            "DEATH": 
+                
                 {
-            "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3_left.gif"),
-            "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6_left.gif"),  
-                }
+                "RIGHT": 
+                    {
+                "death": pygame.image.load("./assets/Crawlid/Death_Crawlid.png"),
+                
+                },
+                "LEFT": 
+                    {
+                "death": pygame.transform.flip((pygame.image.load("./assets/Crawlid/Death_Crawlid.png").convert_alpha()), True, False),
+                    }
+                
+                } 
         
         }
         
@@ -436,18 +456,33 @@ class Gruzzer(Enemy):
         
         enemy_sprites = {
             
-            "RIGHT": 
-                {
-            "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_x3.gif"),
-            "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_x6.gif"),  
+            "FLYING": {
             
+                "RIGHT": 
+                    {
+                "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_x3.gif"),
+                "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_x6.gif"),  
+                
+                },
+                
+                "LEFT": 
+                    {
+                "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x3.gif"),
+                "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x6.gif"),  
+                    }
             },
             
-            "LEFT": 
-                {
-            "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x3.gif"),
-            "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x6.gif"),  
-                }
+            "DEATH": {
+                "RIGHT": 
+                    {
+                "death": pygame.image.load("./assets/Gruzzer/Death_Gruzzer.png"),
+                
+                },
+                "LEFT": 
+                    {
+                "death": pygame.transform.flip((pygame.image.load("./assets/Gruzzer/Death_Gruzzer.png").convert_alpha()), True, False),
+                    }
+            }
         
         }
         
