@@ -28,7 +28,7 @@ def resize(sprite, screen):
 def setup_screen(isFullScreen=False):
 
     if isFullScreen:
-        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN | pygame.SCALED)
 
     else:
         screen = pygame.display.set_mode((960, 540))
