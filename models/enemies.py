@@ -82,7 +82,6 @@ class Crawlid(Enemy):
         
         # --- FLAGS ---
         self.is_twinkle = False
-        
 
     def draw(self, screen):
         return super().draw(screen)
@@ -150,7 +149,6 @@ class Crawlid(Enemy):
             self.set_sprite_hit_twinkle()
         else: 
             pass
-        
 
     def take_damage(self):
 
@@ -597,4 +595,3 @@ class Gruzzer(Enemy):
         else:
             pass
 
-        
