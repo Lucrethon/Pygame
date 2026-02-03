@@ -59,6 +59,7 @@ class GameMaster:
         self.background_music = pygame.mixer.music.load("./assets/audio_assets/Queens_Garden.mp3")
         
         # --- UI ASSETS ---
+        # Overlay semitransparente para oscurecer el fondo en menús (Pausa, Game Over, Victoria)
         self.overlay = pygame.Surface((960, 540))
         self.overlay.fill((0, 0, 0))
         self.overlay.set_alpha(160)
@@ -376,6 +377,7 @@ class GameMaster:
         return (0, 0)
 
     def draw_text_centered(self, screen, text, font, color, center_y, shadow=True):
+        # Helper: Dibuja texto centrado horizontalmente con sombra opcional para mejor contraste
         if shadow:
             shadow_surf = font.render(text, False, (0, 0, 0))
             shadow_rect = shadow_surf.get_rect(center=(screen.get_width() / 2 + 3, center_y + 3))
@@ -387,6 +389,8 @@ class GameMaster:
         return text_rect
 
     def draw_button(self, screen, text, font, color, hover_color, center_y, mouse_pos):
+        # Helper: Botón de texto interactivo con efecto 'hover' (cambio de color al pasar el mouse)
+        
         # Calculate rect to check hover
         temp_surf = font.render(text, False, color)
         temp_rect = temp_surf.get_rect(center=(screen.get_width() / 2, center_y))
@@ -394,7 +398,7 @@ class GameMaster:
         is_hovered = temp_rect.collidepoint(mouse_pos)
         actual_color = hover_color if is_hovered else color
         
-        # Draw text with shadow
+        # Draw text with shadow using the helper
         return self.draw_text_centered(screen, text, font, actual_color, center_y)
 
     def display_main_menu(self, screen: pygame.Surface):
@@ -413,7 +417,7 @@ class GameMaster:
 
     def display_pause_menu(self, screen: pygame.Surface):
         
-        # Overlay
+        # Overlay: Oscurece el fondo del juego para resaltar el menú
         screen.blit(self.overlay, (0, 0))
 
         # Title
@@ -433,7 +437,7 @@ class GameMaster:
 
     def display_game_over_screen(self, screen: pygame.Surface):
         
-        # Overlay
+        # Overlay: Fondo oscuro dramático para Game Over
         screen.blit(self.overlay, (0, 0))
 
         # Title
@@ -451,7 +455,7 @@ class GameMaster:
 
     def display_victory_screen(self, screen: pygame.Surface):
         
-        # Overlay
+        # Overlay: Fondo oscuro para resaltar el mensaje de victoria
         screen.blit(self.overlay, (0, 0))
 
         # Title
