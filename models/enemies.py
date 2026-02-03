@@ -356,6 +356,8 @@ class Gruzzer(Enemy):
         self.knockback_duration = 0.2
         self.hit_twinkle_duration = 0.3
         self.hit_twinkle_timer = 0.0
+        self.dead_timer = 0.0
+        self.dead_duration = 1
         
         # --- FLAGS ---
         self.is_twinkle = False
@@ -367,6 +369,8 @@ class Gruzzer(Enemy):
         return super().set_position(x_pos, y_pos, aling_bottom)
 
     def update_enemy(self, delta_time, screen, ground):
+        
+        
         
         screen_width, screen_height = screen.get_size()
         
@@ -383,6 +387,20 @@ class Gruzzer(Enemy):
         if self.state == States.KNOCKBACK:
 
             self.knockback_update(delta_time)
+            
+        elif self.state == States.DEAD:
+            
+            self.hitbox = (0, 0, 0, 0)  # Desactivar hitbox al morir
+            self.x_vel = 0
+            self.gravity = 2000 # Asignar gravedad para que caiga
+            
+            super().apply_gravity(delta_time)
+            
+            
+            self.dead_timer += delta_time
+            if self.dead_timer >= self.dead_duration:
+                super().kill()
+                self.dead_timer = 0.0
             
         else:
         
@@ -407,6 +425,9 @@ class Gruzzer(Enemy):
 
         # Move rect
         self.rect.move_ip(delta_x, delta_y)
+        
+        if self.state == States.DEAD:
+            super().check_ground_collision(ground)
 
         self.update_orientation()
         self.set_up_sprite(screen)
@@ -434,21 +455,22 @@ class Gruzzer(Enemy):
     def take_damage(self):
 
         self.HP -= 1
-
-        self.state = States.KNOCKBACK
-
-        # restart timer
-        self.timer = 0.0
-        
         #sound effect 
         self.sounds["hurt"].play()
-
+        
         if self.HP <= 0:
             self.isDead = True
-            super().kill()
+            self.state = States.DEAD
+            
+        else:
 
-        self.is_twinkle = True
-        self.hit_twinkle_timer = 0.0
+            self.state = States.KNOCKBACK
+
+            # restart timer
+            self.timer = 0.0
+
+            self.is_twinkle = True
+            self.hit_twinkle_timer = 0.0
     
     def knockback_update(self, delta_time):  # update player position in knockbak state
 
@@ -530,6 +552,10 @@ class Gruzzer(Enemy):
                 
         elif self.state == States.DEAD:
             current_sprite = self.enemy_sprites[self.state.name][self.x_orientation.name]["death"]
+        
+        
+        if self.state == States.DEAD:
+            self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
 
         
         self.image = current_sprite 
