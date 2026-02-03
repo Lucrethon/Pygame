@@ -271,7 +271,6 @@ class GameMaster:
                     elif event.key == pygame.K_s:
                         player.trigger_attack(attack=True)
 
-
     def handle_music(self):
         
         if (self.GAME_STATE == GameState.PLAYING
@@ -300,9 +299,6 @@ class GameMaster:
                 
             else:
                 pygame.mixer.music.unpause()
-            
-        
-
 
     def draw(
         self,
@@ -487,6 +483,9 @@ class GameMaster:
         if enemies_collision:
 
             for enemy in enemies_collision:
+                
+                if enemy.state == States.DEAD:
+                    continue  # si el enemigo esta muerto, no se le aplica daño al jugador
 
                 # si hay colision y el jugador esta en estado de daño o invulnerable, el jugador no recibe daño
                 if player.action_state == States.KNOCKBACK or player.is_invulnerable:
@@ -508,6 +507,9 @@ class GameMaster:
             # Si el jugador tiene una hitbox activa y esta atacando
 
             for enemy in self.enemy_group:
+                
+                if enemy.state == States.DEAD:
+                    continue  # si el enemigo esta muerto, no se le aplica daño
 
                 # si el rect del enemigo colisiona con la hitbox activa del jugador
                 if player.active_hitbox.colliderect(enemy.hitbox):

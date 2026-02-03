@@ -42,6 +42,9 @@ class Crawlid(Enemy):
         # --- SPRITES ---
         self.enemy_sprites = self.enemy_sprites()
         self.x_orientation = orientation
+        
+        # --- STATE OF ACTION ---
+        self.state = States.WALKING
         self.set_up_sprite(screen)
         self.enemy_damaged = None
         self.sounds = sounds
@@ -64,8 +67,6 @@ class Crawlid(Enemy):
         # --- HEALTH ---
         self.HP = 5
 
-        # --- STATE OF ACTION ---
-        self.state = States.WALKING
         self.isDead = False
 
         # --- ORIENTATION AND POSITION ---
@@ -76,6 +77,8 @@ class Crawlid(Enemy):
         self.knockback_duration = 0.2
         self.hit_twinkle_duration = 0.3
         self.hit_twinkle_timer = 0.0
+        self.dead_timer = 0.0
+        self.dead_duration = 1
         
         # --- FLAGS ---
         self.is_twinkle = False
@@ -108,6 +111,18 @@ class Crawlid(Enemy):
 
             self.knockback_update(delta_time)
             # Usa la velocidad de knockback
+            
+        elif self.state == States.DEAD:
+            
+            self.hitbox = (0, 0, 0, 0)  # Desactivar hitbox al morir
+            super().apply_gravity(delta_time)
+            self.x_vel = 0
+            
+            self.dead_timer += delta_time
+            if self.dead_timer >= self.dead_duration:
+                super().kill()
+                self.dead_timer = 0.0
+            
         else:
             self.x_vel = self.move_speed
 
@@ -143,20 +158,23 @@ class Crawlid(Enemy):
         
         #sound effect 
         self.sounds["hurt"].play()
-
-        self.state = States.KNOCKBACK
-
-        self.is_on_ground = False
-
-        # restart timer
-        self.timer = 0.0
-
+        
         if self.HP <= 0:
             self.isDead = True
-            super().kill()
+            self.state = States.DEAD
+            
+        else:
+
+            self.state = States.KNOCKBACK
+
+            self.is_on_ground = False
+
+            # restart timer
+            self.timer = 0.0
+            
+            self.is_twinkle = True
+            self.hit_twinkle_timer = 0.0
         
-        self.is_twinkle = True
-        self.hit_twinkle_timer = 0.0
 
 
         # Knockback physic
@@ -239,18 +257,22 @@ class Crawlid(Enemy):
         # Funcion que se encarga de establecer el sprite inicial del jugador basado en su estado actual.
         current_sprite = None
         
-        if self.state == States.WALKING:
+        if self.state == States.WALKING or self.state == States.KNOCKBACK:
             
             if screen_width == 960 and screen_height == 540:
-                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x3"]
+                current_sprite = self.enemy_sprites["WALKING"][self.x_orientation.name]["walking_x3"]
                     
             elif screen_width == 1920 and screen_height == 1080:
-                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x6"]
+                current_sprite = self.enemy_sprites["WALKING"][self.x_orientation.name]["walking_x6"]
 
         elif self.state == States.DEAD:
             current_sprite = self.enemy_sprites[self.state.name][self.x_orientation.name]["death"]
         
         self.image = current_sprite 
+
+        # Fix: Actualizar el rect al tamaño de la nueva imagen manteniendo la base en el suelo
+        if self.state == States.DEAD:
+            self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
     
     def set_sprite_hit_twinkle(self):
         
@@ -285,9 +307,6 @@ class Crawlid(Enemy):
         else:
             pass
 
-    def dead(self):
-        pass    
-
 
 
 class Gruzzer(Enemy):
@@ -299,6 +318,12 @@ class Gruzzer(Enemy):
         super().__init__(screen, orientation, sounds)
         
         self.name = "Gruzzer"
+        
+        # --- STATE OF ACTION ---
+        self.state = States.FLYING
+        self.isDead = False
+        
+        # --- SPRITES ---
         
         self.hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
         self.x_orientation = orientation
@@ -325,10 +350,6 @@ class Gruzzer(Enemy):
 
         # --- HEALTH ---
         self.HP = 5
-
-        # --- STATE OF ACTION ---
-        self.state = States.FLYING
-        self.isDead = False
 
         # --- TIMERS ---
         self.timer = 0.0
@@ -499,13 +520,13 @@ class Gruzzer(Enemy):
         # Funcion que se encarga de establecer el sprite inicial del jugador basado en su estado actual.
         current_sprite = None
         
-        if self.state == States.FLYING:
+        if self.state == States.FLYING or self.state == States.KNOCKBACK:
         
             if screen_width == 960 and screen_height == 540:
-                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x3"]
+                current_sprite = self.enemy_sprites["FLYING"][self.x_orientation.name]["walking_x3"]
                     
             elif screen_width == 1920 and screen_height == 1080:
-                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x6"]
+                current_sprite = self.enemy_sprites["FLYING"][self.x_orientation.name]["walking_x6"]
                 
         elif self.state == States.DEAD:
             current_sprite = self.enemy_sprites[self.state.name][self.x_orientation.name]["death"]
