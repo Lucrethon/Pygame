@@ -214,7 +214,7 @@ class Crawlid(Enemy):
                 
                 },
                 
-            "DEATH": 
+            "DEAD": 
                 
                 {
                 "RIGHT": 
@@ -239,12 +239,16 @@ class Crawlid(Enemy):
         # Funcion que se encarga de establecer el sprite inicial del jugador basado en su estado actual.
         current_sprite = None
         
-        if screen_width == 960 and screen_height == 540:
-            current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x3"]
-                
-        elif screen_width == 1920 and screen_height == 1080:
-            current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x6"]
+        if self.state == States.WALKING:
+            
+            if screen_width == 960 and screen_height == 540:
+                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x3"]
+                    
+            elif screen_width == 1920 and screen_height == 1080:
+                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x6"]
 
+        elif self.state == States.DEAD:
+            current_sprite = self.enemy_sprites[self.state.name][self.x_orientation.name]["death"]
         
         self.image = current_sprite 
     
@@ -281,7 +285,8 @@ class Crawlid(Enemy):
         else:
             pass
 
-
+    def dead(self):
+        pass    
 
 
 
@@ -472,7 +477,7 @@ class Gruzzer(Enemy):
                     }
             },
             
-            "DEATH": {
+            "DEAD": {
                 "RIGHT": 
                     {
                 "death": pygame.image.load("./assets/Gruzzer/Death_Gruzzer.png"),
@@ -494,11 +499,16 @@ class Gruzzer(Enemy):
         # Funcion que se encarga de establecer el sprite inicial del jugador basado en su estado actual.
         current_sprite = None
         
-        if screen_width == 960 and screen_height == 540:
-            current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x3"]
+        if self.state == States.FLYING:
+        
+            if screen_width == 960 and screen_height == 540:
+                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x3"]
+                    
+            elif screen_width == 1920 and screen_height == 1080:
+                current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x6"]
                 
-        elif screen_width == 1920 and screen_height == 1080:
-            current_sprite = self.enemy_sprites[self.x_orientation.name]["walking_x6"]
+        elif self.state == States.DEAD:
+            current_sprite = self.enemy_sprites[self.state.name][self.x_orientation.name]["death"]
 
         
         self.image = current_sprite 
