@@ -780,6 +780,16 @@ class Player(GameObject, mixin.Gravity):
             
             "DEAD":{
                 
+                "SHADED IN AIR": {
+                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_x3.gif"),
+                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_x6.gif"),
+                    },
+                
+                "SHADED ON GROUND": {
+                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_x3.gif"),
+                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_x6.gif"),
+                    },
+                
                 "ON GROUND": {
                     
                     "RIGHT": {
