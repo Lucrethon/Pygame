@@ -507,7 +507,7 @@ class GameMaster:
                     # si no esta en esos estados, el jugador recibe daño
                     player.take_damage()
                     self.trigger_slow_motion(delta_time)
-                    self.trigger_shake(0.3, 10) # Sacudida fuerte al recibir daño
+                    self.trigger_shake(0.3, 10) # Sacudida fuerte de la pantalla al recibir daño
                     functions.knockback(player, enemy, True)
                     
                     self.is_animating_broken_mask = True
@@ -536,7 +536,7 @@ class GameMaster:
                             enemy.take_damage()
                             functions.knockback(player, enemy, False)
                             player.trigger_pogo()
-                            self.trigger_shake(0.1, 5) # Sacudida media al hacer pogo
+                            #self.trigger_shake(0.1, 5) # Sacudida media al hacer pogo
                             player.enemies_attacked.append(enemy)
 
                         # si el jugador tiene cualquier otra orientacion, no se aplica pogo y el enemigo recibe daño
@@ -544,7 +544,7 @@ class GameMaster:
                             enemy.take_damage()
                             functions.knockback(player, enemy, False)
                             player.start_attack_recoil()
-                            self.trigger_shake(0.1, 3) # Sacudida leve al golpear normal
+                            #self.trigger_shake(0.1, 3) # Sacudida leve al golpear normal
                             player.enemies_attacked.append(enemy)
                     else:
                         # si el enemigo ha sido atacado ya en este ataque, no se le aplica daño
@@ -864,6 +864,8 @@ class GameMaster:
         # Si el timer está activo, genera coordenadas aleatorias para desplazar la pantalla
         if self.shake_timer > 0:
             self.shake_timer -= delta_time
+            # Se usa el rango negativo a positivo (-magnitud, +magnitud) 
+            # para que la vibración ocurra en ambas direcciones (izquierda/derecha o arriba/abajo) respecto al centro (0,0)
             offset_x = random.randint(-self.shake_magnitude, self.shake_magnitude)
             offset_y = random.randint(-self.shake_magnitude, self.shake_magnitude)
             self.current_shake_offset = (offset_x, offset_y)
