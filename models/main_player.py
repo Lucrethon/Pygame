@@ -781,13 +781,30 @@ class Player(GameObject, mixin.Gravity):
             "DEAD":{
                 
                 "SHADED IN AIR": {
-                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_x3.gif"),
-                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_x6.gif"),
+                    
+                    "RIGHT": {
+                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_left_x3.gif"),
+                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_left_x6.gif"),
+                    },
+                    
+                    "LEFT": {
+                        "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_right_x3.gif"),
+                        "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_right_x6.gif"),
+                    },
                     },
                 
                 "SHADED ON GROUND": {
-                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_x3.gif"),
-                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_x6.gif"),
+                    
+                    "RIGHT": {
+                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_left_x3.gif"),
+                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_left_x6.gif"),
+                    },
+                    
+                    "LEFT": {
+                        "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_right_x3.gif"),
+                        "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_right_x6.gif"),
+                    },
+                    
                     },
                 
                 "ON GROUND": {
@@ -928,13 +945,13 @@ class Player(GameObject, mixin.Gravity):
                     
                     animation_duration = self.death_on_ground_duration
                     
-                    current_sprite = self.reproduce_animation(self.player_sprites["DEAD"]["ON GROUND"][self.x_orientation.name], animation_duration)
+                    current_sprite = self.reproduce_animation(self.player_sprites["DEAD"]["ON GROUND"][self.x_orientation.name], animation_duration, self.player_sprites["DEAD"]["SHADED ON GROUND"][self.x_orientation.name], screen)
                 
                 else:
                     
                     animation_duration = self.death_on_air_duration
                     
-                    current_sprite = self.reproduce_animation(self.player_sprites["DEAD"]["ON AIR"][self.x_orientation.name], animation_duration)
+                    current_sprite = self.reproduce_animation(self.player_sprites["DEAD"]["ON AIR"][self.x_orientation.name], animation_duration, self.player_sprites["DEAD"]["SHADED IN AIR"][self.x_orientation.name], screen)
         else: 
             if self.movement_state == States.IDDLE: 
                 
@@ -1014,7 +1031,7 @@ class Player(GameObject, mixin.Gravity):
     def stop_walking_sound(self):
         self.sounds["walking"].stop()
 
-    def reproduce_animation(self, dictionary_frame_animation: dict, animation_duration: float):
+    def reproduce_animation(self, dictionary_frame_animation: dict, animation_duration: float, dictionary_shade_animation: dict, screen):
         
         # Aquí se implementará la reproducción de la animación de muerte del jugador
         # Se puede usar un temporizador para controlar la duración de la animación
@@ -1028,10 +1045,25 @@ class Player(GameObject, mixin.Gravity):
             if frame_index < len(dictionary_frame_animation):
                 current_sprite = dictionary_frame_animation[f"frame_{frame_index + 1}"]
             else:
-                current_sprite = dictionary_frame_animation["frame_" + str(len(dictionary_frame_animation))]  # Fallback to last frame
+                # Mostrar la animación de sombra durante la animación de muerte
+                current_sprite = self.set_up_shade_sprite(dictionary_frame_animation, dictionary_shade_animation, screen)
+
         
         else: 
-            current_sprite = dictionary_frame_animation["frame_" + str(len(dictionary_frame_animation))]  # Fallback to last frame
+            current_sprite = self.set_up_shade_sprite(dictionary_frame_animation, dictionary_shade_animation, screen)
 
         return current_sprite
+    
+    def set_up_shade_sprite(self, dictionary_frame_animation: dict, dictionary_shade_animation: dict, screen):
         
+        # Función para configurar el sprite de sombra del jugador durante la animación de muerte
+        
+        screen_width, screen_height = screen.get_size()
+        if screen_width == 960 and screen_height == 540:
+            current_sprite = dictionary_shade_animation["shade_x3"]  
+        elif screen_width == 1920 and screen_height == 1080:
+            current_sprite = dictionary_shade_animation["shade_x6"]
+        else:
+            current_sprite = dictionary_frame_animation["frame_" + str(len(dictionary_frame_animation))]  # Fallback to last frame
+        
+        return current_sprite
