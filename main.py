@@ -85,7 +85,8 @@ while running:
         virtual_canvas, (screen_width, screen_height)
     )
 
-    screen.blit(streched_canvas, (0, 0))
+    # Dibujamos el canvas estirado aplicando el offset del Screen Shake (si es (0,0) no tiembla)
+    screen.blit(streched_canvas, game_master.current_shake_offset)
 
     # update screen
     pygame.display.flip()
