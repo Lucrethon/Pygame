@@ -538,6 +538,7 @@ class GameMaster:
             "Use Arrow Keys to Move",
             "Press 'S' to Attack",
             "Press Space to jump",
+            "You can attack in every direction",
             "Defeat all enemies to win!",
         ]
 
