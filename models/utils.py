@@ -21,11 +21,12 @@ class Orientation(Enum):
     DOWN = 4
     NEUTRAL = 5
 
+
 class AttackState(Enum):
     BUILDUP = "buildup_phase"
     ACTIVE = "active_phase"
     RECOVERY = "recovery_phase"
-    
+
 
 class GameState(Enum):
 

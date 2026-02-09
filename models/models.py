@@ -1,13 +1,16 @@
 import pygame
 from abc import ABC, abstractmethod
 
+
 class GameObject(ABC, pygame.sprite.Sprite):
 
     def __init__(self, image=None, *groups):
         super().__init__(*groups)
         self.image = image
         if self.image:
-            self.rect = self.image.get_rect()  # get the size of the image to create a rects
+            self.rect = (
+                self.image.get_rect()
+            )  # get the size of the image to create a rects
         else:
             self.rect = pygame.Rect(0, 0, 0, 0)
 
@@ -35,8 +38,6 @@ class GameObject(ABC, pygame.sprite.Sprite):
 
         else:
             self.rect.topleft = (x_pos, y_pos)
-
-
 
 
 class Platform(GameObject):

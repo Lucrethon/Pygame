@@ -8,7 +8,6 @@ from models.models import GameObject
 import gif_pygame
 
 
-
 class Enemy(GameObject, mixin.Gravity, mixin.CrossScreen):
 
     def __init__(self, screen, orientation, sounds: dict):
@@ -37,18 +36,18 @@ class Crawlid(Enemy):
 
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
         super().__init__(screen, orientation, sounds)
-        
+
         self.name = "Crawlid"
         # --- SPRITES ---
         self.enemy_sprites = self.enemy_sprites()
         self.x_orientation = orientation
-        
+
         # --- STATE OF ACTION ---
         self.state = States.WALKING
         self.set_up_sprite(screen)
         self.enemy_damaged = None
         self.sounds = sounds
-        
+
         # --- HITBOX ---
         self.rect = self.image.get_rect()
         self.hitbox = (self.rect.x, self.rect.y + 20, 80, 38)
@@ -79,7 +78,7 @@ class Crawlid(Enemy):
         self.hit_twinkle_timer = 0.0
         self.dead_timer = 0.0
         self.dead_duration = 1
-        
+
         # --- FLAGS ---
         self.is_twinkle = False
 
@@ -110,18 +109,18 @@ class Crawlid(Enemy):
 
             self.knockback_update(delta_time)
             # Usa la velocidad de knockback
-            
+
         elif self.state == States.DEAD:
-            
+
             self.hitbox = (0, 0, 0, 0)  # Desactivar hitbox al morir
             super().apply_gravity(delta_time)
             self.x_vel = 0
-            
+
             self.dead_timer += delta_time
             if self.dead_timer >= self.dead_duration:
                 super().kill()
                 self.dead_timer = 0.0
-            
+
         else:
             self.x_vel = self.move_speed
 
@@ -144,23 +143,23 @@ class Crawlid(Enemy):
         self.update_orientation()
         self.set_up_sprite(screen)
         self.hitbox = (self.rect.x, self.rect.y + 10, 83, 40)
-        
+
         if self.is_twinkle:
             self.set_sprite_hit_twinkle()
-        else: 
+        else:
             pass
 
     def take_damage(self):
 
         self.HP -= 1
-        
-        #sound effect 
+
+        # sound effect
         self.sounds["hurt"].play()
-        
+
         if self.HP <= 0:
             self.isDead = True
             self.state = States.DEAD
-            
+
         else:
 
             self.state = States.KNOCKBACK
@@ -169,11 +168,9 @@ class Crawlid(Enemy):
 
             # restart timer
             self.timer = 0.0
-            
+
             self.is_twinkle = True
             self.hit_twinkle_timer = 0.0
-        
-
 
         # Knockback physic
 
@@ -194,135 +191,139 @@ class Crawlid(Enemy):
             self.timer = 0.0
             # Importante: resetear la velocidad X al salir del knockback
             self.x_vel = 0
-            
+
     def spawning(self):
         # animacion de spawn
         pass
-    
+
     def update_orientation(self):
-        
+
         if self.state != States.KNOCKBACK:
-            
+
             if self.x_vel >= 0:
                 self.x_orientation = Orientation.RIGHT
             elif self.x_vel < 0:
                 self.x_orientation = Orientation.LEFT
-        
+
     def enemy_sprites(self):
-        
+
         enemy_sprites = {
-            
-            "WALKING": 
-                {
-            
-                "RIGHT": 
-                    {
-                "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3.gif"),
-                "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6.gif"),  
-                
+            "WALKING": {
+                "RIGHT": {
+                    "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3.gif"),
+                    "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6.gif"),
                 },
-                
-                "LEFT": 
-                    {
-                "walking_x3": gif_pygame.load("./assets/Crawlid/Crawlid_x3_left.gif"),
-                "walking_x6": gif_pygame.load("./assets/Crawlid/Crawlid_x6_left.gif"),  
-                    }
-                
+                "LEFT": {
+                    "walking_x3": gif_pygame.load(
+                        "./assets/Crawlid/Crawlid_x3_left.gif"
+                    ),
+                    "walking_x6": gif_pygame.load(
+                        "./assets/Crawlid/Crawlid_x6_left.gif"
+                    ),
                 },
-                
-            "DEAD": 
-                
-                {
-                "RIGHT": 
-                    {
-                "death": pygame.image.load("./assets/Crawlid/Death_Crawlid.png"),
-                
+            },
+            "DEAD": {
+                "RIGHT": {
+                    "death": pygame.image.load("./assets/Crawlid/Death_Crawlid.png"),
                 },
-                "LEFT": 
-                    {
-                "death": pygame.transform.flip((pygame.image.load("./assets/Crawlid/Death_Crawlid.png").convert_alpha()), True, False),
-                    }
-                
-                } 
-        
+                "LEFT": {
+                    "death": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Crawlid/Death_Crawlid.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                },
+            },
         }
-        
+
         return enemy_sprites
-    
+
     def set_up_sprite(self, screen: pygame.Surface):
-        
+
         screen_width, screen_height = screen.get_size()
         # Funcion que se encarga de establecer el sprite inicial del jugador basado en su estado actual.
         current_sprite = None
-        
+
         if self.state == States.WALKING or self.state == States.KNOCKBACK:
-            
+
             if screen_width == 960 and screen_height == 540:
-                current_sprite = self.enemy_sprites["WALKING"][self.x_orientation.name]["walking_x3"]
-                    
+                current_sprite = self.enemy_sprites["WALKING"][self.x_orientation.name][
+                    "walking_x3"
+                ]
+
             elif screen_width == 1920 and screen_height == 1080:
-                current_sprite = self.enemy_sprites["WALKING"][self.x_orientation.name]["walking_x6"]
+                current_sprite = self.enemy_sprites["WALKING"][self.x_orientation.name][
+                    "walking_x6"
+                ]
 
         elif self.state == States.DEAD:
-            current_sprite = self.enemy_sprites[self.state.name][self.x_orientation.name]["death"]
-        
-        self.image = current_sprite 
+            current_sprite = self.enemy_sprites[self.state.name][
+                self.x_orientation.name
+            ]["death"]
+
+        self.image = current_sprite
 
         # Fix: Actualizar el rect al tamaño de la nueva imagen manteniendo la base en el suelo
         if self.state == States.DEAD:
             self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
-    
+
     def set_sprite_hit_twinkle(self):
-        
+
         if hasattr(self.image, "render"):
-        #comprobamos si el sprite es un gif
-            
+            # comprobamos si el sprite es un gif
+
             self.enemy_damaged = self.image.copy()
-            #si es un gif, copiamos el gif original en la variavle self.enemy_damaged
-            #esto nos retorna una lista de frames que componen el gif de la variable self.image
-            #cada frame es una tupla (surface, duration)
-            
+            # si es un gif, copiamos el gif original en la variavle self.enemy_damaged
+            # esto nos retorna una lista de frames que componen el gif de la variable self.image
+            # cada frame es una tupla (surface, duration)
+
             # Modificamos los elementos de la lista existente porque la propiedad .frames no tiene setter
             for i, frame in enumerate(self.enemy_damaged.frames):
                 # frame es una tupla (surface, duration)
-                damaged_surface = frame[0].copy() #accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
-                damaged_surface.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD) #pintamos esa surface de blanco
-                
-                self.enemy_damaged.frames[i] = (damaged_surface, frame[1]) 
-                #despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
-        
-        else: 
+                damaged_surface = frame[
+                    0
+                ].copy()  # accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
+                damaged_surface.fill(
+                    (255, 255, 255), special_flags=pygame.BLEND_RGB_ADD
+                )  # pintamos esa surface de blanco
+
+                self.enemy_damaged.frames[i] = (damaged_surface, frame[1])
+                # despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
+
+        else:
             self.enemy_damaged = self.image.copy().convert_alpha()
             self.enemy_damaged.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
-        
-        
+
         split_invulnerability_duration = self.hit_twinkle_duration / 3
-    
+
         # Usamos int() para que la división resulte en un número entero (0, 1, 2...)
         # y el módulo % 2 funcione correctamente para alternar el sprite.
-        if int(self.hit_twinkle_timer / split_invulnerability_duration) % 2 == 0: 
+        if int(self.hit_twinkle_timer / split_invulnerability_duration) % 2 == 0:
             self.image = self.enemy_damaged
         else:
             pass
 
 
-
 class Gruzzer(Enemy):
-    
+
     def __init__(self, screen, orientation, sounds: dict):
         # Crear/Cargar la imagen específica para el enemig0
 
         # Llamar al constructor de la clase padre (Enemy) con estos atributos
         super().__init__(screen, orientation, sounds)
-        
+
         self.name = "Gruzzer"
-        
+
         # --- STATE OF ACTION ---
         self.state = States.FLYING
         self.isDead = False
-        
+
         # --- SPRITES ---
-        
+
         self.hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
         self.x_orientation = orientation
         self.enemy_sprites = self.enemy_sprites()
@@ -356,10 +357,10 @@ class Gruzzer(Enemy):
         self.hit_twinkle_timer = 0.0
         self.dead_timer = 0.0
         self.dead_duration = 1
-        
+
         # --- FLAGS ---
         self.is_twinkle = False
-                
+
     def draw(self, screen):
         return super().draw(screen)
 
@@ -367,53 +368,49 @@ class Gruzzer(Enemy):
         return super().set_position(x_pos, y_pos, aling_bottom)
 
     def update_enemy(self, delta_time, screen, ground):
-        
-        
-        
+
         screen_width, screen_height = screen.get_size()
-        
+
         delta_x = 0  # variation in x
         delta_y = 0  # variation in y
-        
+
         if self.is_twinkle:
             self.hit_twinkle_timer += delta_time
             if self.hit_twinkle_timer >= self.hit_twinkle_duration:
                 self.hit_twinkle_timer = 0.0
                 self.is_twinkle = False
-                
-        
+
         if self.state == States.KNOCKBACK:
 
             self.knockback_update(delta_time)
-            
+
         elif self.state == States.DEAD:
-            
+
             self.hitbox = (0, 0, 0, 0)  # Desactivar hitbox al morir
             self.x_vel = 0
-            self.gravity = 2000 # Asignar gravedad para que caiga
-            
+            self.gravity = 2000  # Asignar gravedad para que caiga
+
             super().apply_gravity(delta_time)
-            
-            
+
             self.dead_timer += delta_time
             if self.dead_timer >= self.dead_duration:
                 super().kill()
                 self.dead_timer = 0.0
-            
+
         else:
-        
+
             if self.rect.right >= screen_width:
                 self.x_vel = -self.x_speed
                 self.rect.right = screen_width
-                
+
             elif self.rect.left <= 0:
                 self.x_vel = self.x_speed
                 self.rect.left = 0
-                
+
             if self.rect.bottom >= ground.rect.top:
                 self.y_vel = -self.y_speed
                 self.rect.bottom = ground.rect.top
-                
+
             elif self.rect.top <= 0:
                 self.y_vel = self.y_speed
                 self.rect.top = 0
@@ -423,43 +420,43 @@ class Gruzzer(Enemy):
 
         # Move rect
         self.rect.move_ip(delta_x, delta_y)
-        
+
         if self.state == States.DEAD:
             super().check_ground_collision(ground)
 
         self.update_orientation()
         self.set_up_sprite(screen)
         self.hitbox = (self.rect.x, self.rect.y + 20, 80, 38)
-        
+
         if self.is_twinkle:
             self.set_sprite_hit_twinkle()
-        else: 
+        else:
             pass
-        
+
     def update_orientation(self):
-        
+
         if self.state != States.KNOCKBACK:
-        
+
             if self.x_vel >= 0:
                 self.x_orientation = Orientation.RIGHT
             elif self.x_vel < 0:
                 self.x_orientation = Orientation.LEFT
-                
+
             if self.y_vel >= 0:
                 self.y_orientation = Orientation.DOWN
             elif self.y_vel < 0:
                 self.y_orientation = Orientation.UP
-    
+
     def take_damage(self):
 
         self.HP -= 1
-        #sound effect 
+        # sound effect
         self.sounds["hurt"].play()
-        
+
         if self.HP <= 0:
             self.isDead = True
             self.state = States.DEAD
-            
+
         else:
 
             self.state = States.KNOCKBACK
@@ -469,7 +466,7 @@ class Gruzzer(Enemy):
 
             self.is_twinkle = True
             self.hit_twinkle_timer = 0.0
-    
+
     def knockback_update(self, delta_time):  # update player position in knockbak state
 
         # start the timer
@@ -485,113 +482,120 @@ class Gruzzer(Enemy):
         if self.timer >= self.knockback_duration:
             self.state = States.FLYING
             self.timer = 0.0
-            
+
             # Restaurar velocidad X
             if self.x_orientation == Orientation.RIGHT:
                 self.x_vel = self.x_speed
             else:
                 self.x_vel = -self.x_speed
-            
+
             # Restaurar velocidad Y
             if self.y_orientation == Orientation.DOWN:
                 self.y_vel = self.y_speed
             else:
                 self.y_vel = -self.y_speed
-    
+
     def enemy_sprites(self):
-        
+
         enemy_sprites = {
-            
             "FLYING": {
-            
-                "RIGHT": 
-                    {
-                "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_x3.gif"),
-                "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_x6.gif"),  
-                
+                "RIGHT": {
+                    "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_x3.gif"),
+                    "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_x6.gif"),
                 },
-                
-                "LEFT": 
-                    {
-                "walking_x3": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x3.gif"),
-                "walking_x6": gif_pygame.load("./assets/Gruzzer/Gruzzer_left_x6.gif"),  
-                    }
+                "LEFT": {
+                    "walking_x3": gif_pygame.load(
+                        "./assets/Gruzzer/Gruzzer_left_x3.gif"
+                    ),
+                    "walking_x6": gif_pygame.load(
+                        "./assets/Gruzzer/Gruzzer_left_x6.gif"
+                    ),
+                },
             },
-            
             "DEAD": {
-                "RIGHT": 
-                    {
-                "death": pygame.image.load("./assets/Gruzzer/Death_Gruzzer.png"),
-                
+                "RIGHT": {
+                    "death": pygame.image.load("./assets/Gruzzer/Death_Gruzzer.png"),
                 },
-                "LEFT": 
-                    {
-                "death": pygame.transform.flip((pygame.image.load("./assets/Gruzzer/Death_Gruzzer.png").convert_alpha()), True, False),
-                    }
-            }
-        
+                "LEFT": {
+                    "death": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Gruzzer/Death_Gruzzer.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                },
+            },
         }
-        
+
         return enemy_sprites
-    
+
     def set_up_sprite(self, screen: pygame.Surface):
-        
+
         screen_width, screen_height = screen.get_size()
         # Funcion que se encarga de establecer el sprite inicial del jugador basado en su estado actual.
         current_sprite = None
-        
+
         if self.state == States.FLYING or self.state == States.KNOCKBACK:
-        
+
             if screen_width == 960 and screen_height == 540:
-                current_sprite = self.enemy_sprites["FLYING"][self.x_orientation.name]["walking_x3"]
-                    
+                current_sprite = self.enemy_sprites["FLYING"][self.x_orientation.name][
+                    "walking_x3"
+                ]
+
             elif screen_width == 1920 and screen_height == 1080:
-                current_sprite = self.enemy_sprites["FLYING"][self.x_orientation.name]["walking_x6"]
-                
+                current_sprite = self.enemy_sprites["FLYING"][self.x_orientation.name][
+                    "walking_x6"
+                ]
+
         elif self.state == States.DEAD:
-            current_sprite = self.enemy_sprites[self.state.name][self.x_orientation.name]["death"]
-        
-        
+            current_sprite = self.enemy_sprites[self.state.name][
+                self.x_orientation.name
+            ]["death"]
+
         if self.state == States.DEAD:
             self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
 
-        
-        self.image = current_sprite 
-    
+        self.image = current_sprite
+
     def spawning(self):
         # animacion de spawn
         pass
 
     def set_sprite_hit_twinkle(self):
-        
+
         if hasattr(self.image, "render"):
-        #comprobamos si el sprite es un gif
-            
+            # comprobamos si el sprite es un gif
+
             self.enemy_damaged = self.image.copy()
-            #si es un gif, copiamos el gif original en la variavle self.enemy_damaged
-            #esto nos retorna una lista de frames que componen el gif de la variable self.image
-            #cada frame es una tupla (surface, duration)
-            
+            # si es un gif, copiamos el gif original en la variavle self.enemy_damaged
+            # esto nos retorna una lista de frames que componen el gif de la variable self.image
+            # cada frame es una tupla (surface, duration)
+
             # Modificamos los elementos de la lista existente porque la propiedad .frames no tiene setter
             for i, frame in enumerate(self.enemy_damaged.frames):
                 # frame es una tupla (surface, duration)
-                damaged_surface = frame[0].copy() #accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
-                damaged_surface.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD) #pintamos esa surface de blanco
-                
-                self.enemy_damaged.frames[i] = (damaged_surface, frame[1]) 
-                #despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
-        
-        else: 
+                damaged_surface = frame[
+                    0
+                ].copy()  # accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
+                damaged_surface.fill(
+                    (255, 255, 255), special_flags=pygame.BLEND_RGB_ADD
+                )  # pintamos esa surface de blanco
+
+                self.enemy_damaged.frames[i] = (damaged_surface, frame[1])
+                # despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
+
+        else:
             self.enemy_damaged = self.image.copy().convert_alpha()
             self.enemy_damaged.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
-        
-        
+
         split_invulnerability_duration = self.hit_twinkle_duration / 3
-    
+
         # Usamos int() para que la división resulte en un número entero (0, 1, 2...)
         # y el módulo % 2 funcione correctamente para alternar el sprite.
-        if int(self.hit_twinkle_timer / split_invulnerability_duration) % 2 == 0: 
+        if int(self.hit_twinkle_timer / split_invulnerability_duration) % 2 == 0:
             self.image = self.enemy_damaged
         else:
             pass
-

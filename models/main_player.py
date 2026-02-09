@@ -6,15 +6,16 @@ from models.utils import Orientation
 from models.utils import States
 from models.utils import AttackState
 
+
 class Player(GameObject, mixin.Gravity):
     def __init__(self, sprite_attack_slash, image):
         # Los grupos se pasarán desde el GameMaster
-        
+
         super().__init__(image)
 
         # --- HITBOX ---
         self.hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
-        
+
         # --- HEALTH ---
         self.HP = 5
         self.max_HP = 5
@@ -25,8 +26,7 @@ class Player(GameObject, mixin.Gravity):
         self.active_slash_sprite = None
         self.attack_state = None
         self.player_damaged = None
-    
-            
+
         # --- CURRENT SPEED ---
         self.x_vel = 0
         self.y_vel = 0
@@ -42,15 +42,17 @@ class Player(GameObject, mixin.Gravity):
         self.pogo_force = -800
 
         # --- STATES ---
-        self.movement_state = States.IDDLE #state that handles only movement (walking, jumping, falling). It allows player input
-        self.action_state = None #state that handles actions that block player input (attacking, hurt, recoiling)
+        self.movement_state = (
+            States.IDDLE
+        )  # state that handles only movement (walking, jumping, falling). It allows player input
+        self.action_state = None  # state that handles actions that block player input (attacking, hurt, recoiling)
 
         # --- EFFECTS OF ACCTION ---
         self.active_hitbox = None
         self.is_invulnerable = False  # invulnerability state after knockback to avoid multiple collisions at the same time
 
         # --- ORIENTATION AND POSITION ---
-        #self.orientation = Orientation.RIGHT
+        # self.orientation = Orientation.RIGHT
         self.x_orientation = Orientation.RIGHT
         self.y_orientation = Orientation.NEUTRAL
         self.is_on_ground = True  # <-- Is not jumping
@@ -73,7 +75,8 @@ class Player(GameObject, mixin.Gravity):
         # --- TIMERS ---
         self.timer = 0.0
         self.attack_recoil_timer = 0.0
-        self.invulnerability_timer = (0.0  # separate time to count time even if the player is attacking or iddle.
+        self.invulnerability_timer = (
+            0.0  # separate time to count time even if the player is attacking or iddle.
         )
         self.knockback_timer = 0.0
         self.death_timer = 0.0
@@ -85,16 +88,16 @@ class Player(GameObject, mixin.Gravity):
 
         # --- ARRAYS ---
         self.enemies_attacked = []
-        
+
         # --- SOUNDS ---
         self.sounds = self.upload_sounds()
-        
+
     def draw(self, screen):
         return super().draw(screen)
 
     def set_position(self, x_pos, y_pos, aling_bottom=False):
         return super().set_position(x_pos, y_pos, aling_bottom)
-    
+
     def keyboard_input(self):
         get_pressed_keys = pygame.key.get_pressed()
         # set a key that occurrs while the player get pressed a button on the keyboard
@@ -113,13 +116,13 @@ class Player(GameObject, mixin.Gravity):
         screen,
         ground,
     ):
-        
+
         # 1. INPUTS Y ESTADOS DE ACCIÓN
         # -----------------------------
         # Gestion de estados prioritarios
         move_right, move_left, jumping, face_up, face_down = self.keyboard_input()
         was_on_ground = self.is_on_ground
-        
+
         # Actualiza timers de acción
         if self.action_state == States.ATTACKING:
             self.attack_update(delta_time)
@@ -130,17 +133,16 @@ class Player(GameObject, mixin.Gravity):
                 self.is_invulnerable = False
 
         # Lógica de estados que bloquean el movimiento del jugador (knockback, recoiling, dead)
-        
+
         if self.action_state == States.DEAD:
-            
+
             self.death_timer += delta_time
             self.x_vel = 0
             self.y_vel = 0
-            
-        
+
         elif self.action_state == States.KNOCKBACK:
             self.knockback_update(delta_time)
-            
+
         elif self.action_state == States.RECOILING:
             self.attack_recoil_timer += delta_time
             if self.attack_recoil_timer >= self.attack_recoil_duration:
@@ -190,44 +192,46 @@ class Player(GameObject, mixin.Gravity):
         self.update_movement_state()
         self.set_up_sprite_state(screen)
         self.update_hitbox()
-        
+
         if self.is_invulnerable:
-            
+
             self.i_frames_sprite()
         else:
             pass
-            
-        #walking sound
+
+        # walking sound
         self.walking_sound()
-        
+
     def update_movement_state(self):
-        
-        if self.is_on_ground == False: 
-            if self.y_vel < 0: #SI ESTA SUBIENDO
+
+        if self.is_on_ground == False:
+            if self.y_vel < 0:  # SI ESTA SUBIENDO
                 self.movement_state = States.JUMPING
-            
-            elif self.y_vel >= 0: #SI ESTA CAYENDO 
-                    self.movement_state = States.FALLING
-        
-        else: #SI ESTA EN EL SUELO
+
+            elif self.y_vel >= 0:  # SI ESTA CAYENDO
+                self.movement_state = States.FALLING
+
+        else:  # SI ESTA EN EL SUELO
             if self.x_vel != 0:
                 self.movement_state = States.WALKING
-                
+
             elif self.x_vel == 0 and self.y_vel == 0:
                 self.movement_state = States.IDDLE
-                
 
         return self.movement_state
 
     def update_hitbox(self):
-        
-        if self.action_state == States.ATTACKING and self.x_orientation == Orientation.RIGHT:
-            hitbox = (self.rect.x + 30, self.rect.y + 30, 60, 80)    
+
+        if (
+            self.action_state == States.ATTACKING
+            and self.x_orientation == Orientation.RIGHT
+        ):
+            hitbox = (self.rect.x + 30, self.rect.y + 30, 60, 80)
         else:
             hitbox = (self.rect.x + 18, self.rect.y + 30, 38, 80)
-        
+
         self.hitbox = pygame.Rect(hitbox)
-        
+
     def movement(
         self, right=False, left=False
     ):  # --> Return x speed (update player position)
@@ -236,14 +240,14 @@ class Player(GameObject, mixin.Gravity):
 
         if right:
             current_x_speed = self.move_speed
-            
-            #right orientation (x_orientation)
+
+            # right orientation (x_orientation)
             if self.x_orientation == Orientation.RIGHT:
                 pass
-            
+
             else:
                 self.x_orientation = Orientation.RIGHT
-        #left orientation (x_orientation)
+        # left orientation (x_orientation)
         elif left:
             current_x_speed = -self.move_speed
 
@@ -270,8 +274,8 @@ class Player(GameObject, mixin.Gravity):
             self.y_vel = self.jump_force
             self.is_on_ground = False
             self.just_jumped = True
-            
-            #sound effect
+
+            # sound effect
             self.sounds["jump"].play()
 
         # if the player is jumping (no ground collision yet, self.isJumping = True) and press space for a short time (short jump)
@@ -284,24 +288,24 @@ class Player(GameObject, mixin.Gravity):
             self.just_jumped = False
 
     def facing_input(self, down=False, up=False):  # (update player facing)
-        
-        #up orientation (y_orientation)
+
+        # up orientation (y_orientation)
         if up:
             if self.y_orientation == Orientation.UP:
                 pass
             else:
                 self.y_orientation = Orientation.UP
 
-        #down orientation (y_orientation)
+        # down orientation (y_orientation)
         elif down:
             if self.y_orientation == Orientation.DOWN:
                 pass
             else:
                 self.y_orientation = Orientation.DOWN
-        
+
         else:
             self.y_orientation = Orientation.NEUTRAL
-            
+
     def not_cross_edge_screen(self, screen, delta_x):  # return position variation in X
         # setting player to don't go off the edge of the screen
 
@@ -324,8 +328,8 @@ class Player(GameObject, mixin.Gravity):
 
             # restart self.timer
             self.timer = 0.0
-            
-            #sound effect
+
+            # sound effect
             self.sounds["attack"].play()
 
     def attack_update(
@@ -336,7 +340,7 @@ class Player(GameObject, mixin.Gravity):
 
         # buildup phase
         if self.timer < self.build_up_attack_duration:
-            
+
             self.attack_state = AttackState.BUILDUP
 
             self.active_hitbox = None
@@ -349,7 +353,7 @@ class Player(GameObject, mixin.Gravity):
             self.build_up_attack_duration + self.active_frames_attack_duration
         ):
             if self.active_hitbox is None:
-                
+
                 self.attack_state = AttackState.ACTIVE
 
                 self.enemies_attacked.clear()  # vaciar lista de enemigos golpeados anteriormente
@@ -384,7 +388,7 @@ class Player(GameObject, mixin.Gravity):
             self.timer = 0.0
 
     def lock_attack_ortientation(self):
-        
+
         if self.y_orientation != Orientation.NEUTRAL:
 
             # up the player
@@ -452,7 +456,10 @@ class Player(GameObject, mixin.Gravity):
 
     def draw_attack(self, screen):  # DRAW SLASH SPRITE AND RECT
 
-        if self.action_state == States.ATTACKING or self.action_state == States.RECOILING:
+        if (
+            self.action_state == States.ATTACKING
+            or self.action_state == States.RECOILING
+        ):
 
             # draw hitbox
             if self.active_hitbox and self.active_slash_sprite:
@@ -466,19 +473,19 @@ class Player(GameObject, mixin.Gravity):
 
         # set up HP
         self.HP -= 1
-        
-        #sound
+
+        # sound
         self.sounds["hurt"].play()
-        
+
         if self.HP <= 0:
             self.dead()
         else:
-            #knockback and invulnerability
+            # knockback and invulnerability
             self.trigger_knockback()
             self.trigger_invulnerability()
-        
+
     def dead(self):
-        
+
         self.action_state = States.DEAD
         self.sounds["death"].play()
         self.active_hitbox = None
@@ -511,29 +518,37 @@ class Player(GameObject, mixin.Gravity):
         self.invulnerability_timer = 0.0
 
     def i_frames_sprite(self):
-        
+
         if hasattr(self.image, "render"):
-            
+
             self.player_damaged = self.image.copy()
-            
+
             # Modificamos los elementos de la lista existente porque la propiedad .frames no tiene setter
             for i, frame in enumerate(self.player_damaged.frames):
                 # frame es una tupla (surface, duration)
-                damaged_surface = frame[0].copy() #accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
-                damaged_surface.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD) #pintamos esa surface de blanco
-                
-                self.player_damaged.frames[i] = (damaged_surface, frame[1]) #despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
-        
-        else: 
+                damaged_surface = frame[
+                    0
+                ].copy()  # accedemos al primer elemento [0] que es el surface y la copiamos para no modificar el original
+                damaged_surface.fill(
+                    (255, 255, 255), special_flags=pygame.BLEND_RGB_ADD
+                )  # pintamos esa surface de blanco
+
+                self.player_damaged.frames[i] = (
+                    damaged_surface,
+                    frame[1],
+                )  # despues, para cada frame en player_damaged.frames, se reemplazan en todos los indices (i) el surface por damage surface y se matiene la duracion que esta en la segunda posicion(frame[1])
+
+        else:
             self.player_damaged = self.image.copy().convert_alpha()
-            self.player_damaged.fill((255, 255, 255), special_flags=pygame.BLEND_RGB_ADD)
-        
-        
+            self.player_damaged.fill(
+                (255, 255, 255), special_flags=pygame.BLEND_RGB_ADD
+            )
+
         split_invulnerability_duration = self.invulnerability_duration / 6
-    
+
         # Usamos int() para que la división resulte en un número entero (0, 1, 2...)
         # y el módulo % 2 funcione correctamente para alternar el sprite.
-        if int(self.invulnerability_timer / split_invulnerability_duration) % 2 == 0: 
+        if int(self.invulnerability_timer / split_invulnerability_duration) % 2 == 0:
             self.image = self.player_damaged
         else:
             pass
@@ -620,450 +635,1018 @@ class Player(GameObject, mixin.Gravity):
         self.enemies_attacked.clear()
 
     def player_sprites(self):
-        
-        #Diccionario que contiene todos los sprites del jugador organizados por estado y orientación
-        #Dentro de cada estado, hay sub-diccionarios para cada orientación (DERECHA, IZQUIERDA, ARRIBA, ABAJO)
-        
+
+        # Diccionario que contiene todos los sprites del jugador organizados por estado y orientación
+        # Dentro de cada estado, hay sub-diccionarios para cada orientación (DERECHA, IZQUIERDA, ARRIBA, ABAJO)
+
         player_sprites = {
-            
             "IDDLE": {
-                
-                "RIGHT": 
-                    {
-                "iddle_x3": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3.gif"),
-                "iddle_x6": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6.gif"),  
-                
+                "RIGHT": {
+                    "iddle_x3": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Iddle_x3.gif"
+                    ),
+                    "iddle_x6": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Iddle_x6.gif"
+                    ),
                 },
-                
-                "LEFT": 
-                    {
-                "iddle_x3": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x3_left.gif"),
-                "iddle_x6": gif_pygame.load("./assets/Player_Sprites/Player_Iddle_x6_left.gif"),                    
-                
+                "LEFT": {
+                    "iddle_x3": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Iddle_x3_left.gif"
+                    ),
+                    "iddle_x6": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Iddle_x6_left.gif"
+                    ),
                 },
-                
-
             },
-            
             "WALKING": {
-                
-                "RIGHT": 
-                    {
-                "walking_x3": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3.gif"),
-                "walking_x6": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6.gif"),  
-                
+                "RIGHT": {
+                    "walking_x3": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Walking_x3.gif"
+                    ),
+                    "walking_x6": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Walking_x6.gif"
+                    ),
                 },
-                
-                "LEFT": 
-                    {
-                "walking_x3": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x3_left.gif"),
-                "walking_x6": gif_pygame.load("./assets/Player_Sprites/Player_Walking_x6_left.gif"), 
-                
+                "LEFT": {
+                    "walking_x3": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Walking_x3_left.gif"
+                    ),
+                    "walking_x6": gif_pygame.load(
+                        "./assets/Player_Sprites/Player_Walking_x6_left.gif"
+                    ),
                 },
             },
-            
             "ATTACKING": {
-                
                 "RIGHT": {
-                    
-                    "buildup_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing1.png").convert_alpha(),
-                    "active_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing2.png").convert_alpha(),
-                    "recovery_phase": pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha(),
-                    
+                    "buildup_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Slashing1.png"
+                    ).convert_alpha(),
+                    "active_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Slashing2.png"
+                    ).convert_alpha(),
+                    "recovery_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Slashing3.png"
+                    ).convert_alpha(),
                 },
-                
                 "LEFT": {
-                    
-                    "buildup_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing1.png").convert_alpha()), True, False),
-                    "active_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing2.png").convert_alpha()), True, False),
-                    "recovery_phase": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha()), True, False),
-                    
+                    "buildup_phase": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Slashing1.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "active_phase": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Slashing2.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "recovery_phase": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Slashing3.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
                 },
-                
                 "UP": {
-                    "buildup_phase": pygame.image.load("./assets/Player_Sprites/Up_Slashing1.png").convert_alpha(),
-                    "active_phase": pygame.image.load("./assets/Player_Sprites/Up_Slashing2.png").convert_alpha(),
-                    "recovery_phase": pygame.image.load("./assets/Player_Sprites/Up_Slashing3.png").convert_alpha(),
-                    
+                    "buildup_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Up_Slashing1.png"
+                    ).convert_alpha(),
+                    "active_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Up_Slashing2.png"
+                    ).convert_alpha(),
+                    "recovery_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Up_Slashing3.png"
+                    ).convert_alpha(),
                 },
-                
                 "DOWN": {
-                    "buildup_phase": pygame.image.load("./assets/Player_Sprites/Down_Slashing1.png").convert_alpha(),
-                    "active_phase": pygame.image.load("./assets/Player_Sprites/Down_Slashing2.png").convert_alpha(),
-                    "recovery_phase": pygame.image.load("./assets/Player_Sprites/Down_Slashing3.png").convert_alpha(),
-                
+                    "buildup_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Down_Slashing1.png"
+                    ).convert_alpha(),
+                    "active_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Down_Slashing2.png"
+                    ).convert_alpha(),
+                    "recovery_phase": pygame.image.load(
+                        "./assets/Player_Sprites/Down_Slashing3.png"
+                    ).convert_alpha(),
                 },
-                
             },
-            
             "RECOILING": {
-                
                 "RIGHT": {
-                    
-                    "recoil": pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha(),
-                    
+                    "recoil": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Slashing3.png"
+                    ).convert_alpha(),
                 },
-                
                 "LEFT": {
-                    
-
-                    "recoil": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Slashing3.png").convert_alpha()), True, False),
-                    
+                    "recoil": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Slashing3.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
                 },
-                
                 "UP": {
-                    
-                    "recoil": pygame.image.load("./assets/Player_Sprites/Up_Slashing3.png").convert_alpha(),
-                    
+                    "recoil": pygame.image.load(
+                        "./assets/Player_Sprites/Up_Slashing3.png"
+                    ).convert_alpha(),
                 },
-                
                 "DOWN": {
-                    
-                    "recoil": pygame.image.load("./assets/Player_Sprites/Down_Slashing3.png").convert_alpha(),
-                
+                    "recoil": pygame.image.load(
+                        "./assets/Player_Sprites/Down_Slashing3.png"
+                    ).convert_alpha(),
                 },
-            
             },
-
-            
             "JUMPING": {
-                
-                "RIGHT": 
-                    {
-                "jumping1": pygame.image.load("./assets/Player_Sprites/Player_Jumping1.png").convert_alpha(),
-                "jumping2": pygame.image.load("./assets/Player_Sprites/Player_Jumping2.png").convert_alpha(),
-                "jumping3": pygame.image.load("./assets/Player_Sprites/Player_Jumping3.png").convert_alpha(),
-                "jumping4": pygame.image.load("./assets/Player_Sprites/Player_Jumping4.png").convert_alpha(),                        
-                
+                "RIGHT": {
+                    "jumping1": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Jumping1.png"
+                    ).convert_alpha(),
+                    "jumping2": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Jumping2.png"
+                    ).convert_alpha(),
+                    "jumping3": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Jumping3.png"
+                    ).convert_alpha(),
+                    "jumping4": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Jumping4.png"
+                    ).convert_alpha(),
                 },
-                    
-                "LEFT": 
-                    {
-                "jumping1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping1.png").convert_alpha()), True, False),
-                "jumping2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping2.png").convert_alpha()), True, False), 
-                "jumping3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping3.png").convert_alpha()), True, False),
-                "jumping4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Jumping4.png").convert_alpha()), True, False),                        
-                
+                "LEFT": {
+                    "jumping1": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Jumping1.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "jumping2": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Jumping2.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "jumping3": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Jumping3.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "jumping4": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Jumping4.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
                 },
-                
             },
-            
             "FALLING": {
-                
-                "RIGHT": 
-                    {
-                    "falling1": pygame.image.load("./assets/Player_Sprites/Player_Falling1.png").convert_alpha(),
-                    "falling2": pygame.image.load("./assets/Player_Sprites/Player_Falling2.png").convert_alpha(),
-                    "falling3": pygame.image.load("./assets/Player_Sprites/Player_Falling3.png").convert_alpha(),
-                    "falling4": pygame.image.load("./assets/Player_Sprites/Player_Falling4.png").convert_alpha(),
-                    "falling5": pygame.image.load("./assets/Player_Sprites/Player_Falling5.png").convert_alpha(),                        
-                    },
-                    
-                "LEFT": 
-                    {
-                    "falling1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling1.png").convert_alpha()), True, False),
-                    "falling2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling2.png").convert_alpha()), True, False), 
-                    "falling3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling3.png").convert_alpha()), True, False),
-                    "falling4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling4.png").convert_alpha()), True, False),
-                    "falling5": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Falling5.png").convert_alpha()), True, False),
-                        
-                        },
-
-
+                "RIGHT": {
+                    "falling1": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Falling1.png"
+                    ).convert_alpha(),
+                    "falling2": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Falling2.png"
+                    ).convert_alpha(),
+                    "falling3": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Falling3.png"
+                    ).convert_alpha(),
+                    "falling4": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Falling4.png"
+                    ).convert_alpha(),
+                    "falling5": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Falling5.png"
+                    ).convert_alpha(),
+                },
+                "LEFT": {
+                    "falling1": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Falling1.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "falling2": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Falling2.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "falling3": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Falling3.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "falling4": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Falling4.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                    "falling5": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Falling5.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    ),
+                },
             },
-            
             "KNOCKBACK": {
-                
-                "RIGHT": {"knockback": pygame.image.load("./assets/Player_Sprites/Player_Knockback.png").convert_alpha(),},
-                "LEFT": {"knockback": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/Player_Knockback.png").convert_alpha()), True, False)},
+                "RIGHT": {
+                    "knockback": pygame.image.load(
+                        "./assets/Player_Sprites/Player_Knockback.png"
+                    ).convert_alpha(),
+                },
+                "LEFT": {
+                    "knockback": pygame.transform.flip(
+                        (
+                            pygame.image.load(
+                                "./assets/Player_Sprites/Player_Knockback.png"
+                            ).convert_alpha()
+                        ),
+                        True,
+                        False,
+                    )
+                },
             },
-            
-            "DEAD":{
-                
+            "DEAD": {
                 "SHADED IN AIR": {
-                    
                     "RIGHT": {
-                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_left_x3.gif"),
-                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_left_x6.gif"),
+                        "shade_x3": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_air_left_x3.gif"
+                        ),
+                        "shade_x6": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_air_left_x6.gif"
+                        ),
                     },
-                    
                     "LEFT": {
-                        "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_right_x3.gif"),
-                        "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_air_right_x6.gif"),
+                        "shade_x3": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_air_right_x3.gif"
+                        ),
+                        "shade_x6": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_air_right_x6.gif"
+                        ),
                     },
-                    },
-                
+                },
                 "SHADED ON GROUND": {
-                    
                     "RIGHT": {
-                    "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_left_x3.gif"),
-                    "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_left_x6.gif"),
+                        "shade_x3": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_ground_left_x3.gif"
+                        ),
+                        "shade_x6": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_ground_left_x6.gif"
+                        ),
                     },
-                    
                     "LEFT": {
-                        "shade_x3": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_right_x3.gif"),
-                        "shade_x6": gif_pygame.load("./assets/Player_Sprites/Shade/Shade_on_ground_right_x6.gif"),
+                        "shade_x3": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_ground_right_x3.gif"
+                        ),
+                        "shade_x6": gif_pygame.load(
+                            "./assets/Player_Sprites/Shade/Shade_on_ground_right_x6.gif"
+                        ),
                     },
-                    
-                    },
-                
+                },
                 "ON GROUND": {
-                    
                     "RIGHT": {
-                        "frame_1": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x1.png").convert_alpha(),
-                        "frame_2": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x2.png").convert_alpha(),
-                        "frame_3": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x3.png").convert_alpha(),
-                        "frame_4": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x4.png").convert_alpha(),
-                        "frame_5": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x5.png").convert_alpha(),
-                        "frame_6": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x6.png").convert_alpha(),
-                        "frame_7": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x7.png").convert_alpha(),
-                        "frame_8": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x8.png").convert_alpha(),
-                        "frame_9": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x9.png").convert_alpha(),
-                        "frame_10": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x10.png").convert_alpha(),
-                        "frame_11": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x11.png").convert_alpha(),
-                        "frame_12": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x12.png").convert_alpha(),
-                        "frame_13": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x13.png").convert_alpha(),
-                        "frame_14": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x14.png").convert_alpha(),
-                        "frame_15": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x15.png").convert_alpha(),
-                        "frame_16": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x16.png").convert_alpha(),
-                        "frame_17": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x17.png").convert_alpha(),
-                        "frame_18": pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x18.png").convert_alpha(),
-                        
-                        },
-                    
+                        "frame_1": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x1.png"
+                        ).convert_alpha(),
+                        "frame_2": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x2.png"
+                        ).convert_alpha(),
+                        "frame_3": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x3.png"
+                        ).convert_alpha(),
+                        "frame_4": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x4.png"
+                        ).convert_alpha(),
+                        "frame_5": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x5.png"
+                        ).convert_alpha(),
+                        "frame_6": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x6.png"
+                        ).convert_alpha(),
+                        "frame_7": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x7.png"
+                        ).convert_alpha(),
+                        "frame_8": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x8.png"
+                        ).convert_alpha(),
+                        "frame_9": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x9.png"
+                        ).convert_alpha(),
+                        "frame_10": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x10.png"
+                        ).convert_alpha(),
+                        "frame_11": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x11.png"
+                        ).convert_alpha(),
+                        "frame_12": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x12.png"
+                        ).convert_alpha(),
+                        "frame_13": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x13.png"
+                        ).convert_alpha(),
+                        "frame_14": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x14.png"
+                        ).convert_alpha(),
+                        "frame_15": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x15.png"
+                        ).convert_alpha(),
+                        "frame_16": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x16.png"
+                        ).convert_alpha(),
+                        "frame_17": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x17.png"
+                        ).convert_alpha(),
+                        "frame_18": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x18.png"
+                        ).convert_alpha(),
+                    },
                     "LEFT": {
-                        "frame_1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x1.png").convert_alpha()), True, False),
-                        "frame_2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x2.png").convert_alpha()), True, False),
-                        "frame_3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x3.png").convert_alpha()), True, False),
-                        "frame_4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x4.png").convert_alpha()), True, False),
-                        "frame_5": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x5.png").convert_alpha()), True, False),
-                        "frame_6": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x6.png").convert_alpha()), True, False),
-                        "frame_7": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x7.png").convert_alpha()), True, False),
-                        "frame_8": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x8.png").convert_alpha()), True, False),
-                        "frame_9": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x9.png").convert_alpha()), True, False),
-                        "frame_10": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x10.png").convert_alpha()), True, False),
-                        "frame_11": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x11.png").convert_alpha()), True, False),
-                        "frame_12": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x12.png").convert_alpha()), True, False),
-                        "frame_13": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x13.png").convert_alpha()), True, False),
-                        "frame_14": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x14.png").convert_alpha()), True, False),
-                        "frame_15": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x15.png").convert_alpha()), True, False),
-                        "frame_16": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x16.png").convert_alpha()), True, False),
-                        "frame_17": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x17.png").convert_alpha()), True, False),
-                        "frame_18": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x18.png").convert_alpha()), True, False),
-                        },
-                    
-                    }, 
-                
+                        "frame_1": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x1.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_2": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x2.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_3": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x3.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_4": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x4.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_5": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x5.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_6": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x6.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_7": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x7.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_8": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x8.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_9": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x9.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_10": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x10.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_11": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x11.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_12": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x12.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_13": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x13.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_14": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x14.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_15": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x15.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_16": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x16.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_17": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x17.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_18": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_ground/New_Player_Death_on_ground_x18.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                    },
+                },
                 "ON AIR": {
-                    
                     "RIGHT": {
-                        "frame_1": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x1.png").convert_alpha(),
-                        "frame_2": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x2.png").convert_alpha(),
-                        "frame_3": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x3.png").convert_alpha(),
-                        "frame_4": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x4.png").convert_alpha(),
-                        "frame_5": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x5.png").convert_alpha(),
-                        "frame_6": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x6.png").convert_alpha(),
-                        "frame_7": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x7.png").convert_alpha(),
-                        "frame_8": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x8.png").convert_alpha(),
-                        "frame_9": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x9.png").convert_alpha(),
-                        "frame_10": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x10.png").convert_alpha(),
-                        "frame_11": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x11.png").convert_alpha(),
-                        "frame_12": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x12.png").convert_alpha(),
-                        "frame_13": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x13.png").convert_alpha(),
-                        "frame_14": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x14.png").convert_alpha(),
-                        "frame_15": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x15.png").convert_alpha(),
-                        "frame_16": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x16.png").convert_alpha(),
-                        "frame_17": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x17.png").convert_alpha(),
-                        "frame_18": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x18.png").convert_alpha(),
-                        "frame_19": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x19.png").convert_alpha(),
-                        "frame_20": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x20.png").convert_alpha(),
-                        "frame_21": pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x21.png").convert_alpha(),
-                        },
-                    
+                        "frame_1": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x1.png"
+                        ).convert_alpha(),
+                        "frame_2": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x2.png"
+                        ).convert_alpha(),
+                        "frame_3": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x3.png"
+                        ).convert_alpha(),
+                        "frame_4": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x4.png"
+                        ).convert_alpha(),
+                        "frame_5": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x5.png"
+                        ).convert_alpha(),
+                        "frame_6": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x6.png"
+                        ).convert_alpha(),
+                        "frame_7": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x7.png"
+                        ).convert_alpha(),
+                        "frame_8": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x8.png"
+                        ).convert_alpha(),
+                        "frame_9": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x9.png"
+                        ).convert_alpha(),
+                        "frame_10": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x10.png"
+                        ).convert_alpha(),
+                        "frame_11": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x11.png"
+                        ).convert_alpha(),
+                        "frame_12": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x12.png"
+                        ).convert_alpha(),
+                        "frame_13": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x13.png"
+                        ).convert_alpha(),
+                        "frame_14": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x14.png"
+                        ).convert_alpha(),
+                        "frame_15": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x15.png"
+                        ).convert_alpha(),
+                        "frame_16": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x16.png"
+                        ).convert_alpha(),
+                        "frame_17": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x17.png"
+                        ).convert_alpha(),
+                        "frame_18": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x18.png"
+                        ).convert_alpha(),
+                        "frame_19": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x19.png"
+                        ).convert_alpha(),
+                        "frame_20": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x20.png"
+                        ).convert_alpha(),
+                        "frame_21": pygame.image.load(
+                            "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x21.png"
+                        ).convert_alpha(),
+                    },
                     "LEFT": {
-                        "frame_1": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x1.png").convert_alpha()), True, False),
-                        "frame_2": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x2.png").convert_alpha()), True, False),
-                        "frame_3": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x3.png").convert_alpha()), True, False),
-                        "frame_4": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x4.png").convert_alpha()), True, False),
-                        "frame_5": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x5.png").convert_alpha()), True, False),
-                        "frame_6": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x6.png").convert_alpha()), True, False),
-                        "frame_7": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x7.png").convert_alpha()), True, False),
-                        "frame_8": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x8.png").convert_alpha()), True, False),
-                        "frame_9": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x9.png").convert_alpha()), True, False),
-                        "frame_10": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x10.png").convert_alpha()), True, False),
-                        "frame_11": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x11.png").convert_alpha()), True, False),
-                        "frame_12": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x12.png").convert_alpha()), True, False),
-                        "frame_13": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x13.png").convert_alpha()), True, False),
-                        "frame_14": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x14.png").convert_alpha()), True, False),
-                        "frame_15": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x15.png").convert_alpha()), True, False),
-                        "frame_16": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x16.png").convert_alpha()), True, False),
-                        "frame_17": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x17.png").convert_alpha()), True, False),
-                        "frame_18": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x18.png").convert_alpha()), True, False),
-                        "frame_19": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x19.png").convert_alpha()), True, False),
-                        "frame_20": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x20.png").convert_alpha()), True, False),
-                        "frame_21": pygame.transform.flip((pygame.image.load("./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x21.png").convert_alpha()), True, False),
-                        },
-                    
-                    },                 
-            }
-            
+                        "frame_1": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x1.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_2": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x2.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_3": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x3.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_4": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x4.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_5": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x5.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_6": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x6.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_7": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x7.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_8": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x8.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_9": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x9.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_10": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x10.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_11": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x11.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_12": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x12.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_13": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x13.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_14": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x14.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_15": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x15.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_16": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x16.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_17": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x17.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_18": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x18.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_19": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x19.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_20": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x20.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                        "frame_21": pygame.transform.flip(
+                            (
+                                pygame.image.load(
+                                    "./assets/Player_Sprites/death_on_air/New_Player_Death_on_air_x21.png"
+                                ).convert_alpha()
+                            ),
+                            True,
+                            False,
+                        ),
+                    },
+                },
+            },
         }
-        
+
         return player_sprites
 
     def set_up_sprite_state(self, screen: pygame.Surface):
-        
-        #Funcion para gestionar y actualizar el sprite actual del jugador en función de su estado y orientación.
-        #Algunos estados tienen prioridad sobre otros (por ejemplo, atacar tiene prioridad sobre caminar).
-        #Algunos estados leen solamente la orientacion vertical y otros la horizontal.
-        #El estado de attacking lee la orientacion del ataque (lockeada al iniciar el ataque).
-        
+
+        # Funcion para gestionar y actualizar el sprite actual del jugador en función de su estado y orientación.
+        # Algunos estados tienen prioridad sobre otros (por ejemplo, atacar tiene prioridad sobre caminar).
+        # Algunos estados leen solamente la orientacion vertical y otros la horizontal.
+        # El estado de attacking lee la orientacion del ataque (lockeada al iniciar el ataque).
+
         screen_width, screen_height = screen.get_size()
-        
-        #se gestionan primero los estados de acción que tienen prioridad sobre los estados de movimiento (attack, knockback, recoiling)
-        if self.action_state != None: 
-            
+
+        # se gestionan primero los estados de acción que tienen prioridad sobre los estados de movimiento (attack, knockback, recoiling)
+        if self.action_state != None:
+
             if self.action_state == States.KNOCKBACK:
-                
-                current_sprite = self.player_sprites[self.action_state.name][self.x_orientation.name]["knockback"]
-            
-            elif self.action_state == States.RECOILING: 
-                
-                #el sprite de recoil es el mismo que el de recovery del ataque
-                current_sprite = self.player_sprites[self.action_state.name][self.attack_orientation.name]["recoil"]
-            
-            elif self.action_state == States.ATTACKING: 
-                
-                #el sprite de attacking depende de la fase del ataque (build up, active, recovery)
-                    
-                current_sprite = self.player_sprites[self.action_state.name][self.attack_orientation.name][self.attack_state.value]
-                
-            #la animacion de muerte depende de si el jugador esta en el suelo o en el aire    
+
+                current_sprite = self.player_sprites[self.action_state.name][
+                    self.x_orientation.name
+                ]["knockback"]
+
+            elif self.action_state == States.RECOILING:
+
+                # el sprite de recoil es el mismo que el de recovery del ataque
+                current_sprite = self.player_sprites[self.action_state.name][
+                    self.attack_orientation.name
+                ]["recoil"]
+
+            elif self.action_state == States.ATTACKING:
+
+                # el sprite de attacking depende de la fase del ataque (build up, active, recovery)
+
+                current_sprite = self.player_sprites[self.action_state.name][
+                    self.attack_orientation.name
+                ][self.attack_state.value]
+
+            # la animacion de muerte depende de si el jugador esta en el suelo o en el aire
             elif self.action_state == States.DEAD:
-                
+
                 if self.is_on_ground:
-                    
+
                     animation_duration = self.death_on_ground_duration
-                    
-                    current_sprite = self.reproduce_animation(self.player_sprites["DEAD"]["ON GROUND"][self.x_orientation.name], animation_duration, self.player_sprites["DEAD"]["SHADED ON GROUND"][self.x_orientation.name], screen)
-                
+
+                    current_sprite = self.reproduce_animation(
+                        self.player_sprites["DEAD"]["ON GROUND"][
+                            self.x_orientation.name
+                        ],
+                        animation_duration,
+                        self.player_sprites["DEAD"]["SHADED ON GROUND"][
+                            self.x_orientation.name
+                        ],
+                        screen,
+                    )
+
                 else:
-                    
+
                     animation_duration = self.death_on_air_duration
-                    
-                    current_sprite = self.reproduce_animation(self.player_sprites["DEAD"]["ON AIR"][self.x_orientation.name], animation_duration, self.player_sprites["DEAD"]["SHADED IN AIR"][self.x_orientation.name], screen)
-        else: 
-            if self.movement_state == States.IDDLE: 
-                
+
+                    current_sprite = self.reproduce_animation(
+                        self.player_sprites["DEAD"]["ON AIR"][self.x_orientation.name],
+                        animation_duration,
+                        self.player_sprites["DEAD"]["SHADED IN AIR"][
+                            self.x_orientation.name
+                        ],
+                        screen,
+                    )
+        else:
+            if self.movement_state == States.IDDLE:
+
                 if screen_width == 960 and screen_height == 540:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["iddle_x3"]
-                
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["iddle_x3"]
+
                 elif screen_width == 1920 and screen_height == 1080:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["iddle_x6"]
-            
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["iddle_x6"]
+
             elif self.movement_state == States.WALKING:
-                
+
                 if screen_width == 960 and screen_height == 540:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["walking_x3"]
-                
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["walking_x3"]
+
                 elif screen_width == 1920 and screen_height == 1080:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["walking_x6"]
-            
-            elif self.movement_state == States.JUMPING: 
-                
-                #en el estado de jumping, el sprite depende de la velocidad vertical del jugador hacia arriba. Va cambiado a corde al cambio de velocidad
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["walking_x6"]
+
+            elif self.movement_state == States.JUMPING:
+
+                # en el estado de jumping, el sprite depende de la velocidad vertical del jugador hacia arriba. Va cambiado a corde al cambio de velocidad
                 if self.y_vel < -750:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping1"]
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["jumping1"]
                 elif self.y_vel >= -750 and self.y_vel < -500:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping2"]
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["jumping2"]
                 elif self.y_vel >= -500 and self.y_vel < -250:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping3"]
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["jumping3"]
                 elif self.y_vel >= -250 and self.y_vel < 0:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["jumping4"]
-            
-            elif self.movement_state == States.FALLING: 
-                
-                #en el estado de falling, el sprite depende de la velocidad vertical del jugador hacia abajo. Va cambiado a corde al cambio de velocidad
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["jumping4"]
+
+            elif self.movement_state == States.FALLING:
+
+                # en el estado de falling, el sprite depende de la velocidad vertical del jugador hacia abajo. Va cambiado a corde al cambio de velocidad
                 if self.y_vel >= 0 and self.y_vel < 200:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling1"]
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["falling1"]
                 elif self.y_vel >= 200 and self.y_vel < 400:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling2"]
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["falling2"]
                 elif self.y_vel >= 400 and self.y_vel < 600:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling3"]
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["falling3"]
                 elif self.y_vel >= 600 and self.y_vel < 800:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling4"]
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["falling4"]
                 elif self.y_vel >= 800:
-                    current_sprite = self.player_sprites[self.movement_state.name][self.x_orientation.name]["falling5"]
-        
+                    current_sprite = self.player_sprites[self.movement_state.name][
+                        self.x_orientation.name
+                    ]["falling5"]
+
         self.image = current_sprite
-        
+
         return current_sprite
-    
+
     def upload_sounds(self):
-        
+
         player_sounds = {
-            
             "attack": pygame.mixer.Sound("./assets/audio_assets/player/hero_sword.wav"),
             "jump": pygame.mixer.Sound("./assets/audio_assets/player/hero_jump.wav"),
             "hurt": pygame.mixer.Sound("./assets/audio_assets/player/hero_damage.wav"),
-            "land": pygame.mixer.Sound("./assets/audio_assets/player/hero_land_soft.wav"),
-            "death": pygame.mixer.Sound("./assets/audio_assets/player/hero_death_extra_details.wav"),
-            "walking": pygame.mixer.Sound("./assets/audio_assets/player/hero_walk_footsteps_stone.wav"),
+            "land": pygame.mixer.Sound(
+                "./assets/audio_assets/player/hero_land_soft.wav"
+            ),
+            "death": pygame.mixer.Sound(
+                "./assets/audio_assets/player/hero_death_extra_details.wav"
+            ),
+            "walking": pygame.mixer.Sound(
+                "./assets/audio_assets/player/hero_walk_footsteps_stone.wav"
+            ),
         }
-        
-        #Funcion para cargar los sonidos del jugador
-        
+
+        # Funcion para cargar los sonidos del jugador
+
         return player_sounds
-    
+
     def walking_sound(self):
         # Funcion para gestionar el loop del sonido de caminar del jugador
-        
+
         # Debe estar caminando Y NO estar en una acción (como atacar)
         if self.movement_state == States.WALKING and self.action_state is None:
-            
+
             # Verificamos si el sonido ya se está reproduciendo para no solaparlo (spam de play)
             if self.sounds["walking"].get_num_channels() == 0:
                 self.sounds["walking"].play(loops=-1)
-        
+
         else:
-            self.sounds["walking"].stop()           
+            self.sounds["walking"].stop()
 
     def stop_walking_sound(self):
         self.sounds["walking"].stop()
 
-    def reproduce_animation(self, dictionary_frame_animation: dict, animation_duration: float, dictionary_shade_animation: dict, screen):
-        
+    def reproduce_animation(
+        self,
+        dictionary_frame_animation: dict,
+        animation_duration: float,
+        dictionary_shade_animation: dict,
+        screen,
+    ):
+
         # Aquí se implementará la reproducción de la animación de muerte del jugador
         # Se puede usar un temporizador para controlar la duración de la animación
         # y cambiar entre los frames de la animación según el tiempo transcurrido.
-    
+
         frame_duration = animation_duration / len(dictionary_frame_animation)
-        
+
         if self.death_timer <= animation_duration:
-            
+
             frame_index = int(self.death_timer / frame_duration)
             if frame_index < len(dictionary_frame_animation):
                 current_sprite = dictionary_frame_animation[f"frame_{frame_index + 1}"]
             else:
                 # Mostrar la animación de sombra durante la animación de muerte
-                current_sprite = self.set_up_shade_sprite(dictionary_frame_animation, dictionary_shade_animation, screen)
+                current_sprite = self.set_up_shade_sprite(
+                    dictionary_frame_animation, dictionary_shade_animation, screen
+                )
 
-        
-        else: 
-            current_sprite = self.set_up_shade_sprite(dictionary_frame_animation, dictionary_shade_animation, screen)
+        else:
+            current_sprite = self.set_up_shade_sprite(
+                dictionary_frame_animation, dictionary_shade_animation, screen
+            )
 
         return current_sprite
-    
-    def set_up_shade_sprite(self, dictionary_frame_animation: dict, dictionary_shade_animation: dict, screen):
-        
+
+    def set_up_shade_sprite(
+        self, dictionary_frame_animation: dict, dictionary_shade_animation: dict, screen
+    ):
+
         # Función para configurar el sprite de sombra del jugador durante la animación de muerte
-        
+
         screen_width, screen_height = screen.get_size()
         if screen_width == 960 and screen_height == 540:
-            current_sprite = dictionary_shade_animation["shade_x3"]  
+            current_sprite = dictionary_shade_animation["shade_x3"]
         elif screen_width == 1920 and screen_height == 1080:
             current_sprite = dictionary_shade_animation["shade_x6"]
         else:
-            current_sprite = dictionary_frame_animation["frame_" + str(len(dictionary_frame_animation))]  # Fallback to last frame
-        
+            current_sprite = dictionary_frame_animation[
+                "frame_" + str(len(dictionary_frame_animation))
+            ]  # Fallback to last frame
+
         return current_sprite

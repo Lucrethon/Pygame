@@ -49,22 +49,22 @@ class GameMaster:
         self.game_phases = None
         self.waves_per_phase = None
         self.is_full_screen = False
-        
+
         self.broken_mask_timer = 0.0
         self.broken_mask_animation_duration = 0.3  # seconds
         self.broken_masks_animation = self.broken_mask_animations()
         self.Health_UI = self.health_UI_assets()
         self.is_animating_broken_mask = False
-        
+
         # --- SCREEN SHAKE ---
         self.shake_timer = 0.0
         self.shake_magnitude = 0
         self.current_shake_offset = (0, 0)
-        
-        #--- SOUNDS ---
+
+        # --- SOUNDS ---
         self.enemy_sounds_dict = enemy_sounds()
         pygame.mixer.music.load("./assets/audio_assets/Queens_Garden.mp3")
-        
+
         # --- UI ASSETS ---
         # Overlay semitransparente para oscurecer el fondo en menús (Pausa, Game Over, Victoria)
         self.overlay = pygame.Surface((960, 540))
@@ -101,7 +101,7 @@ class GameMaster:
 
             # Aplicar slow motion al delta_time antes de actualizar las entidades
             delta_time = self.slow_motion(delta_time)
-            
+
             # Actualizar el efecto de temblor de pantalla
             self.update_shake(delta_time)
 
@@ -212,7 +212,7 @@ class GameMaster:
                         self.GAME_STATE = GameState.SPAWNING
                         self.GAME_PHASE = 1
                         self.GAME_WAVE = 1
-                    
+
                     elif self.information_button_rect.collidepoint(mouse_pos):
                         self.GAME_STATE = GameState.INFORMATION
 
@@ -225,13 +225,13 @@ class GameMaster:
 
                     elif event.key == pygame.K_ESCAPE:
                         pygame.quit()
-                        
-            #------------ INFORMATION ------------
-            
+
+            # ------------ INFORMATION ------------
+
             elif self.GAME_STATE == GameState.INFORMATION:
-                
+
                 if event.type == pygame.KEYDOWN:
-                    
+
                     if event.key == pygame.K_ESCAPE:
                         self.GAME_STATE = GameState.MAIN_MENU
 
@@ -296,11 +296,13 @@ class GameMaster:
                         player.trigger_attack(attack=True)
 
     def handle_music(self):
-        
-        if (self.GAME_STATE == GameState.PLAYING
-        or self.GAME_STATE == GameState.TRANSITION 
-        or self.GAME_STATE == GameState.SPAWNING) :
-        
+
+        if (
+            self.GAME_STATE == GameState.PLAYING
+            or self.GAME_STATE == GameState.TRANSITION
+            or self.GAME_STATE == GameState.SPAWNING
+        ):
+
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.play(-1)
             else:
@@ -311,23 +313,25 @@ class GameMaster:
                 # Esto evita llamar a set_volume() 60 veces por segundo, lo cual saturaba el mixer y causaba distorsión.
                 if abs(pygame.mixer.music.get_volume() - 0.5) > 0.01:
                     pygame.mixer.music.set_volume(0.5)
-        
+
         elif self.GAME_STATE == GameState.PAUSE:
-            
+
             # Misma lógica: solo ajustar si el volumen no es ya 0.2 aproximadamente.
             if abs(pygame.mixer.music.get_volume() - 0.2) > 0.01:
                 pygame.mixer.music.set_volume(0.2)
-        
-        elif (self.GAME_STATE == GameState.GAME_OVER
-            or self.GAME_STATE == GameState.VICTORY):
-            
+
+        elif (
+            self.GAME_STATE == GameState.GAME_OVER
+            or self.GAME_STATE == GameState.VICTORY
+        ):
+
             pygame.mixer.music.pause()
 
         elif self.GAME_STATE == GameState.MAIN_MENU:
-            
+
             if not pygame.mixer.music.get_busy():
                 pygame.mixer.music.play(-1)
-                
+
             else:
                 pygame.mixer.music.unpause()
 
@@ -343,7 +347,7 @@ class GameMaster:
         # Funcion que se encarga de dibujar los diferentes estados del juego
 
         if self.GAME_STATE == GameState.MAIN_MENU:
-            screen.blit(background, (0, 0)) # Draw background
+            screen.blit(background, (0, 0))  # Draw background
             self.display_main_menu(screen)
             self.draw_health_UI(screen, player)
 
@@ -356,7 +360,6 @@ class GameMaster:
 
                 if hasattr(sprite.image, "pause"):
                     sprite.image.pause()
-
 
             player.draw(screen)
             self.draw_health_UI(screen, player)
@@ -386,12 +389,12 @@ class GameMaster:
             for sprite in self.all_sprites:
                 if sprite != player:
                     sprite.draw(screen)
-                
+
                 # if hasattr(sprite, "hitbox"):
                 #     pygame.draw.rect(screen, (255, 0, 0), sprite.hitbox, 1)  # debug hitboxes
                 # else:
                 #     pygame.draw.rect(screen, (255, 0, 0), sprite.rect, 1)  # debug rects
-                
+
                 # call to .draw() method from GameObjects that can handle gifs
             player.draw(screen)
             player.draw_attack(screen)
@@ -426,56 +429,77 @@ class GameMaster:
             )
             # Dibujamos la sombra en la pantalla antes que el texto principal
             screen.blit(shadow_surf, shadow_rect)
-        
+
         # Renderizamos el texto principal en el color deseado.
         # El segundo argumento 'False' desactiva el antialiasing para un estilo pixel-art más nítido.
         text_surf = font.render(text, False, color)
-        
+
         # Obtenemos el rectángulo del texto y lo centramos horizontalmente en la pantalla,
         # usando la coordenada Y proporcionada.
         text_rect = text_surf.get_rect(center=(screen.get_width() / 2, center_y))
-        
+
         # Dibujamos el texto principal en la pantalla
         screen.blit(text_surf, text_rect)
-        
+
         # Retornamos el rectángulo del texto por si se necesita para detectar colisiones (ej. botones)
         return text_rect
 
     def draw_button(self, screen, text, font, color, hover_color, center_y, mouse_pos):
         # Helper: Botón de texto interactivo con efecto 'hover' (cambio de color al pasar el mouse)
-        
+
         # Calculate rect to check hover
         temp_surf = font.render(text, False, color)
         temp_rect = temp_surf.get_rect(center=(screen.get_width() / 2, center_y))
-        
+
         is_hovered = temp_rect.collidepoint(mouse_pos)
         actual_color = hover_color if is_hovered else color
-        
+
         # Draw text with shadow using the helper
         return self.draw_text_centered(screen, text, font, actual_color, center_y)
 
     def display_main_menu(self, screen: pygame.Surface):
-        
+
         # Title
-        self.draw_text_centered(screen, "PYGAME KNIGHT", self.title_font, (255, 255, 255), 180)
-        
+        self.draw_text_centered(
+            screen, "PYGAME KNIGHT", self.title_font, (255, 255, 255), 180
+        )
+
         # Start Button
         mouse_pos = self.get_mouse_pos()
-        
+
         self.start_button_rect = self.draw_button(
-            screen, "START GAME", self.button_font, (200, 200, 200), (255, 215, 0), 320, mouse_pos
+            screen,
+            "START GAME",
+            self.button_font,
+            (200, 200, 200),
+            (255, 215, 0),
+            320,
+            mouse_pos,
         )
-        
+
         # Information Button
         self.information_button_rect = self.draw_button(
-            screen, "HOW TO PLAY", self.button_font, (200, 200, 200), (255, 215, 0), 390, mouse_pos
+            screen,
+            "HOW TO PLAY",
+            self.button_font,
+            (200, 200, 200),
+            (255, 215, 0),
+            390,
+            mouse_pos,
         )
-        
+
         # Hint
-        self.draw_text_centered(screen, "Press Enter or Click to Start", self.subtitle_font, (150, 150, 150), 450, shadow=False)
+        self.draw_text_centered(
+            screen,
+            "Press Enter or Click to Start",
+            self.subtitle_font,
+            (150, 150, 150),
+            450,
+            shadow=False,
+        )
 
     def display_pause_menu(self, screen: pygame.Surface):
-        
+
         # Overlay: Oscurece el fondo del juego para resaltar el menú
         screen.blit(self.overlay, (0, 0))
 
@@ -486,34 +510,53 @@ class GameMaster:
 
         # Resume Button
         self.resume_button_rect = self.draw_button(
-            screen, "RESUME", self.button_font, (200, 200, 200), (255, 215, 0), 260, mouse_pos
+            screen,
+            "RESUME",
+            self.button_font,
+            (200, 200, 200),
+            (255, 215, 0),
+            260,
+            mouse_pos,
         )
 
         # Menu Button
         self.return_button_rect = self.draw_button(
-            screen, "MAIN MENU", self.button_font, (200, 200, 200), (255, 215, 0), 330, mouse_pos
+            screen,
+            "MAIN MENU",
+            self.button_font,
+            (200, 200, 200),
+            (255, 215, 0),
+            330,
+            mouse_pos,
         )
 
     def display_game_over_screen(self, screen: pygame.Surface):
-        
+
         # Overlay: Fondo oscuro dramático para Game Over
         screen.blit(self.overlay, (0, 0))
 
         # Title
-        self.draw_text_centered(screen, "GAME OVER", self.title_font, (200, 50, 50), 200)
+        self.draw_text_centered(
+            screen, "GAME OVER", self.title_font, (200, 50, 50), 200
+        )
 
         # Subtitle
         self.draw_text_centered(
             screen, "Press Enter to Restart", self.subtitle_font, (200, 200, 200), 300
         )
-        
+
         # Exit hint
         self.draw_text_centered(
-            screen, "Press ESC to Quit", self.subtitle_font, (150, 150, 150), 350, shadow=False
+            screen,
+            "Press ESC to Quit",
+            self.subtitle_font,
+            (150, 150, 150),
+            350,
+            shadow=False,
         )
 
     def display_victory_screen(self, screen: pygame.Surface):
-        
+
         # Overlay: Fondo oscuro para resaltar el mensaje de victoria
         screen.blit(self.overlay, (0, 0))
 
@@ -522,16 +565,22 @@ class GameMaster:
 
         # Subtitle
         self.draw_text_centered(
-            screen, "Press Enter to Play Again", self.subtitle_font, (200, 200, 200), 300
+            screen,
+            "Press Enter to Play Again",
+            self.subtitle_font,
+            (200, 200, 200),
+            300,
         )
 
     def display_information_screen(self, screen: pygame.Surface):
-        
+
         # Overlay: Fondo oscuro para resaltar el mensaje de información
         screen.blit(self.overlay, (0, 0))
 
         # Title
-        self.draw_text_centered(screen, "HOW TO PLAY", self.title_font, (255, 255, 255), 150)
+        self.draw_text_centered(
+            screen, "HOW TO PLAY", self.title_font, (255, 255, 255), 150
+        )
 
         # Instructions
         instructions = [
@@ -554,34 +603,42 @@ class GameMaster:
             self.draw_text_centered(
                 screen, instruction, self.subtitle_font, (200, 200, 200), 250 + i * 40
             )
-        
+
         self.draw_text_centered(
-            screen, "Press ESC to Return", self.subtitle_font, (150, 150, 150), 500, shadow=False
+            screen,
+            "Press ESC to Return",
+            self.subtitle_font,
+            (150, 150, 150),
+            500,
+            shadow=False,
         )
 
-
     def hitbox_collision(self, player: Player, enemy: Enemy):
-        
-        player_hitbox = getattr(player, 'hitbox', player.rect)
-        
-        enemy_hitbox = getattr(enemy, 'hitbox', enemy.rect)
 
-        return player_hitbox.colliderect(enemy_hitbox) #<- Devuelve True si hay colision entre hitboxes del player contre el enemy
-    
+        player_hitbox = getattr(player, "hitbox", player.rect)
+
+        enemy_hitbox = getattr(enemy, "hitbox", enemy.rect)
+
+        return player_hitbox.colliderect(
+            enemy_hitbox
+        )  # <- Devuelve True si hay colision entre hitboxes del player contre el enemy
+
     def handle_enemies_collision(self, player: Player, delta_time: float):
 
         # Funcion que se encarga de manejar las colisiones entre el jugador y los enemigos
 
         # lista que comprueba colisiones entre el jugador y los enemigos
-        enemies_collision = pygame.sprite.spritecollide(player, self.enemy_group, False, collided=self.hitbox_collision)
-        
+        enemies_collision = pygame.sprite.spritecollide(
+            player, self.enemy_group, False, collided=self.hitbox_collision
+        )
+
         if player.action_state == States.DEAD:
             return  # si el jugador esta muerto, no se comprueban colisiones
 
         if enemies_collision:
 
             for enemy in enemies_collision:
-                
+
                 if enemy.state == States.DEAD:
                     continue  # si el enemigo esta muerto, no se le aplica daño al jugador
 
@@ -592,12 +649,14 @@ class GameMaster:
                     # si no esta en esos estados, el jugador recibe daño
                     player.take_damage()
                     self.trigger_slow_motion(delta_time)
-                    self.trigger_shake(0.3, 10) # Sacudida fuerte de la pantalla al recibir daño
+                    self.trigger_shake(
+                        0.3, 10
+                    )  # Sacudida fuerte de la pantalla al recibir daño
                     functions.knockback(player, enemy, True)
-                    
+
                     self.is_animating_broken_mask = True
-                    #esta linea activa la animacion de mascara rota en el GameMaster
-                    
+                    # esta linea activa la animacion de mascara rota en el GameMaster
+
     def handle_player_attack_collision(self, player: Player):
 
         # Funcion que se encarga de manejar las colisiones entre el ataque del jugador y los enemigos
@@ -606,7 +665,7 @@ class GameMaster:
             # Si el jugador tiene una hitbox activa y esta atacando
 
             for enemy in self.enemy_group:
-                
+
                 if enemy.state == States.DEAD:
                     continue  # si el enemigo esta muerto, no se le aplica daño
 
@@ -621,7 +680,7 @@ class GameMaster:
                             enemy.take_damage()
                             functions.knockback(player, enemy, False)
                             player.trigger_pogo()
-                            #self.trigger_shake(0.1, 5) # Sacudida media al hacer pogo
+                            # self.trigger_shake(0.1, 5) # Sacudida media al hacer pogo
                             player.enemies_attacked.append(enemy)
 
                         # si el jugador tiene cualquier otra orientacion, no se aplica pogo y el enemigo recibe daño
@@ -629,7 +688,7 @@ class GameMaster:
                             enemy.take_damage()
                             functions.knockback(player, enemy, False)
                             player.start_attack_recoil()
-                            #self.trigger_shake(0.1, 3) # Sacudida leve al golpear normal
+                            # self.trigger_shake(0.1, 3) # Sacudida leve al golpear normal
                             player.enemies_attacked.append(enemy)
                     else:
                         # si el enemigo ha sido atacado ya en este ataque, no se le aplica daño
@@ -639,7 +698,12 @@ class GameMaster:
                     pass
 
     def returnEnemyWithPosition(
-        self, screen: pygame.Surface, ground: Platform, enemy: Enemy, position: Position, facing: Orientation,
+        self,
+        screen: pygame.Surface,
+        ground: Platform,
+        enemy: Enemy,
+        position: Position,
+        facing: Orientation,
     ):
         # funcion que devuelve un enemigo en una posicion determinada de la pantalla
 
@@ -662,7 +726,7 @@ class GameMaster:
         else:
             # si no existe la clave, se retorna el enemigo en la posicion por defecto (centro de la pantalla)
             new_enemy.set_position(screen.get_width() / 2, ground.rect.top, True)
-            
+
             return new_enemy
 
     def current_phase(
@@ -712,54 +776,97 @@ class GameMaster:
             "phase_1": {
                 "wave_1": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE, Orientation.LEFT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.GROUND_RIGHT_EDGE,
+                        Orientation.LEFT,
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE, Orientation.RIGHT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.GROUND_LEFT_EDGE,
+                        Orientation.RIGHT,
                     ),
                 ],
                 "wave_2": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_RIGHT_EDGE, Orientation.LEFT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.GROUND_RIGHT_EDGE,
+                        Orientation.LEFT,
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.GROUND_LEFT_EDGE, Orientation.RIGHT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.GROUND_LEFT_EDGE,
+                        Orientation.RIGHT,
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.MIDDLE_TOP_EDGE, Orientation.LEFT),
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.MIDDLE_TOP_EDGE,
+                        Orientation.LEFT,
+                    ),
                 ],
             },
             "phase_2": {
                 "wave_1": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE, Orientation.LEFT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.QUARTER_TOP_EDGE,
+                        Orientation.LEFT,
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE, Orientation.RIGHT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.THREE_QUARTER_TOP_EDGE,
+                        Orientation.RIGHT,
                     ),
-                    
                     self.returnEnemyWithPosition(
-                        screen, ground, Gruzzer, Position.MIDDLE_RIGHT_EDGE, Orientation.LEFT
+                        screen,
+                        ground,
+                        Gruzzer,
+                        Position.MIDDLE_RIGHT_EDGE,
+                        Orientation.LEFT,
                     ),
                 ],
                 "wave_2": [
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.QUARTER_TOP_EDGE, Orientation.LEFT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.QUARTER_TOP_EDGE,
+                        Orientation.LEFT,
                     ),
                     self.returnEnemyWithPosition(
-                        screen, ground, Crawlid, Position.THREE_QUARTER_TOP_EDGE, Orientation.RIGHT
+                        screen,
+                        ground,
+                        Crawlid,
+                        Position.THREE_QUARTER_TOP_EDGE,
+                        Orientation.RIGHT,
                     ),
-                    
                     self.returnEnemyWithPosition(
-                        screen, ground, Gruzzer, Position.MIDDLE_RIGHT_EDGE, Orientation.LEFT
+                        screen,
+                        ground,
+                        Gruzzer,
+                        Position.MIDDLE_RIGHT_EDGE,
+                        Orientation.LEFT,
                     ),
-                    
                     self.returnEnemyWithPosition(
-                        screen, ground, Gruzzer, Position.MIDDLE_LEFT_EDGE, Orientation.LEFT
+                        screen,
+                        ground,
+                        Gruzzer,
+                        Position.MIDDLE_LEFT_EDGE,
+                        Orientation.LEFT,
                     ),
-                    
-                    
-                    
                 ],
             },
         }
@@ -777,7 +884,7 @@ class GameMaster:
         self.GAME_PHASE = 0
         self.GAME_WAVE = 0
         self.timer = 0.0
-        self.shake_timer = 0.0 # Resetear temblor al reiniciar
+        self.shake_timer = 0.0  # Resetear temblor al reiniciar
 
     def mouse_pos(self, real_screen: pygame.Surface):
 
@@ -816,133 +923,193 @@ class GameMaster:
             self.is_full_screen = True
         else:
             self.is_full_screen = False
-    
-    def health_UI_assets(self):
-        
-        Health_UI = {
-            "0_masks": pygame.image.load("./assets/UI_Health/0_Masks.png").convert_alpha(),
-            "1_masks": pygame.image.load("./assets/UI_Health/1_Mask.png").convert_alpha(),
-            "2_masks": pygame.image.load("./assets/UI_Health/2_Masks.png").convert_alpha(),
-            "3_masks": pygame.image.load("./assets/UI_Health/3_Masks.png").convert_alpha(),
-            "4_masks": pygame.image.load("./assets/UI_Health/4_Masks.png").convert_alpha(),
-            "5_masks": pygame.image.load("./assets/UI_Health/5_Masks.png").convert_alpha()
-        }
-        
-        return Health_UI
-    
-    def broken_mask_animations(self):
-        
-        broken_masks_animation = {
-            
-            "broken_mask_1": {
-                "1": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_1.png").convert_alpha(),
-                "2": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_2.png").convert_alpha(),
-                "3": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_3.png").convert_alpha(),
-                "4": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_4.png").convert_alpha(),
-                "5": pygame.image.load("./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_5.png").convert_alpha(),
-            },
 
-            "broken_mask_2": {
-                "1": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_1.png").convert_alpha(),
-                "2": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_2.png").convert_alpha(),
-                "3": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_3.png").convert_alpha(),
-                "4": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_4.png").convert_alpha(),
-                "5": pygame.image.load("./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_5.png").convert_alpha(),
-                        },
-            
-            "broken_mask_3": {
-                "1": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_1.png").convert_alpha(),
-                "2": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_2.png").convert_alpha(),
-                "3": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_3.png").convert_alpha(),
-                "4": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_4.png").convert_alpha(),
-                "5": pygame.image.load("./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_5.png").convert_alpha(),
-            },
-            
-            "broken_mask_4": {
-                "1": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_1.png").convert_alpha(),
-                "2": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_2.png").convert_alpha(),
-                "3": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_3.png").convert_alpha(),
-                "4": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_4.png").convert_alpha(),
-                "5": pygame.image.load("./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_5.png").convert_alpha(),
-            },
-            
-            "broken_mask_5": {
-                "1": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_1.png").convert_alpha(),
-                "2": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_2.png").convert_alpha(),
-                "3": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_3.png").convert_alpha(),
-                "4": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_4.png").convert_alpha(),
-                "5": pygame.image.load("./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_5.png").convert_alpha(),
-            },
-        
+    def health_UI_assets(self):
+
+        Health_UI = {
+            "0_masks": pygame.image.load(
+                "./assets/UI_Health/0_Masks.png"
+            ).convert_alpha(),
+            "1_masks": pygame.image.load(
+                "./assets/UI_Health/1_Mask.png"
+            ).convert_alpha(),
+            "2_masks": pygame.image.load(
+                "./assets/UI_Health/2_Masks.png"
+            ).convert_alpha(),
+            "3_masks": pygame.image.load(
+                "./assets/UI_Health/3_Masks.png"
+            ).convert_alpha(),
+            "4_masks": pygame.image.load(
+                "./assets/UI_Health/4_Masks.png"
+            ).convert_alpha(),
+            "5_masks": pygame.image.load(
+                "./assets/UI_Health/5_Masks.png"
+            ).convert_alpha(),
         }
-        
+
+        return Health_UI
+
+    def broken_mask_animations(self):
+
+        broken_masks_animation = {
+            "broken_mask_1": {
+                "1": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_1.png"
+                ).convert_alpha(),
+                "2": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_2.png"
+                ).convert_alpha(),
+                "3": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_3.png"
+                ).convert_alpha(),
+                "4": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_4.png"
+                ).convert_alpha(),
+                "5": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_1_animation/Broken_Mask_1_5.png"
+                ).convert_alpha(),
+            },
+            "broken_mask_2": {
+                "1": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_1.png"
+                ).convert_alpha(),
+                "2": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_2.png"
+                ).convert_alpha(),
+                "3": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_3.png"
+                ).convert_alpha(),
+                "4": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_4.png"
+                ).convert_alpha(),
+                "5": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_2_animation/Broken_Mask_2_5.png"
+                ).convert_alpha(),
+            },
+            "broken_mask_3": {
+                "1": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_1.png"
+                ).convert_alpha(),
+                "2": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_2.png"
+                ).convert_alpha(),
+                "3": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_3.png"
+                ).convert_alpha(),
+                "4": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_4.png"
+                ).convert_alpha(),
+                "5": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_3_animation/Broken_Mask_3_5.png"
+                ).convert_alpha(),
+            },
+            "broken_mask_4": {
+                "1": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_1.png"
+                ).convert_alpha(),
+                "2": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_2.png"
+                ).convert_alpha(),
+                "3": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_3.png"
+                ).convert_alpha(),
+                "4": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_4.png"
+                ).convert_alpha(),
+                "5": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_4_animation/Broken_Mask_4_5.png"
+                ).convert_alpha(),
+            },
+            "broken_mask_5": {
+                "1": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_1.png"
+                ).convert_alpha(),
+                "2": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_2.png"
+                ).convert_alpha(),
+                "3": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_3.png"
+                ).convert_alpha(),
+                "4": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_4.png"
+                ).convert_alpha(),
+                "5": pygame.image.load(
+                    "./assets/UI_Health/broken_mask_5_animation/Broken_Mask_5_5.png"
+                ).convert_alpha(),
+            },
+        }
+
         return broken_masks_animation
-    
+
     def draw_health_UI(self, screen: pygame.Surface, player: Player):
         # Funcion que dibuja la UI de la salud del jugador en pantalla
-        
+
         player_current_health = str(player.HP) + "_masks"
-    
+
         if player_current_health in self.Health_UI:
-            
+
             screen.blit(self.Health_UI[player_current_health], (10, 10))
-    
-    def trigger_broken_mask_animation(self, screen: pygame.Surface, player: Player, delta_time: float):
-        
+
+    def trigger_broken_mask_animation(
+        self, screen: pygame.Surface, player: Player, delta_time: float
+    ):
+
         if self.is_animating_broken_mask == True:
-        
+
             self.broken_mask_timer += delta_time
-        #self.is_animating_broken_mask = True
-            
+            # self.is_animating_broken_mask = True
+
             broken_mask_key = "broken_mask_" + str(player.max_HP - player.HP)
             # Get the key (to search into the dicctionary) for the broken mask animation based on how much health was lost
-            
+
             if broken_mask_key in self.broken_masks_animation:
-                
+
                 total_frames = len(self.broken_masks_animation[broken_mask_key])
                 # Calculate total frames in the animation
-                
+
                 frame_time = self.broken_mask_animation_duration / total_frames
                 # Calculate the time per frame
-                
-                actual_frame = min(int(self.broken_mask_timer / frame_time) + 1, total_frames)
+
+                actual_frame = min(
+                    int(self.broken_mask_timer / frame_time) + 1, total_frames
+                )
                 # Calculate the current frame based on the timer. +1 because frames start at 1 in the dicctionary
-                    
-                
+
                 if actual_frame > total_frames:
-                    
+
                     player_current_health = str(player.HP) + "_masks"
                     screen.blit(self.Health_UI[player_current_health], (10, 10))
-                    #if for some reason actual frame is out of bounds, draw the normal health UI
+                    # if for some reason actual frame is out of bounds, draw the normal health UI
                 else:
-                    
-                    current_frame = self.broken_masks_animation[broken_mask_key][str(actual_frame)]
+
+                    current_frame = self.broken_masks_animation[broken_mask_key][
+                        str(actual_frame)
+                    ]
                     screen.blit(current_frame, (10, 10))
 
-        
         if self.broken_mask_timer >= self.broken_mask_animation_duration:
-            #stop timer
+            # stop timer
             self.is_animating_broken_mask = False
             self.broken_mask_timer = 0.0
-    
+
     def trigger_slow_motion(self, delta_time: float):
         # Function that triggers slow motion effect for a short duration
         self.slow_motion_timer = self.slow_motion_duration
-    
-    def slow_motion(self, delta_time: float): 
-        
+
+    def slow_motion(self, delta_time: float):
+
         slow_time_scale = 0.3  # 30% speed
-        
+
         if self.slow_motion_timer > 0.0:
             self.slow_motion_timer -= delta_time
             delta_time *= slow_time_scale
             return delta_time
         else:
             return delta_time
-        
-    def trigger_shake(self, duration: float, magnitude: int): 
+
+    def trigger_shake(self, duration: float, magnitude: int):
         # Activa el temporizador y define la fuerza del temblor
-        #magnitude es el maximo desplazamiento en pixeles de la pantalla durante el temblor
+        # magnitude es el maximo desplazamiento en pixeles de la pantalla durante el temblor
         self.shake_timer = duration
         self.shake_magnitude = magnitude
 
@@ -950,7 +1117,7 @@ class GameMaster:
         # Si el timer está activo, genera coordenadas aleatorias para desplazar la pantalla
         if self.shake_timer > 0:
             self.shake_timer -= delta_time
-            # Se usa el rango negativo a positivo (-magnitud, +magnitud) 
+            # Se usa el rango negativo a positivo (-magnitud, +magnitud)
             # para que la vibración ocurra en ambas direcciones (izquierda/derecha o arriba/abajo) respecto al centro (0,0)
             offset_x = random.randint(-self.shake_magnitude, self.shake_magnitude)
             offset_y = random.randint(-self.shake_magnitude, self.shake_magnitude)
