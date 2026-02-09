@@ -62,7 +62,7 @@ class GameMaster:
         
         #--- SOUNDS ---
         self.enemy_sounds_dict = enemy_sounds()
-        self.background_music = pygame.mixer.music.load("./assets/audio_assets/Queens_Garden.mp3")
+        pygame.mixer.music.load("./assets/audio_assets/Queens_Garden.mp3")
         
         # --- UI ASSETS ---
         # Overlay semitransparente para oscurecer el fondo en menús (Pausa, Game Over, Victoria)
@@ -291,11 +291,18 @@ class GameMaster:
                 pygame.mixer.music.play(-1)
             else:
                 pygame.mixer.music.unpause()
-                pygame.mixer.music.set_volume(0.5)
+                # OPTIMIZACIÓN DE AUDIO:
+                # abs() obtiene el valor absoluto de la diferencia.
+                # Solo cambiamos el volumen si la diferencia entre el actual y el deseado (0.5) es significativa (> 0.01).
+                # Esto evita llamar a set_volume() 60 veces por segundo, lo cual saturaba el mixer y causaba distorsión.
+                if abs(pygame.mixer.music.get_volume() - 0.5) > 0.01:
+                    pygame.mixer.music.set_volume(0.5)
         
         elif self.GAME_STATE == GameState.PAUSE:
             
-            pygame.mixer.music.set_volume(0.2)
+            # Misma lógica: solo ajustar si el volumen no es ya 0.2 aproximadamente.
+            if abs(pygame.mixer.music.get_volume() - 0.2) > 0.01:
+                pygame.mixer.music.set_volume(0.2)
         
         elif (self.GAME_STATE == GameState.GAME_OVER
             or self.GAME_STATE == GameState.VICTORY):
@@ -854,9 +861,10 @@ class GameMaster:
             return delta_time
         else:
             return delta_time
-            
-    def trigger_shake(self, duration, magnitude):
+        
+    def trigger_shake(self, duration: float, magnitude: int): 
         # Activa el temporizador y define la fuerza del temblor
+        #magnitude es el maximo desplazamiento en pixeles de la pantalla durante el temblor
         self.shake_timer = duration
         self.shake_magnitude = magnitude
 

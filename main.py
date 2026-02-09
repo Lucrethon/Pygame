@@ -5,9 +5,9 @@ import models.main_player as main_player
 
 
 # Initiate pygame
-# Ajustamos a 48000Hz (estándar moderno) y reducimos el buffer a 256 para mínima latencia.
-# Si escuchas "crujidos" o distorsión, sube el 256 a 512 nuevamente.
-pygame.mixer.pre_init(44100, -16, 2, 2048)
+# Aumentamos el buffer a 4096. Esto añade un poco de latencia pero asegura que el buffer
+# siempre tenga datos, eliminando la distorsión o "crujidos" por falta de procesamiento (buffer underrun).
+pygame.mixer.pre_init(44100, -16, 2, 2048)  # Frecuencia, tamaño de muestra, canales, tamaño del buffer
 pygame.init()
 
 
@@ -72,6 +72,12 @@ while running:
             running = False
 
     game_master.handle_events(events, player, virtual_canvas, ground, screen)
+
+    # Si se llamó a pygame.quit() dentro de handle_events (ej. tecla ESC),
+    # salimos del bucle inmediatamente para evitar errores al intentar usar el mixer o dibujar.
+    if not pygame.get_init():
+        running = False
+        break
 
     # 3. UPDATES
 
