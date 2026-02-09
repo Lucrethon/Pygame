@@ -28,7 +28,9 @@ def resize(sprite, screen):
 def setup_screen(isFullScreen=False):
 
     if isFullScreen:
-        screen = pygame.display.set_mode((1920, 1080), pygame.FULLSCREEN | pygame.SCALED)
+        screen = pygame.display.set_mode(
+            (1920, 1080), pygame.FULLSCREEN | pygame.SCALED
+        )
 
     else:
         screen = pygame.display.set_mode((960, 540))
@@ -73,13 +75,12 @@ def knockback(player, enemy, player_beaten=False):
 
     else:
         x_direction = 1  # empuje a la derecha
-    
+
     if sprite_beaten.rect.centery < sprite_beater.rect.centery:
         y_direction = -1  # empuje hacia arriba
 
     else:
         y_direction = 1  # empuje hacia abajo
-    
 
     # --- ADD UP AND DOWN DIRECTION --
 
@@ -152,20 +153,23 @@ def set_up_ground(screen):
 
     return ground
 
+
 def enemy_sounds():
 
     enemy_sounds = {
-
         "Crawlid": {
-            "hurt": pygame.mixer.Sound("./assets/audio_assets/enemies/enemy_damage.wav"),
+            "hurt": pygame.mixer.Sound(
+                "./assets/audio_assets/enemies/enemy_damage.wav"
+            ),
         },
-        
         "Gruzzer": {
-            "hurt": pygame.mixer.Sound("./assets/audio_assets/enemies/enemy_damage.wav"),
-            "flying": pygame.mixer.Sound("./assets/audio_assets/enemies/buzzer/bursting_buzzer_fly_loop.wav"),
+            "hurt": pygame.mixer.Sound(
+                "./assets/audio_assets/enemies/enemy_damage.wav"
+            ),
+            "flying": pygame.mixer.Sound(
+                "./assets/audio_assets/enemies/buzzer/bursting_buzzer_fly_loop.wav"
+            ),
         },
-        
-        
     }
 
     return enemy_sounds

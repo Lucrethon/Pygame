@@ -7,7 +7,9 @@ import models.main_player as main_player
 # Initiate pygame
 # Aumentamos el buffer a 4096. Esto añade un poco de latencia pero asegura que el buffer
 # siempre tenga datos, eliminando la distorsión o "crujidos" por falta de procesamiento (buffer underrun).
-pygame.mixer.pre_init(44100, -16, 2, 2048)  # Frecuencia, tamaño de muestra, canales, tamaño del buffer
+pygame.mixer.pre_init(
+    44100, -16, 2, 2048
+)  # Frecuencia, tamaño de muestra, canales, tamaño del buffer
 pygame.init()
 
 
@@ -28,9 +30,9 @@ virtual_canvas = pygame.Surface((virtual_width, virtual_height))
 # background image
 background = pygame.image.load("./assets/Background_960x540.png").convert()
 
-#Logo image
+# Logo image
 logo_image = pygame.image.load("./assets/Logo.png").convert_alpha()
-#Display logo in the top left corner of the screen
+# Display logo in the top left corner of the screen
 pygame.display.set_icon(logo_image)
 # Set the window titles
 pygame.display.set_caption("Pygame Knight")
