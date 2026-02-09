@@ -36,6 +36,7 @@ class GameState(Enum):
     GAME_OVER = 5
     VICTORY = 6
     TRANSITION = 7
+    INFORMATION = 8
 
 
 class Position(Enum):

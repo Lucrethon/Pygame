@@ -45,6 +45,7 @@ class GameMaster:
         self.start_button_rect = None
         self.resume_button_rect = None
         self.return_button_rect = None
+        self.information_button_rect = None
         self.game_phases = None
         self.waves_per_phase = None
         self.is_full_screen = False
@@ -90,6 +91,7 @@ class GameMaster:
             or self.GAME_STATE == GameState.PAUSE
             or self.GAME_STATE == GameState.GAME_OVER
             or self.GAME_STATE == GameState.VICTORY
+            or self.GAME_STATE == GameState.INFORMATION
         ):
 
             pass
@@ -210,6 +212,9 @@ class GameMaster:
                         self.GAME_STATE = GameState.SPAWNING
                         self.GAME_PHASE = 1
                         self.GAME_WAVE = 1
+                    
+                    elif self.information_button_rect.collidepoint(mouse_pos):
+                        self.GAME_STATE = GameState.INFORMATION
 
                 elif event.type == pygame.KEYDOWN:
 
@@ -220,6 +225,15 @@ class GameMaster:
 
                     elif event.key == pygame.K_ESCAPE:
                         pygame.quit()
+                        
+            #------------ INFORMATION ------------
+            
+            elif self.GAME_STATE == GameState.INFORMATION:
+                
+                if event.type == pygame.KEYDOWN:
+                    
+                    if event.key == pygame.K_ESCAPE:
+                        self.GAME_STATE = GameState.MAIN_MENU
 
             # ------------ PAUSE ------------
 
@@ -359,6 +373,11 @@ class GameMaster:
             self.display_victory_screen(screen)
             self.draw_health_UI(screen, player)
 
+        elif self.GAME_STATE == GameState.INFORMATION:
+            screen.blit(background, (0, 0))
+            self.display_information_screen(screen)
+            self.draw_health_UI(screen, player)
+
         else:
             # ground platform se dibuja primero
             ground.draw(screen)
@@ -394,14 +413,32 @@ class GameMaster:
 
     def draw_text_centered(self, screen, text, font, color, center_y, shadow=True):
         # Helper: Dibuja texto centrado horizontalmente con sombra opcional para mejor contraste
+        # Esta función toma la superficie de destino, el texto a mostrar, la fuente, el color,
+        # la posición Y central y un booleano para activar/desactivar la sombra.
+
         if shadow:
+            # Si la sombra está activada, primero renderizamos el texto en negro
             shadow_surf = font.render(text, False, (0, 0, 0))
-            shadow_rect = shadow_surf.get_rect(center=(screen.get_width() / 2 + 3, center_y + 3))
+            # Calculamos la posición de la sombra con un ligero desplazamiento (+3 píxeles en X y Y)
+            # para crear el efecto de profundidad.
+            shadow_rect = shadow_surf.get_rect(
+                center=(screen.get_width() / 2 + 3, center_y + 3)
+            )
+            # Dibujamos la sombra en la pantalla antes que el texto principal
             screen.blit(shadow_surf, shadow_rect)
         
+        # Renderizamos el texto principal en el color deseado.
+        # El segundo argumento 'False' desactiva el antialiasing para un estilo pixel-art más nítido.
         text_surf = font.render(text, False, color)
+        
+        # Obtenemos el rectángulo del texto y lo centramos horizontalmente en la pantalla,
+        # usando la coordenada Y proporcionada.
         text_rect = text_surf.get_rect(center=(screen.get_width() / 2, center_y))
+        
+        # Dibujamos el texto principal en la pantalla
         screen.blit(text_surf, text_rect)
+        
+        # Retornamos el rectángulo del texto por si se necesita para detectar colisiones (ej. botones)
         return text_rect
 
     def draw_button(self, screen, text, font, color, hover_color, center_y, mouse_pos):
@@ -424,8 +461,14 @@ class GameMaster:
         
         # Start Button
         mouse_pos = self.get_mouse_pos()
+        
         self.start_button_rect = self.draw_button(
             screen, "START GAME", self.button_font, (200, 200, 200), (255, 215, 0), 320, mouse_pos
+        )
+        
+        # Information Button
+        self.information_button_rect = self.draw_button(
+            screen, "HOW TO PLAY", self.button_font, (200, 200, 200), (255, 215, 0), 390, mouse_pos
         )
         
         # Hint
@@ -481,6 +524,40 @@ class GameMaster:
         self.draw_text_centered(
             screen, "Press Enter to Play Again", self.subtitle_font, (200, 200, 200), 300
         )
+
+    def display_information_screen(self, screen: pygame.Surface):
+        
+        # Overlay: Fondo oscuro para resaltar el mensaje de información
+        screen.blit(self.overlay, (0, 0))
+
+        # Title
+        self.draw_text_centered(screen, "HOW TO PLAY", self.title_font, (255, 255, 255), 150)
+
+        # Instructions
+        instructions = [
+            "Use Arrow Keys to Move",
+            "Press 'S' to Attack",
+            "Press Space to jump",
+            "Defeat all enemies to win!",
+        ]
+
+        # Itera sobre la lista de 'instructions' usando enumerate para obtener tanto el índice (i) como el texto (instruction).
+        for i, instruction in enumerate(instructions):
+            # Llama a la función 'draw_text_centered' para dibujar cada línea de instrucción.
+            # - screen: La superficie donde se dibujará el texto.
+            # - instruction: El texto de la instrucción actual.
+            # - self.subtitle_font: La fuente a utilizar.
+            # - (200, 200, 200): El color del texto (gris claro).
+            # - 250 + i * 40: La posición vertical (Y) del texto. Comienza en 250 y aumenta en 40 píxeles
+            #   por cada línea, creando un espaciado vertical uniforme entre las instrucciones.
+            self.draw_text_centered(
+                screen, instruction, self.subtitle_font, (200, 200, 200), 250 + i * 40
+            )
+        
+        self.draw_text_centered(
+            screen, "Press ESC to Return", self.subtitle_font, (150, 150, 150), 500, shadow=False
+        )
+
 
     def hitbox_collision(self, player: Player, enemy: Enemy):
         
