@@ -54,8 +54,8 @@ Since I created all the art assets, here is a look at how the game's visual styl
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/pygame-knight.git
-    cd pygame-knight
+    git clone https://github.com/Lucrethon/Pygame_Knight
+    cd Pygame_Knight
     ```
 
 2.  **Create a virtual environment (Optional but recommended):**
