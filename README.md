@@ -30,14 +30,18 @@ Since I created all the art assets, here is a look at how the game's visual styl
 
 ### Character Design
 *Evolution from the first prototype to the final Knight design.*
+
 ![Character Evolution](concept_art/Character_evolution.gif)
 
 ### Background & Environment
 *Process of creating the arena background.*
+
 ![Background Process](concept_art/background_collage_evolution.png)
 
 ### Game Evolution
-*Timelapse of the game's development progress.*
+
+Check out this YouTube video to see the project's evolution—from the early stages using simple red squares to test logic, to the final version featuring hand-drawn pixel art and custom animations.
+
 [![Game Evolution](https://img.youtube.com/vi/TU_ID_DE_VIDEO/0.jpg)](https://youtu.be/2UizuHAcMoA?si=LqtExcCe87xeWq7z)
 
 ## 🎮 Controls
@@ -50,7 +54,16 @@ Since I created all the art assets, here is a look at how the game's visual styl
 | **ESC** | Pause / Back |
 | **Enter** | Select / Start |
 
-## 🛠️ Installation & Setup
+
+## 🚀 How to Play
+
+### 🎮 Quick Start for Players (Windows Only)
+If you just want to play the game without setting up the code, you can download the latest version for Windows from the **[Releases](https://github.com/Lucrethon/Pygame_Knight/releases)** section. Simply download the `.zip` file, extract it, and run the `.exe`.
+
+---
+
+### 🛠️ Development Setup (Manual Installation)
+> **Note:** The following steps must be performed using a **terminal** (Command Prompt/PowerShell on Windows, or Terminal on Linux/macOS).
 
 1.  **Clone the repository:**
     ```bash
@@ -60,10 +73,13 @@ Since I created all the art assets, here is a look at how the game's visual styl
 
 2.  **Create a virtual environment (Optional but recommended):**
     ```bash
+    # For Windows
     python -m venv venv
-    # Windows
+
+    # For Mac/Linux
     venv\Scripts\activate
-    # Mac/Linux
+
+    #Activate the virtual environment
     source venv/bin/activate
     ```
 
@@ -79,7 +95,7 @@ Since I created all the art assets, here is a look at how the game's visual styl
 
 ## 💻 Technologies Used
 
-*   **Language:** Python
+*   **Language:** Python 3.12
 *   **Library:** [pygame-ce](https://pyga.me/) (Community Edition)
 *   **Art Tools:** Aseprite
 
