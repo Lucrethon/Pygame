@@ -1,6 +1,5 @@
 # ⚔️ Pygame Knight (Hollow Knight-Inspired Arena)
 
-> **Status:** Finished
 
 ![Gameplay](concept_art/gameplay_gif.gif)
 
