@@ -10,8 +10,8 @@ A 2D combat arena platformer built with Python and **Pygame-ce**. Inspired by *H
 
 The game includes a complete state management system (Menu, Pause, Victory, Game Over), visual health UI with damage animations, and hit-stop effects for impactful combat.
 
-### ❤️ Origin Story
-This project was born from a pixel art illustration I originally created for my partner. I started wondering how I could make the characters in that static image move, and that curiosity led to the creation of this project.
+### 🎨 Origin Story
+This project was born from a pixel art illustration. I started wondering how I could make the characters in that static image move, and that curiosity led to the creation of this project.
 
 ![Original Illustration](concept_art/Original_Illustration.png)
 
